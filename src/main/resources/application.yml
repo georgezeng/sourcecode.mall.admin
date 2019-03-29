@@ -1,0 +1,6 @@
+spring.application.name: mall-admin
+spring.session.redis.namespace: session:${spring.application.name}
+spring:
+  datasource:
+    table:
+      prefix: merchant_
