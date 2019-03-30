@@ -61,7 +61,7 @@ public class MerchantUserController {
 
 	@RequestMapping(path = "/register/{code}")
 	public ResultBean<Void> register(@RequestBody User merchant, @PathVariable String code) {
-		Optional<CodeStore> codeStoreOp = codeStoreRepository.findByCategoryAndKey(REGISTER_CODE_KEY, merchant.getMobile());
+		Optional<CodeStore> codeStoreOp = codeStoreRepository.findByCategoryAndKey(REGISTER_CODE_KEY, merchant.getUsername());
 		AssertUtil.assertTrue(codeStoreOp.isPresent(), "验证码已过期");
 		AssertUtil.assertTrue(codeStoreOp.get().getValue().equals(code), "验证码无效");
 		userService.register(merchant);

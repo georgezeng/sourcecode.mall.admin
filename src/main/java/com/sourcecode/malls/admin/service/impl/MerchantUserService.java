@@ -8,7 +8,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import com.sourcecode.malls.admin.constants.SystemConstants;
+import com.sourcecode.malls.admin.domain.Role;
 import com.sourcecode.malls.admin.domain.User;
+import com.sourcecode.malls.admin.properties.UserProperties;
+import com.sourcecode.malls.admin.repository.jpa.impl.RoleRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.UserRepository;
 import com.sourcecode.malls.admin.util.AssertUtil;
 import com.sourcecode.malls.admin.util.RegexpUtil;
@@ -20,7 +24,13 @@ public class MerchantUserService {
 	private UserRepository repository;
 
 	@Autowired
+	private RoleRepository roleRepository;
+
+	@Autowired
 	private PasswordEncoder pwdEncoder;
+
+	@Autowired
+	private UserProperties userProperties;
 
 	public void register(User merchant) {
 		AssertUtil.assertNotNull(merchant, "没有提交用户数据");
@@ -35,7 +45,12 @@ public class MerchantUserService {
 		AssertUtil.assertTrue(!existedUser.isPresent(), "用户已存在");
 		merchant.setEnabled(true);
 		merchant.setPassword(pwdEncoder.encode(merchant.getPassword()));
+		merchant.setHeader(userProperties.getAvatar());
 		repository.save(merchant);
+		Optional<Role> role = roleRepository.findByCode(SystemConstants.ROLE_MERCHANT_USER_CODE);
+		AssertUtil.assertTrue(role.isPresent(), "商家角色不存在");
+		role.get().addUser(merchant);
+		roleRepository.save(role.get());
 	}
 
 }

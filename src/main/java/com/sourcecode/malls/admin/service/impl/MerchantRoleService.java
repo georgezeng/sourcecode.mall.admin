@@ -21,7 +21,6 @@ public class MerchantRoleService {
 		if (!roleOp.isPresent()) {
 			Role role = new Role();
 			role.setCode(SystemConstants.ROLE_MERCHANT_USER_CODE);
-			role.setDescription("商家用户角色");
 			role.setName("商家用户");
 			repository.save(role);
 		}
