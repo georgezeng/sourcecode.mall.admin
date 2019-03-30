@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import com.sourcecode.malls.admin.constants.SystemConstants;
+import com.sourcecode.malls.admin.constants.SystemConstant;
 import com.sourcecode.malls.admin.domain.Role;
 import com.sourcecode.malls.admin.domain.User;
 import com.sourcecode.malls.admin.properties.UserProperties;
@@ -47,7 +47,7 @@ public class MerchantUserService {
 		merchant.setPassword(pwdEncoder.encode(merchant.getPassword()));
 		merchant.setHeader(userProperties.getAvatar());
 		repository.save(merchant);
-		Optional<Role> role = roleRepository.findByCode(SystemConstants.ROLE_MERCHANT_USER_CODE);
+		Optional<Role> role = roleRepository.findByCode(SystemConstant.ROLE_MERCHANT_USER_CODE);
 		AssertUtil.assertTrue(role.isPresent(), "商家角色不存在");
 		role.get().addUser(merchant);
 		roleRepository.save(role.get());
