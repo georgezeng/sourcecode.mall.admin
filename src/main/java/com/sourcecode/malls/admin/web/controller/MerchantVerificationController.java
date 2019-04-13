@@ -39,7 +39,10 @@ public class MerchantVerificationController {
 	public ResultBean<MerchantVerificationDTO> load() {
 		Long currentUserId = UserContext.get().getId();
 		Optional<MerchantVerification> oldDataOp = merchantVerificationRepository.findByMerchantId(currentUserId);
-		return new ResultBean<>(oldDataOp.orElseGet(MerchantVerification::new).asDTO());
+		MerchantVerification newData = new MerchantVerification();
+		Optional<Merchant> merchant = merchantRepository.findById(currentUserId);
+		newData.setMerchant(merchant.get());
+		return new ResultBean<>(oldDataOp.orElse(newData).asDTO());
 	}
 
 	@RequestMapping(path = "/verify")
