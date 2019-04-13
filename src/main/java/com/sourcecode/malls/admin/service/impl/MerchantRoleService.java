@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sourcecode.malls.admin.constants.SystemConstant;
-import com.sourcecode.malls.admin.domain.Role;
+import com.sourcecode.malls.admin.domain.system.setting.Role;
 import com.sourcecode.malls.admin.repository.jpa.impl.RoleRepository;
 
 @Service

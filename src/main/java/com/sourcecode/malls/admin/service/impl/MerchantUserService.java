@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sourcecode.malls.admin.constants.SystemConstant;
-import com.sourcecode.malls.admin.domain.Role;
-import com.sourcecode.malls.admin.domain.User;
+import com.sourcecode.malls.admin.domain.system.setting.Role;
+import com.sourcecode.malls.admin.domain.system.setting.User;
 import com.sourcecode.malls.admin.properties.UserProperties;
 import com.sourcecode.malls.admin.repository.jpa.impl.RoleRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.UserRepository;
@@ -19,6 +19,7 @@ import com.sourcecode.malls.admin.util.RegexpUtil;
 @Service
 @Transactional
 public class MerchantUserService {
+	
 	@Autowired
 	private UserRepository repository;
 
@@ -47,5 +48,5 @@ public class MerchantUserService {
 		role.get().addUser(merchant);
 		roleRepository.save(role.get());
 	}
-
+	
 }

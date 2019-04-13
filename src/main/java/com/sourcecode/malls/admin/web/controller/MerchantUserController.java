@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sourcecode.malls.admin.domain.User;
 import com.sourcecode.malls.admin.domain.redis.CodeStore;
+import com.sourcecode.malls.admin.domain.system.setting.User;
 import com.sourcecode.malls.admin.dto.base.ResultBean;
 import com.sourcecode.malls.admin.repository.redis.impl.CodeStoreRepository;
 import com.sourcecode.malls.admin.service.impl.MerchantUserService;
@@ -49,9 +49,10 @@ public class MerchantUserController {
 		}
 		Optional<CodeStore> codeStoreOp = codeStoreRepository.findByCategoryAndKey(REGISTER_CODE_KEY, mobile);
 		CodeStore codeStore = codeStoreOp.orElse(new CodeStore(REGISTER_CODE_KEY, mobile, CodeUtil.generateRandomNumbers(6)));
-		if (codeStore.getId() == null) {
-			codeStoreRepository.save(codeStore);
+		if (codeStore.getId() != null) {
+			codeStore.setValue(CodeUtil.generateRandomNumbers(6));
 		}
+		codeStoreRepository.save(codeStore);
 		Map<String, Object> payload = new HashMap<>();
 		payload.put("code", codeStore.getValue());
 		smsService.send("SMS_162450479", mobile, payload);
@@ -67,4 +68,5 @@ public class MerchantUserController {
 		userService.register(merchant);
 		return new ResultBean<>();
 	}
+
 }
