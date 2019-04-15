@@ -8,7 +8,7 @@ public class SecurityConfig extends BaseSecurityConfig {
 
 	@Override
 	protected void before(HttpSecurity http) throws Exception {
-		http.authorizeRequests().antMatchers("/merchant/register/**").permitAll();
+		
 	}
 
 	@Override

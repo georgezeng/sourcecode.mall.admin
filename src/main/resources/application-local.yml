@@ -1,2 +1,3 @@
 server.port: 9091
 access.control.allow.origin: http://localhost:8081
+schedule.cron.sub-auth-sync-job: "0 * * * * ?"
