@@ -21,8 +21,8 @@ import com.sourcecode.malls.admin.util.AssertUtil;
 @RestController
 @RequestMapping(path = "/merchant")
 public class MerchantUserController {
-	private static final String REGISTER_CODE_KEY = "merchant-register-code";
-	private static final String FORGET_PASSWORD_CODE_KEY = "merchant-forget-password-code";
+	private static final String REGISTER_CODE_CATEGORY = "merchant-register-code";
+	private static final String FORGET_PASSWORD_CODE_CATEGORY = "merchant-forget-password-code";
 	private static final String REGISTER_CODE_TIME_ATTR = "merchant-register-code-time";
 	private static final String FORGET_PASSWORD_TIME_ATTR = "merchant-forget-password-code-time";
 
@@ -37,13 +37,13 @@ public class MerchantUserController {
 
 	@RequestMapping(path = "/register/code/{mobile}")
 	public ResultBean<Void> sendRegisterVerifyCode(@PathVariable String mobile, HttpSession session) {
-		verifyCodeService.sendRegisterCode(mobile, session, REGISTER_CODE_TIME_ATTR, REGISTER_CODE_KEY);
+		verifyCodeService.sendRegisterCode(mobile, session, REGISTER_CODE_TIME_ATTR, REGISTER_CODE_CATEGORY);
 		return new ResultBean<>();
 	}
 
 	@RequestMapping(path = "/register/{code}")
 	public ResultBean<Void> register(@RequestBody User merchant, @PathVariable String code) {
-		Optional<CodeStore> codeStoreOp = codeStoreRepository.findByCategoryAndKey(REGISTER_CODE_KEY, merchant.getUsername());
+		Optional<CodeStore> codeStoreOp = codeStoreRepository.findByCategoryAndKey(REGISTER_CODE_CATEGORY, merchant.getUsername());
 		AssertUtil.assertTrue(codeStoreOp.isPresent(), "验证码已过期");
 		AssertUtil.assertTrue(codeStoreOp.get().getValue().equals(code), "验证码无效");
 		userService.register(merchant);
@@ -52,13 +52,13 @@ public class MerchantUserController {
 
 	@RequestMapping(path = "/forgetPassword/code/{mobile}")
 	public ResultBean<Void> sendForgetPasswordCode(@PathVariable String mobile, HttpSession session) {
-		verifyCodeService.sendForgetPasswordCode(mobile, session, FORGET_PASSWORD_TIME_ATTR, FORGET_PASSWORD_CODE_KEY);
+		verifyCodeService.sendForgetPasswordCode(mobile, session, FORGET_PASSWORD_TIME_ATTR, FORGET_PASSWORD_CODE_CATEGORY);
 		return new ResultBean<>();
 	}
 
 	@RequestMapping(path = "/forgetPassword/{code}")
 	public ResultBean<Void> resetPassword(@RequestBody User merchant, @PathVariable String code) {
-		Optional<CodeStore> codeStoreOp = codeStoreRepository.findByCategoryAndKey(FORGET_PASSWORD_CODE_KEY, merchant.getUsername());
+		Optional<CodeStore> codeStoreOp = codeStoreRepository.findByCategoryAndKey(FORGET_PASSWORD_CODE_CATEGORY, merchant.getUsername());
 		AssertUtil.assertTrue(codeStoreOp.isPresent(), "验证码已过期");
 		AssertUtil.assertTrue(codeStoreOp.get().getValue().equals(code), "验证码无效");
 		userService.resetPassword(merchant);
