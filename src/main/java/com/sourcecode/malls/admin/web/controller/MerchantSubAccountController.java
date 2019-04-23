@@ -61,7 +61,7 @@ public class MerchantSubAccountController {
 	}
 
 	@RequestMapping(value = "/one/params/{id}")
-	public ResultBean<MerchantDTO> findOne(@PathVariable Long id) {
+	public ResultBean<MerchantDTO> load(@PathVariable Long id) {
 		Optional<Merchant> dataOp = merchantRepository.findById(id);
 		AssertUtil.assertTrue(dataOp.isPresent(), "查找不到相应的记录");
 		Optional<User> user = userRepository.findById(id);
