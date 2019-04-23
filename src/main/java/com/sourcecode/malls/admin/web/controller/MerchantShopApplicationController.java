@@ -146,6 +146,7 @@ public class MerchantShopApplicationController {
 			data.addInstruction(instruction);
 			order++;
 		}
+		data.setReason(null);
 		data.setDeployed(false);
 		shopRepository.save(data);
 		for (int i = 0; i < newPaths.size(); i++) {
@@ -190,7 +191,7 @@ public class MerchantShopApplicationController {
 			@RequestParam(required = false) String extendDir) throws IOException {
 		check(UserContext.get(), isUpdate);
 		String dir = type + (StringUtils.isEmpty(extendDir) ? "" : extendDir);
-		String filePath = "temp/shop/application/" + UserContext.get().getId() + "/" + dir + System.nanoTime() + ".png";
+		String filePath = "temp/merchant/shop/application/" + UserContext.get().getId() + "/" + dir + System.nanoTime() + ".png";
 		fileService.upload(false, filePath, file.getInputStream());
 		return new ResultBean<>(filePath);
 	}
@@ -203,7 +204,7 @@ public class MerchantShopApplicationController {
 
 	@RequestMapping(value = "/img/preview")
 	public Resource previewImg(@RequestParam String filePath) {
-		AssertUtil.assertTrue(filePath.startsWith("temp/shop/application/" + UserContext.get().getId() + "/")
+		AssertUtil.assertTrue(filePath.startsWith("temp/merchant/shop/application/" + UserContext.get().getId() + "/")
 				|| filePath.startsWith("merchant/shop/application/" + UserContext.get().getId() + "/"), "图片路径不合法");
 		return new ByteArrayResource(fileService.load(false, filePath));
 	}

@@ -64,14 +64,14 @@ public class MerchantVerificationController {
 		verification.setStatus(VerificationStatus.Checking);
 
 		String newPath = null;
-		String oldPath = verification.getPhoto();
-		if (oldPath != null && oldPath.startsWith("temp")) {
+		String tempPath = verification.getPhoto();
+		if (tempPath != null && tempPath.startsWith("temp")) {
 			newPath = "merchant/" + UserContext.get().getId() + "/verification.png";
 			verification.setPhoto(newPath);
 		}
 		merchantVerificationRepository.save(verification);
 		if (newPath != null) {
-			byte[] buf = fileService.load(false, oldPath);
+			byte[] buf = fileService.load(false, tempPath);
 			fileService.upload(false, newPath, new ByteArrayInputStream(buf));
 		}
 
