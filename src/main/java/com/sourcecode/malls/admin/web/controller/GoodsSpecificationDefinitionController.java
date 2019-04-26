@@ -95,6 +95,7 @@ public class GoodsSpecificationDefinitionController {
 		data.setOrder(dto.getOrder());
 		AssertUtil.assertTrue(!CollectionUtils.isEmpty(dto.getAttrs()), "至少需要编辑一个值属性");
 		List<GoodsSpecificationValue> values = new ArrayList<>();
+		int order = 1;
 		for (GoodsAttributeDTO attr : dto.getAttrs()) {
 			GoodsSpecificationValue value = new GoodsSpecificationValue();
 			if (attr.getId() != null) {
@@ -105,6 +106,7 @@ public class GoodsSpecificationDefinitionController {
 			}
 			value.setName(attr.getName());
 			value.setMerchant(data.getMerchant());
+			value.setOrder(order++);
 			values.add(value);
 		}
 		data.setValues(values);
