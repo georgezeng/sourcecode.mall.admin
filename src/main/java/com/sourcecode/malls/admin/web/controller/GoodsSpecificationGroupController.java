@@ -1,6 +1,5 @@
 package com.sourcecode.malls.admin.web.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -14,9 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sourcecode.malls.admin.context.UserContext;
-import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationDefinition;
+import com.sourcecode.malls.admin.domain.goods.GoodsCategory;
 import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationGroup;
-import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationValue;
 import com.sourcecode.malls.admin.domain.merchant.Merchant;
 import com.sourcecode.malls.admin.domain.system.setting.User;
 import com.sourcecode.malls.admin.dto.base.KeyDTO;
@@ -24,51 +22,47 @@ import com.sourcecode.malls.admin.dto.base.ResultBean;
 import com.sourcecode.malls.admin.dto.merchant.GoodsAttributeDTO;
 import com.sourcecode.malls.admin.dto.query.PageResult;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
-import com.sourcecode.malls.admin.repository.jpa.impl.GoodsSpecificationGroupRepository;
-import com.sourcecode.malls.admin.repository.jpa.impl.GoodsSpecificationValueRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.GoodsCategoryRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.MerchantRepository;
-import com.sourcecode.malls.admin.service.impl.GoodsSpecificationDefinitionService;
+import com.sourcecode.malls.admin.service.impl.GoodsSpecificationGroupService;
 import com.sourcecode.malls.admin.util.AssertUtil;
 
 @RestController
-@RequestMapping(path = "/goods/specification/definition")
-public class GoodsSpecificationDefinitionController {
+@RequestMapping(path = "/goods/specification/group")
+public class GoodsSpecificationGroupController {
 
 	@Autowired
 	private MerchantRepository merchantRepository;
 
 	@Autowired
-	private GoodsSpecificationDefinitionService definitionService;
+	private GoodsSpecificationGroupService groupService;
 
 	@Autowired
-	private GoodsSpecificationValueRepository valueRepository;
-
-	@Autowired
-	private GoodsSpecificationGroupRepository groupRepository;
+	private GoodsCategoryRepository categoryRepository;
 
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<GoodsAttributeDTO>> list(@RequestBody QueryInfo<GoodsAttributeDTO> queryInfo) {
 		User user = UserContext.get();
 		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
 		queryInfo.getData().setMerchant(merchant.get());
-		Page<GoodsSpecificationDefinition> result = definitionService.findAll(queryInfo);
+		Page<GoodsSpecificationGroup> result = groupService.findAll(queryInfo);
 		PageResult<GoodsAttributeDTO> dtoResult = new PageResult<>(
 				result.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()), result.getTotalElements());
 		return new ResultBean<>(dtoResult);
 	}
 
-	@RequestMapping(path = "/groups")
-	public ResultBean<List<GoodsAttributeDTO>> groups() {
+	@RequestMapping(path = "/categories")
+	public ResultBean<List<GoodsAttributeDTO>> categories() {
 		Optional<Merchant> merchant = merchantRepository.findById(UserContext.get().getId());
-		List<GoodsSpecificationGroup> groups = groupRepository.findByMerchant(merchant.get());
-		return new ResultBean<>(groups.stream().map(group -> group.asDTO(false)).collect(Collectors.toList()));
+		List<GoodsCategory> categories = categoryRepository.findByMerchant(merchant.get());
+		return new ResultBean<>(categories.stream().map(category -> category.asDTO(false)).collect(Collectors.toList()));
 	}
 
 	@RequestMapping(path = "/load/params/{id}")
 	public ResultBean<GoodsAttributeDTO> load(@PathVariable Long id) {
 		AssertUtil.assertNotNull(id, "找不到记录");
 		User user = UserContext.get();
-		Optional<GoodsSpecificationDefinition> dataOp = definitionService.findById(id);
+		Optional<GoodsSpecificationGroup> dataOp = groupService.findById(id);
 		AssertUtil.assertTrue(dataOp.isPresent(), "找不到记录");
 		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), "找不到记录");
 		return new ResultBean<>(dataOp.get().asDTO());
@@ -76,39 +70,24 @@ public class GoodsSpecificationDefinitionController {
 
 	@RequestMapping(path = "/save")
 	public ResultBean<Void> save(@RequestBody GoodsAttributeDTO dto) {
-		GoodsSpecificationDefinition data = new GoodsSpecificationDefinition();
+		GoodsSpecificationGroup data = new GoodsSpecificationGroup();
 		if (dto.getId() != null) {
-			Optional<GoodsSpecificationDefinition> dataOp = definitionService.findById(dto.getId());
+			Optional<GoodsSpecificationGroup> dataOp = groupService.findById(dto.getId());
 			AssertUtil.assertTrue(dataOp.isPresent(), "找不到记录");
 			AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(UserContext.get().getId()), "找不到记录");
 			data = dataOp.get();
 		} else {
 			data.setMerchant(merchantRepository.findById(UserContext.get().getId()).get());
 		}
-		AssertUtil.assertNotNull(dto.getParent(), "请选择一个商品类型");
-		AssertUtil.assertNotNull(dto.getParent().getId(), "请选择一个商品类型");
-		Optional<GoodsSpecificationGroup> groupOp = groupRepository.findById(dto.getParent().getId());
-		AssertUtil.assertTrue(groupOp.isPresent(), "商品类型不存在");
-		AssertUtil.assertTrue(groupOp.get().getMerchant().getId().equals(data.getMerchant().getId()), "商品类型不存在");
-		data.setGroup(groupOp.get());
+		AssertUtil.assertNotNull(dto.getParent(), "请选择一个商品分类");
+		AssertUtil.assertNotNull(dto.getParent().getId(), "请选择一个商品分类");
+		Optional<GoodsCategory> categoryOp = categoryRepository.findById(dto.getParent().getId());
+		AssertUtil.assertTrue(categoryOp.isPresent(), "商品分型不存在");
+		AssertUtil.assertTrue(categoryOp.get().getMerchant().getId().equals(data.getMerchant().getId()), "商品分型不存在");
+		data.setCategory(categoryOp.get());
 		data.setName(dto.getName());
 		data.setOrder(dto.getOrder());
-		AssertUtil.assertTrue(!CollectionUtils.isEmpty(dto.getAttrs()), "至少需要编辑一个值属性");
-		List<GoodsSpecificationValue> values = new ArrayList<>();
-		for (GoodsAttributeDTO attr : dto.getAttrs()) {
-			GoodsSpecificationValue value = new GoodsSpecificationValue();
-			if (attr.getId() != null) {
-				Optional<GoodsSpecificationValue> valueOp = valueRepository.findById(attr.getId());
-				if (valueOp.isPresent()) {
-					value = valueOp.get();
-				}
-			}
-			value.setName(attr.getName());
-			value.setMerchant(data.getMerchant());
-			values.add(value);
-		}
-		data.setValues(values);
-		definitionService.save(data);
+		groupService.save(data);
 		return new ResultBean<>();
 	}
 
@@ -117,9 +96,9 @@ public class GoodsSpecificationDefinitionController {
 		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), "必须选择至少一条记录进行删除");
 		for (Long id : keys.getIds()) {
 			User user = UserContext.get();
-			Optional<GoodsSpecificationDefinition> dataOp = definitionService.findById(id);
+			Optional<GoodsSpecificationGroup> dataOp = groupService.findById(id);
 			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
-				definitionService.delete(dataOp.get());
+				groupService.delete(dataOp.get());
 			}
 		}
 		return new ResultBean<>();
