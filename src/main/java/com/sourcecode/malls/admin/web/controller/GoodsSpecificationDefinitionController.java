@@ -61,7 +61,7 @@ public class GoodsSpecificationDefinitionController {
 	public ResultBean<List<GoodsAttributeDTO>> groups() {
 		Optional<Merchant> merchant = merchantRepository.findById(UserContext.get().getId());
 		List<GoodsSpecificationGroup> groups = groupRepository.findByMerchant(merchant.get());
-		return new ResultBean<>(groups.stream().map(group -> group.asDTO(false)).collect(Collectors.toList()));
+		return new ResultBean<>(groups.stream().map(group -> group.asDTO()).collect(Collectors.toList()));
 	}
 
 	@RequestMapping(path = "/load/params/{id}")
@@ -93,6 +93,7 @@ public class GoodsSpecificationDefinitionController {
 		data.setGroup(groupOp.get());
 		data.setName(dto.getName());
 		data.setOrder(dto.getOrder());
+		definitionService.save(data);
 		AssertUtil.assertTrue(!CollectionUtils.isEmpty(dto.getAttrs()), "至少需要编辑一个值属性");
 		List<GoodsSpecificationValue> values = new ArrayList<>();
 		int order = 1;
@@ -107,10 +108,10 @@ public class GoodsSpecificationDefinitionController {
 			value.setName(attr.getName());
 			value.setMerchant(data.getMerchant());
 			value.setOrder(order++);
+			value.setDefinition(data);
 			values.add(value);
 		}
-		data.setValues(values);
-		definitionService.save(data);
+		valueRepository.saveAll(values);
 		return new ResultBean<>();
 	}
 

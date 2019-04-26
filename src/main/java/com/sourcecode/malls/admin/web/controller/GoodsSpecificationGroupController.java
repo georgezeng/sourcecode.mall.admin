@@ -55,7 +55,7 @@ public class GoodsSpecificationGroupController {
 	public ResultBean<List<GoodsAttributeDTO>> categories() {
 		Optional<Merchant> merchant = merchantRepository.findById(UserContext.get().getId());
 		List<GoodsCategory> categories = categoryRepository.findByMerchant(merchant.get());
-		return new ResultBean<>(categories.stream().map(category -> category.asDTO(false)).collect(Collectors.toList()));
+		return new ResultBean<>(categories.stream().map(category -> category.asDTO()).collect(Collectors.toList()));
 	}
 
 	@RequestMapping(path = "/load/params/{id}")
@@ -65,7 +65,7 @@ public class GoodsSpecificationGroupController {
 		Optional<GoodsSpecificationGroup> dataOp = groupService.findById(id);
 		AssertUtil.assertTrue(dataOp.isPresent(), "找不到记录");
 		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), "找不到记录");
-		return new ResultBean<>(dataOp.get().asDTO());
+		return new ResultBean<>(dataOp.get().asDTO(false));
 	}
 
 	@RequestMapping(path = "/save")
