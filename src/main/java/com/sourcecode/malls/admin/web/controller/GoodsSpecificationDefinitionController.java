@@ -95,6 +95,7 @@ public class GoodsSpecificationDefinitionController {
 		data.setOrder(dto.getOrder());
 		definitionService.save(data);
 		AssertUtil.assertTrue(!CollectionUtils.isEmpty(dto.getAttrs()), "至少需要编辑一个值属性");
+		valueRepository.deleteAll(data.getValues());
 		List<GoodsSpecificationValue> values = new ArrayList<>();
 		int order = 1;
 		for (GoodsAttributeDTO attr : dto.getAttrs()) {
