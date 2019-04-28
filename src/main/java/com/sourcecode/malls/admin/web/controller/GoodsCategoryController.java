@@ -1,5 +1,7 @@
 package com.sourcecode.malls.admin.web.controller;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -18,7 +20,7 @@ import com.sourcecode.malls.admin.domain.system.setting.User;
 import com.sourcecode.malls.admin.dto.base.KeyDTO;
 import com.sourcecode.malls.admin.dto.base.ResultBean;
 import com.sourcecode.malls.admin.dto.merchant.GoodsAttributeDTO;
-import com.sourcecode.malls.admin.dto.query.PageResult;
+import com.sourcecode.malls.admin.dto.query.PageInfo;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
 import com.sourcecode.malls.admin.repository.jpa.impl.MerchantRepository;
 import com.sourcecode.malls.admin.service.impl.GoodsCategoryService;
@@ -35,14 +37,43 @@ public class GoodsCategoryController {
 	private GoodsCategoryService categoryService;
 
 	@RequestMapping(path = "/list")
-	public ResultBean<PageResult<GoodsAttributeDTO>> list(@RequestBody QueryInfo<GoodsAttributeDTO> queryInfo) {
+	public ResultBean<List<GoodsAttributeDTO>> list(@RequestBody QueryInfo<GoodsAttributeDTO> queryInfo) {
 		User user = UserContext.get();
 		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
-		queryInfo.getData().setMerchant(merchant.get());
+		queryInfo.getData().setMerchantId(merchant.get().getId());
+		queryInfo.getData().setLevel(1);
 		Page<GoodsCategory> result = categoryService.findAll(queryInfo);
-		PageResult<GoodsAttributeDTO> dtoResult = new PageResult<>(
-				result.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()), result.getTotalElements());
-		return new ResultBean<>(dtoResult);
+		List<GoodsAttributeDTO> list = new ArrayList<>();
+		result.getContent().stream().map(data -> data.asDTO(false, true)).forEach(data -> {
+			list.add(data);
+			appendSubList(list, data);
+		});
+		return new ResultBean<>(list);
+	}
+
+	private void appendSubList(List<GoodsAttributeDTO> list, GoodsAttributeDTO parent) {
+		if (!CollectionUtils.isEmpty(parent.getAttrs())) {
+			for (GoodsAttributeDTO sub : parent.getAttrs()) {
+				list.add(sub);
+				appendSubList(list, sub);
+			}
+		}
+	}
+
+	@RequestMapping(path = "/load/allParents")
+	public ResultBean<List<GoodsAttributeDTO>> listAllParents() {
+		QueryInfo<GoodsAttributeDTO> queryInfo = new QueryInfo<>();
+		queryInfo.setData(new GoodsAttributeDTO());
+		PageInfo page = new PageInfo();
+		page.setNum(1);
+		page.setSize(99999999);
+		queryInfo.setPage(page);
+		User user = UserContext.get();
+		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
+		queryInfo.getData().setLeafLevel(3);
+		queryInfo.getData().setMerchantId(merchant.get().getId());
+		Page<GoodsCategory> result = categoryService.findAll(queryInfo);
+		return new ResultBean<>(result.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()));
 	}
 
 	@RequestMapping(path = "/load/params/{id}")
@@ -52,7 +83,7 @@ public class GoodsCategoryController {
 		Optional<GoodsCategory> dataOp = categoryService.findById(id);
 		AssertUtil.assertTrue(dataOp.isPresent(), "找不到记录");
 		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), "找不到记录");
-		return new ResultBean<>(dataOp.get().asDTO());
+		return new ResultBean<>(dataOp.get().asDTO(false, false));
 	}
 
 	@RequestMapping(path = "/save")
@@ -65,6 +96,13 @@ public class GoodsCategoryController {
 			data = dataOp.get();
 		} else {
 			data.setMerchant(merchantRepository.findById(UserContext.get().getId()).get());
+			if (dto.getLevel() > 1) {
+				AssertUtil.assertNotNull(dto.getParent().getId(), "必须选择上级分类");
+				Optional<GoodsCategory> parentOp = categoryService.findById(dto.getParent().getId());
+				AssertUtil.assertTrue(parentOp.isPresent(), "找不到上级分类");
+				data.setParent(parentOp.get());
+			}
+			data.setLevel(dto.getLevel());
 		}
 		data.setName(dto.getName());
 		data.setOrder(dto.getOrder());

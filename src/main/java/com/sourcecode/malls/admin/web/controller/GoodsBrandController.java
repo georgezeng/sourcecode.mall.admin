@@ -1,93 +1,84 @@
 package com.sourcecode.malls.admin.web.controller;
 
-import java.util.List;
+import java.io.IOException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.sourcecode.malls.admin.context.UserContext;
-import com.sourcecode.malls.admin.domain.goods.GoodsCategory;
-import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationGroup;
+import com.sourcecode.malls.admin.domain.goods.GoodsBrand;
 import com.sourcecode.malls.admin.domain.merchant.Merchant;
 import com.sourcecode.malls.admin.domain.system.setting.User;
 import com.sourcecode.malls.admin.dto.base.KeyDTO;
 import com.sourcecode.malls.admin.dto.base.ResultBean;
-import com.sourcecode.malls.admin.dto.merchant.GoodsAttributeDTO;
+import com.sourcecode.malls.admin.dto.merchant.GoodsBrandDTO;
 import com.sourcecode.malls.admin.dto.query.PageResult;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
-import com.sourcecode.malls.admin.repository.jpa.impl.GoodsCategoryRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.MerchantRepository;
-import com.sourcecode.malls.admin.service.impl.GoodsSpecificationGroupService;
+import com.sourcecode.malls.admin.service.FileOnlineSystemService;
+import com.sourcecode.malls.admin.service.impl.GoodsBrandService;
 import com.sourcecode.malls.admin.util.AssertUtil;
 
 @RestController
-@RequestMapping(path = "/goods/specification/group")
-public class GoodsSpecificationGroupController {
+@RequestMapping(path = "/goods/brand")
+public class GoodsBrandController {
 
 	@Autowired
 	private MerchantRepository merchantRepository;
 
 	@Autowired
-	private GoodsSpecificationGroupService groupService;
+	private GoodsBrandService brandService;
 
 	@Autowired
-	private GoodsCategoryRepository categoryRepository;
+	private FileOnlineSystemService fileService;
 
 	@RequestMapping(path = "/list")
-	public ResultBean<PageResult<GoodsAttributeDTO>> list(@RequestBody QueryInfo<GoodsAttributeDTO> queryInfo) {
+	public ResultBean<PageResult<GoodsBrandDTO>> list(@RequestBody QueryInfo<GoodsBrandDTO> queryInfo) {
 		User user = UserContext.get();
 		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
 		queryInfo.getData().setMerchantId(merchant.get().getId());
-		Page<GoodsSpecificationGroup> result = groupService.findAll(queryInfo);
-		PageResult<GoodsAttributeDTO> dtoResult = new PageResult<>(
-				result.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()), result.getTotalElements());
+		Page<GoodsBrand> result = brandService.findAll(queryInfo);
+		PageResult<GoodsBrandDTO> dtoResult = new PageResult<>(result.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()),
+				result.getTotalElements());
 		return new ResultBean<>(dtoResult);
 	}
 
-	@RequestMapping(path = "/categories")
-	public ResultBean<List<GoodsAttributeDTO>> categories() {
-		Optional<Merchant> merchant = merchantRepository.findById(UserContext.get().getId());
-		List<GoodsCategory> categories = categoryRepository.findByMerchant(merchant.get());
-		return new ResultBean<>(categories.stream().map(category -> category.asDTO()).collect(Collectors.toList()));
-	}
-
 	@RequestMapping(path = "/load/params/{id}")
-	public ResultBean<GoodsAttributeDTO> load(@PathVariable Long id) {
+	public ResultBean<GoodsBrandDTO> load(@PathVariable Long id) {
 		AssertUtil.assertNotNull(id, "找不到记录");
 		User user = UserContext.get();
-		Optional<GoodsSpecificationGroup> dataOp = groupService.findById(id);
+		Optional<GoodsBrand> dataOp = brandService.findById(id);
 		AssertUtil.assertTrue(dataOp.isPresent(), "找不到记录");
 		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), "找不到记录");
-		return new ResultBean<>(dataOp.get().asDTO(false));
+		return new ResultBean<>(dataOp.get().asDTO());
 	}
 
 	@RequestMapping(path = "/save")
-	public ResultBean<Void> save(@RequestBody GoodsAttributeDTO dto) {
-		GoodsSpecificationGroup data = new GoodsSpecificationGroup();
+	public ResultBean<Void> save(@RequestBody GoodsBrandDTO dto) {
+		GoodsBrand data = new GoodsBrand();
 		if (dto.getId() != null) {
-			Optional<GoodsSpecificationGroup> dataOp = groupService.findById(dto.getId());
+			Optional<GoodsBrand> dataOp = brandService.findById(dto.getId());
 			AssertUtil.assertTrue(dataOp.isPresent(), "找不到记录");
 			AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(UserContext.get().getId()), "找不到记录");
 			data = dataOp.get();
+			BeanUtils.copyProperties(dto, data, "merchant");
 		} else {
+			BeanUtils.copyProperties(dto, data, "merchant");
 			data.setMerchant(merchantRepository.findById(UserContext.get().getId()).get());
 		}
-		AssertUtil.assertNotNull(dto.getParent(), "请选择一个商品分类");
-		AssertUtil.assertNotNull(dto.getParent().getId(), "请选择一个商品分类");
-		Optional<GoodsCategory> categoryOp = categoryRepository.findById(dto.getParent().getId());
-		AssertUtil.assertTrue(categoryOp.isPresent(), "商品分型不存在");
-		AssertUtil.assertTrue(categoryOp.get().getMerchant().getId().equals(data.getMerchant().getId()), "商品分型不存在");
-		data.setCategory(categoryOp.get());
-		data.setName(dto.getName());
-		data.setOrder(dto.getOrder());
-		groupService.save(data);
+		brandService.save(data);
 		return new ResultBean<>();
 	}
 
@@ -96,12 +87,26 @@ public class GoodsSpecificationGroupController {
 		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), "必须选择至少一条记录进行删除");
 		for (Long id : keys.getIds()) {
 			User user = UserContext.get();
-			Optional<GoodsSpecificationGroup> dataOp = groupService.findById(id);
+			Optional<GoodsBrand> dataOp = brandService.findById(id);
 			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
-				groupService.delete(dataOp.get());
+				brandService.delete(dataOp.get());
 			}
 		}
 		return new ResultBean<>();
+	}
+
+	@RequestMapping(value = "/logo/upload")
+	public ResultBean<String> upload(@RequestParam("file") MultipartFile file) throws IOException {
+		String filePath = "temp/goods/brand/" + UserContext.get().getId() + "/" + System.nanoTime() + ".png";
+		fileService.upload(false, filePath, file.getInputStream());
+		return new ResultBean<>(filePath);
+	}
+
+	@RequestMapping(value = "/logo/load")
+	public Resource previewImg(@RequestParam String filePath) {
+		AssertUtil.assertTrue(filePath.startsWith("temp/goods/brand/" + UserContext.get().getId() + "/")
+				|| filePath.startsWith("goods/brand/" + UserContext.get().getId() + "/"), "图片路径不合法");
+		return new ByteArrayResource(fileService.load(false, filePath));
 	}
 
 }

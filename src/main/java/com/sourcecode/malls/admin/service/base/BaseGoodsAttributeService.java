@@ -34,14 +34,21 @@ public abstract class BaseGoodsAttributeService<T extends BaseGoodsAttribute> im
 			@Override
 			public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
 				List<Predicate> predicate = new ArrayList<>();
-				if (queryInfo.getData() != null && queryInfo.getData().getParent() != null && queryInfo.getData().getParent().getId() > 0l) {
-					predicate.add(criteriaBuilder.equal(root.get(getParentName()), queryInfo.getData().getParent().getId()));
-				}
-				predicate.add(criteriaBuilder.equal(root.get("merchant"), queryInfo.getData().getMerchant()));
-				String searchText = queryInfo.getData().getSearchText();
-				if (!StringUtils.isEmpty(searchText)) {
-					String like = "%" + searchText + "%";
-					predicate.add(criteriaBuilder.like(root.get("name").as(String.class), like));
+				if (queryInfo.getData() != null) {
+					if (queryInfo.getData().getParent() != null && queryInfo.getData().getParent().getId() > 0l) {
+						predicate.add(criteriaBuilder.equal(root.get(getParentName()), queryInfo.getData().getParent().getId()));
+					}
+					if (queryInfo.getData().getLeafLevel() > 0) {
+						predicate.add(criteriaBuilder.notEqual(root.get("level"), queryInfo.getData().getLeafLevel()));
+					} else if (queryInfo.getData().getLevel() > 0) {
+						predicate.add(criteriaBuilder.equal(root.get("level"), queryInfo.getData().getLevel()));
+					}
+					predicate.add(criteriaBuilder.equal(root.get("merchant"), queryInfo.getData().getMerchantId()));
+					String searchText = queryInfo.getData().getSearchText();
+					if (!StringUtils.isEmpty(searchText)) {
+						String like = "%" + searchText + "%";
+						predicate.add(criteriaBuilder.like(root.get("name").as(String.class), like));
+					}
 				}
 				return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
 			}

@@ -50,7 +50,7 @@ public class GoodsSpecificationDefinitionController {
 	public ResultBean<PageResult<GoodsAttributeDTO>> list(@RequestBody QueryInfo<GoodsAttributeDTO> queryInfo) {
 		User user = UserContext.get();
 		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
-		queryInfo.getData().setMerchant(merchant.get());
+		queryInfo.getData().setMerchantId(merchant.get().getId());
 		Page<GoodsSpecificationDefinition> result = definitionService.findAll(queryInfo);
 		PageResult<GoodsAttributeDTO> dtoResult = new PageResult<>(
 				result.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()), result.getTotalElements());
