@@ -16,27 +16,27 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.druid.util.StringUtils;
-import com.sourcecode.malls.admin.domain.goods.GoodsBrand;
-import com.sourcecode.malls.admin.dto.goods.GoodsBrandDTO;
+import com.sourcecode.malls.admin.domain.goods.GoodsItem;
+import com.sourcecode.malls.admin.dto.goods.GoodsItemDTO;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
-import com.sourcecode.malls.admin.repository.jpa.impl.GoodsBrandRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.GoodsItemRepository;
 import com.sourcecode.malls.admin.service.base.JpaService;
 
 @Service
 @Transactional
-public class GoodsBrandService implements JpaService<GoodsBrand, Long> {
+public class GoodsItemService implements JpaService<GoodsItem, Long> {
 	@Autowired
-	private GoodsBrandRepository brandRepository;
+	private GoodsItemRepository itemRepository;
 
 	@Override
-	public JpaRepository<GoodsBrand, Long> getRepository() {
-		return brandRepository;
+	public JpaRepository<GoodsItem, Long> getRepository() {
+		return itemRepository;
 	}
 
 	@Transactional(readOnly = true)
-	public Page<GoodsBrand> findAll(QueryInfo<GoodsBrandDTO> queryInfo) {
-		Page<GoodsBrand> pageReulst = null;
-		Specification<GoodsBrand> spec = new Specification<GoodsBrand>() {
+	public Page<GoodsItem> findAll(QueryInfo<GoodsItemDTO> queryInfo) {
+		Page<GoodsItem> pageReulst = null;
+		Specification<GoodsItem> spec = new Specification<GoodsItem>() {
 
 			/**
 			 * 
@@ -44,20 +44,24 @@ public class GoodsBrandService implements JpaService<GoodsBrand, Long> {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public Predicate toPredicate(Root<GoodsBrand> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+			public Predicate toPredicate(Root<GoodsItem> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
 				List<Predicate> predicate = new ArrayList<>();
 				if (queryInfo.getData() != null) {
 					predicate.add(criteriaBuilder.equal(root.get("merchant"), queryInfo.getData().getMerchantId()));
 					String searchText = queryInfo.getData().getSearchText();
 					if (!StringUtils.isEmpty(searchText)) {
 						String like = "%" + searchText + "%";
-						predicate.add(criteriaBuilder.like(root.get("name").as(String.class), like));
+						predicate.add(criteriaBuilder.or(criteriaBuilder.like(root.get("name").as(String.class), like),
+								criteriaBuilder.like(root.get("code").as(String.class), like)));
+					}
+					if (!"all".equals(queryInfo.getData().getStatus())) {
+						predicate.add(criteriaBuilder.equal(root.get("enabled").as(boolean.class), Boolean.valueOf(queryInfo.getData().getStatus())));
 					}
 				}
 				return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
 			}
 		};
-		pageReulst = brandRepository.findAll(spec, queryInfo.getPage().pageable());
+		pageReulst = itemRepository.findAll(spec, queryInfo.getPage().pageable());
 		return pageReulst;
 	}
 

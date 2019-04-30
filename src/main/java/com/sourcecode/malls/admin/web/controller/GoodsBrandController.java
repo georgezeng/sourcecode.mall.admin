@@ -1,5 +1,6 @@
 package com.sourcecode.malls.admin.web.controller;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -23,7 +24,8 @@ import com.sourcecode.malls.admin.domain.merchant.Merchant;
 import com.sourcecode.malls.admin.domain.system.setting.User;
 import com.sourcecode.malls.admin.dto.base.KeyDTO;
 import com.sourcecode.malls.admin.dto.base.ResultBean;
-import com.sourcecode.malls.admin.dto.merchant.GoodsBrandDTO;
+import com.sourcecode.malls.admin.dto.goods.GoodsBrandDTO;
+import com.sourcecode.malls.admin.dto.query.PageInfo;
 import com.sourcecode.malls.admin.dto.query.PageResult;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
 import com.sourcecode.malls.admin.repository.jpa.impl.MerchantRepository;
@@ -55,6 +57,21 @@ public class GoodsBrandController {
 		return new ResultBean<>(dtoResult);
 	}
 
+	@RequestMapping(path = "/list/all")
+	public ResultBean<GoodsBrandDTO> listAll() {
+		QueryInfo<GoodsBrandDTO> queryInfo = new QueryInfo<>();
+		queryInfo.setData(new GoodsBrandDTO());
+		PageInfo page = new PageInfo();
+		page.setNum(1);
+		page.setSize(99999999);
+		queryInfo.setPage(page);
+		User user = UserContext.get();
+		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
+		queryInfo.getData().setMerchantId(merchant.get().getId());
+		Page<GoodsBrand> result = brandService.findAll(queryInfo);
+		return new ResultBean<>(result.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()));
+	}
+
 	@RequestMapping(path = "/load/params/{id}")
 	public ResultBean<GoodsBrandDTO> load(@PathVariable Long id) {
 		AssertUtil.assertNotNull(id, "找不到记录");
@@ -78,7 +95,18 @@ public class GoodsBrandController {
 			BeanUtils.copyProperties(dto, data, "merchant");
 			data.setMerchant(merchantRepository.findById(UserContext.get().getId()).get());
 		}
+
+		String newPath = null;
+		String tempPath = data.getLogo();
+		if (tempPath != null && tempPath.startsWith("temp")) {
+			newPath = "goods/brand/" + UserContext.get().getId() + "/" + System.nanoTime() + ".png";
+			data.setLogo(newPath);
+		}
 		brandService.save(data);
+		if (newPath != null) {
+			byte[] buf = fileService.load(false, tempPath);
+			fileService.upload(true, newPath, new ByteArrayInputStream(buf));
+		}
 		return new ResultBean<>();
 	}
 
@@ -106,7 +134,11 @@ public class GoodsBrandController {
 	public Resource previewImg(@RequestParam String filePath) {
 		AssertUtil.assertTrue(filePath.startsWith("temp/goods/brand/" + UserContext.get().getId() + "/")
 				|| filePath.startsWith("goods/brand/" + UserContext.get().getId() + "/"), "图片路径不合法");
-		return new ByteArrayResource(fileService.load(false, filePath));
+		if (filePath.startsWith("temp")) {
+			return new ByteArrayResource(fileService.load(false, filePath));
+		} else {
+			return new ByteArrayResource(fileService.load(true, filePath));
+		}
 	}
 
 }

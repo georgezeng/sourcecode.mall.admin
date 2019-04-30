@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.druid.util.StringUtils;
 import com.sourcecode.malls.admin.domain.base.BaseGoodsAttribute;
-import com.sourcecode.malls.admin.dto.merchant.GoodsAttributeDTO;
+import com.sourcecode.malls.admin.dto.goods.GoodsAttributeDTO;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
 
 public abstract class BaseGoodsAttributeService<T extends BaseGoodsAttribute> implements JpaService<T, Long> {

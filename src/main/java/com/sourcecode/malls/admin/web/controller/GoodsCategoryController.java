@@ -3,7 +3,6 @@ package com.sourcecode.malls.admin.web.controller;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,7 +18,7 @@ import com.sourcecode.malls.admin.domain.merchant.Merchant;
 import com.sourcecode.malls.admin.domain.system.setting.User;
 import com.sourcecode.malls.admin.dto.base.KeyDTO;
 import com.sourcecode.malls.admin.dto.base.ResultBean;
-import com.sourcecode.malls.admin.dto.merchant.GoodsAttributeDTO;
+import com.sourcecode.malls.admin.dto.goods.GoodsAttributeDTO;
 import com.sourcecode.malls.admin.dto.query.PageInfo;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
 import com.sourcecode.malls.admin.repository.jpa.impl.MerchantRepository;
@@ -37,7 +36,7 @@ public class GoodsCategoryController {
 	private GoodsCategoryService categoryService;
 
 	@RequestMapping(path = "/list")
-	public ResultBean<List<GoodsAttributeDTO>> list(@RequestBody QueryInfo<GoodsAttributeDTO> queryInfo) {
+	public ResultBean<GoodsAttributeDTO> list(@RequestBody QueryInfo<GoodsAttributeDTO> queryInfo) {
 		User user = UserContext.get();
 		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
 		queryInfo.getData().setMerchantId(merchant.get().getId());
@@ -46,22 +45,24 @@ public class GoodsCategoryController {
 		List<GoodsAttributeDTO> list = new ArrayList<>();
 		result.getContent().stream().map(data -> data.asDTO(false, true)).forEach(data -> {
 			list.add(data);
-			appendSubList(list, data);
+			appendSubList(list, data, true);
 		});
 		return new ResultBean<>(list);
 	}
 
-	private void appendSubList(List<GoodsAttributeDTO> list, GoodsAttributeDTO parent) {
+	private void appendSubList(List<GoodsAttributeDTO> list, GoodsAttributeDTO parent, boolean withLeaf) {
 		if (!CollectionUtils.isEmpty(parent.getAttrs())) {
 			for (GoodsAttributeDTO sub : parent.getAttrs()) {
 				list.add(sub);
-				appendSubList(list, sub);
+				if (sub.getLevel() == 2 && withLeaf) {
+					appendSubList(list, sub, withLeaf);
+				}
 			}
 		}
 	}
 
-	@RequestMapping(path = "/load/allParents")
-	public ResultBean<List<GoodsAttributeDTO>> listAllParents() {
+	@RequestMapping(path = "/list/allParents")
+	public ResultBean<GoodsAttributeDTO> listAllParents() {
 		QueryInfo<GoodsAttributeDTO> queryInfo = new QueryInfo<>();
 		queryInfo.setData(new GoodsAttributeDTO());
 		PageInfo page = new PageInfo();
@@ -70,10 +71,36 @@ public class GoodsCategoryController {
 		queryInfo.setPage(page);
 		User user = UserContext.get();
 		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
-		queryInfo.getData().setLeafLevel(3);
+		queryInfo.getData().setLevel(1);
 		queryInfo.getData().setMerchantId(merchant.get().getId());
 		Page<GoodsCategory> result = categoryService.findAll(queryInfo);
-		return new ResultBean<>(result.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()));
+		List<GoodsAttributeDTO> list = new ArrayList<>();
+		result.getContent().stream().map(data -> data.asDTO(false, true)).forEach(data -> {
+			list.add(data);
+			appendSubList(list, data, false);
+		});
+		return new ResultBean<>(list);
+	}
+
+	@RequestMapping(path = "/list/all")
+	public ResultBean<GoodsAttributeDTO> listAll() {
+		QueryInfo<GoodsAttributeDTO> queryInfo = new QueryInfo<>();
+		queryInfo.setData(new GoodsAttributeDTO());
+		PageInfo page = new PageInfo();
+		page.setNum(1);
+		page.setSize(99999999);
+		queryInfo.setPage(page);
+		User user = UserContext.get();
+		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
+		queryInfo.getData().setMerchantId(merchant.get().getId());
+		queryInfo.getData().setLevel(1);
+		Page<GoodsCategory> result = categoryService.findAll(queryInfo);
+		List<GoodsAttributeDTO> list = new ArrayList<>();
+		result.getContent().stream().map(data -> data.asDTO(false, true)).forEach(data -> {
+			list.add(data);
+			appendSubList(list, data, true);
+		});
+		return new ResultBean<>(list);
 	}
 
 	@RequestMapping(path = "/load/params/{id}")

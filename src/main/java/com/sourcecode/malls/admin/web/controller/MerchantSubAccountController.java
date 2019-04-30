@@ -21,6 +21,7 @@ import com.sourcecode.malls.admin.domain.system.setting.Role;
 import com.sourcecode.malls.admin.domain.system.setting.User;
 import com.sourcecode.malls.admin.dto.base.KeyDTO;
 import com.sourcecode.malls.admin.dto.base.ResultBean;
+import com.sourcecode.malls.admin.dto.base.SimpleQueryDTO;
 import com.sourcecode.malls.admin.dto.merchant.MerchantDTO;
 import com.sourcecode.malls.admin.dto.query.PageResult;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
@@ -48,7 +49,7 @@ public class MerchantSubAccountController {
 	private MerchantUserService userService;
 
 	@RequestMapping(path = "/list")
-	public ResultBean<PageResult<MerchantDTO>> list(@RequestBody QueryInfo<String> queryInfo) {
+	public ResultBean<PageResult<MerchantDTO>> list(@RequestBody QueryInfo<SimpleQueryDTO> queryInfo) {
 		User parentUser = UserContext.get();
 		Optional<Merchant> parent = merchantRepository.findById(parentUser.getId());
 		Page<Merchant> pageResult = userService.findAllSubAccounts(parent.get(), queryInfo);
@@ -108,6 +109,20 @@ public class MerchantSubAccountController {
 		Page<Authority> auths = authRepository.findAllForSubAccount(queryInfo.getPage().pageable());
 		return new ResultBean<>(
 				new PageResult<>(auths.getContent().stream().map(auth -> auth.asDTO()).collect(Collectors.toList()), auths.getTotalElements()));
+	}
+
+	@RequestMapping(value = "/updateStatus/params/{enabled}")
+	public ResultBean<Void> updateStatus(@RequestBody KeyDTO<Long> keys, @PathVariable Boolean enabled) {
+		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), "必须选择至少一条记录进行状态更新");
+		for (Long id : keys.getIds()) {
+			Optional<Merchant> userOp = userService.findById(id);
+			if (userOp.isPresent() && userOp.get().getParent() != null && userOp.get().getParent().getId().equals(UserContext.get().getId())) {
+				Merchant user = userOp.get();
+				user.setEnabled(enabled);
+				userService.save(user);
+			}
+		}
+		return new ResultBean<>();
 	}
 
 }

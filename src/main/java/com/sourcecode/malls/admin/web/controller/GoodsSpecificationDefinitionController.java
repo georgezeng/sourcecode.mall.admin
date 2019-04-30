@@ -21,7 +21,7 @@ import com.sourcecode.malls.admin.domain.merchant.Merchant;
 import com.sourcecode.malls.admin.domain.system.setting.User;
 import com.sourcecode.malls.admin.dto.base.KeyDTO;
 import com.sourcecode.malls.admin.dto.base.ResultBean;
-import com.sourcecode.malls.admin.dto.merchant.GoodsAttributeDTO;
+import com.sourcecode.malls.admin.dto.goods.GoodsAttributeDTO;
 import com.sourcecode.malls.admin.dto.query.PageResult;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
 import com.sourcecode.malls.admin.repository.jpa.impl.GoodsSpecificationGroupRepository;
@@ -58,7 +58,7 @@ public class GoodsSpecificationDefinitionController {
 	}
 
 	@RequestMapping(path = "/groups")
-	public ResultBean<List<GoodsAttributeDTO>> groups() {
+	public ResultBean<GoodsAttributeDTO> groups() {
 		Optional<Merchant> merchant = merchantRepository.findById(UserContext.get().getId());
 		List<GoodsSpecificationGroup> groups = groupRepository.findByMerchant(merchant.get());
 		return new ResultBean<>(groups.stream().map(group -> group.asDTO()).collect(Collectors.toList()));
@@ -95,7 +95,9 @@ public class GoodsSpecificationDefinitionController {
 		data.setOrder(dto.getOrder());
 		definitionService.save(data);
 		AssertUtil.assertTrue(!CollectionUtils.isEmpty(dto.getAttrs()), "至少需要编辑一个值属性");
-		valueRepository.deleteAll(data.getValues());
+		if (!CollectionUtils.isEmpty(data.getValues())) {
+			valueRepository.deleteAll(data.getValues());
+		}
 		List<GoodsSpecificationValue> values = new ArrayList<>();
 		int order = 1;
 		for (GoodsAttributeDTO attr : dto.getAttrs()) {

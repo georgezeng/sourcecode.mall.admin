@@ -1,11 +1,20 @@
 package com.sourcecode.malls.admin.service.impl;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +26,7 @@ import com.sourcecode.malls.admin.domain.merchant.Merchant;
 import com.sourcecode.malls.admin.domain.system.setting.Authority;
 import com.sourcecode.malls.admin.domain.system.setting.Role;
 import com.sourcecode.malls.admin.domain.system.setting.User;
+import com.sourcecode.malls.admin.dto.base.SimpleQueryDTO;
 import com.sourcecode.malls.admin.dto.merchant.MerchantDTO;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
 import com.sourcecode.malls.admin.dto.system.setting.AuthorityDTO;
@@ -25,12 +35,13 @@ import com.sourcecode.malls.admin.repository.jpa.impl.AuthorityRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.MerchantRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.RoleRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.UserRepository;
+import com.sourcecode.malls.admin.service.base.JpaService;
 import com.sourcecode.malls.admin.util.AssertUtil;
 import com.sourcecode.malls.admin.util.RegexpUtil;
 
 @Service
 @Transactional
-public class MerchantUserService {
+public class MerchantUserService implements JpaService<Merchant, Long> {
 
 	@Autowired
 	private UserRepository userRepository;
@@ -85,7 +96,7 @@ public class MerchantUserService {
 		role.addUser(user.get());
 		role.setHidden(true);
 		roleRepository.save(role);
-		if (CollectionUtils.isEmpty(subAccount.getAuthorities())) {
+		if (!CollectionUtils.isEmpty(subAccount.getAuthorities())) {
 			for (AuthorityDTO authDTO : subAccount.getAuthorities()) {
 				Authority auth = authRepository.findById(authDTO.getId()).get();
 				auth.addRole(role);
@@ -138,15 +149,34 @@ public class MerchantUserService {
 	}
 
 	@Transactional(readOnly = true)
-	public Page<Merchant> findAllSubAccounts(Merchant parent, QueryInfo<String> queryInfo) {
-		String searchText = queryInfo.getData();
+	public Page<Merchant> findAllSubAccounts(Merchant parent, QueryInfo<SimpleQueryDTO> queryInfo) {
+		SimpleQueryDTO data = queryInfo.getData();
 		Page<Merchant> pageReulst = null;
-		if (!StringUtils.isEmpty(searchText)) {
-			String like = "%" + searchText + "%";
-			pageReulst = merchantRepository.findAllByParentAndEnabledAndUsernameLike(parent, true, like, queryInfo.getPage().pageable());
-		} else {
-			pageReulst = merchantRepository.findAllByParentAndEnabled(parent, true, queryInfo.getPage().pageable());
-		}
+		Specification<Merchant> spec = new Specification<Merchant>() {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public Predicate toPredicate(Root<Merchant> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+				List<Predicate> predicate = new ArrayList<>();
+				predicate.add(criteriaBuilder.equal(root.get("parent"), parent.getId()));
+				if (data != null) {
+					if (!StringUtils.isEmpty(data.getSearchText())) {
+						String like = "%" + data.getSearchText() + "%";
+						predicate.add(criteriaBuilder.or(criteriaBuilder.like(root.get("username").as(String.class), like),
+								criteriaBuilder.like(root.get("email").as(String.class), like)));
+					}
+					if (!"all".equals(data.getStatusText())) {
+						predicate.add(criteriaBuilder.equal(root.get("enabled").as(boolean.class), Boolean.valueOf(data.getStatusText())));
+					}
+				}
+				return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
+			}
+		};
+		pageReulst = merchantRepository.findAll(spec, queryInfo.getPage().pageable());
 		return pageReulst;
 	}
 
@@ -158,6 +188,11 @@ public class MerchantUserService {
 		AssertUtil.assertTrue(existedUser.isPresent(), "用户不存在");
 		existedUser.get().setPassword(pwdEncoder.encode(merchant.getPassword()));
 		userRepository.save(existedUser.get());
+	}
+
+	@Override
+	public JpaRepository<Merchant, Long> getRepository() {
+		return merchantRepository;
 	}
 
 }
