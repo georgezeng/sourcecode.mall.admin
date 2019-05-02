@@ -68,6 +68,7 @@ public enum AuthorityDefinitions {
 	MERCHANT_SUB_ACCOUNT_EDIT_PAGE("子账号-编辑页面", "AUTH_MERCHANT_SUB_ACCOUNT_EDIT_PAGE", "/Merchant/SubAccount/Edit/Page", "GET"),
 	MERCHANT_SUB_ACCOUNT_LIST("子账号-列表请求", "AUTH_MERCHANT_SUB_ACCOUNT_LIST", "/merchant/subAccount/list", "POST"),
 	MERCHANT_SUB_ACCOUNT_LOAD("子账号-单个加载请求", "AUTH_MERCHANT_SUB_ACCOUNT_LOAD", "/merchant/subAccount/load", "GET"),
+	MERCHANT_SUB_ACCOUNT_AUTHORITIES("子账号-权限列表请求", "AUTH_MERCHANT_SUB_ACCOUNT_AUTHORITIES", "/merchant/subAccount/authorities", "GET"),
 	MERCHANT_SUB_ACCOUNT_SAVE("子账号-保存请求", "AUTH_MERCHANT_SUB_ACCOUNT_SAVE", "/merchant/subAccount/save", "POST"),
 	MERCHANT_SUB_ACCOUNT_DELETE("子账号-删除请求", "AUTH_MERCHANT_SUB_ACCOUNT_DELETE", "/merchant/subAccount/delete", "POST"),
 	MERCHANT_SUB_ACCOUNT_UPDATE_STATUS("子账号-更新状态请求", "AUTH_MERCHANT_SUB_ACCOUNT_UPDATE_STATUS", "/merchant/subAccount/updateStatus", "POST"),
