@@ -62,7 +62,7 @@ public class MerchantSubAccountController {
 	@RequestMapping(value = "/load/params/{id}")
 	public ResultBean<MerchantDTO> load(@PathVariable Long id) {
 		Optional<Merchant> dataOp = merchantRepository.findById(id);
-		AssertUtil.assertTrue(dataOp.isPresent(), "查找不到相应的记录");
+		AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
 		Optional<User> user = userRepository.findById(id);
 		List<AuthorityDTO> authorities = new ArrayList<>();
 		for (Role role : user.get().getRoles()) {
