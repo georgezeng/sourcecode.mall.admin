@@ -1,4 +1,4 @@
-package com.sourcecode.malls.admin.service.base;
+package com.sourcecode.malls.admin.service.impl.goods.base;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +17,7 @@ import com.alibaba.druid.util.StringUtils;
 import com.sourcecode.malls.admin.domain.base.BaseGoodsAttribute;
 import com.sourcecode.malls.admin.dto.goods.GoodsAttributeDTO;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
+import com.sourcecode.malls.admin.service.base.JpaService;
 
 public abstract class BaseGoodsAttributeService<T extends BaseGoodsAttribute> implements JpaService<T, Long> {
 

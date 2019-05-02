@@ -1,17 +1,22 @@
-package com.sourcecode.malls.admin.web.controller;
+package com.sourcecode.malls.admin.web.controller.goods;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.sourcecode.malls.admin.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.admin.context.UserContext;
 import com.sourcecode.malls.admin.domain.goods.GoodsCategory;
 import com.sourcecode.malls.admin.domain.merchant.Merchant;
@@ -21,19 +26,31 @@ import com.sourcecode.malls.admin.dto.base.ResultBean;
 import com.sourcecode.malls.admin.dto.goods.GoodsAttributeDTO;
 import com.sourcecode.malls.admin.dto.query.PageInfo;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
-import com.sourcecode.malls.admin.repository.jpa.impl.MerchantRepository;
-import com.sourcecode.malls.admin.service.impl.GoodsCategoryService;
+import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantShopApplicationRepository;
+import com.sourcecode.malls.admin.service.FileOnlineSystemService;
+import com.sourcecode.malls.admin.service.impl.goods.GoodsCategoryService;
 import com.sourcecode.malls.admin.util.AssertUtil;
+import com.sourcecode.malls.admin.web.controller.base.BaseFileOperationController;
+import com.sourcecode.malls.admin.web.controller.base.BaseGoodsController;
 
 @RestController
 @RequestMapping(path = "/goods/category")
-public class GoodsCategoryController {
+public class GoodsCategoryController implements BaseFileOperationController, BaseGoodsController {
 
 	@Autowired
 	private MerchantRepository merchantRepository;
 
 	@Autowired
 	private GoodsCategoryService categoryService;
+
+	@Autowired
+	private MerchantShopApplicationRepository applicationRepository;
+
+	@Autowired
+	private FileOnlineSystemService fileService;
+
+	private String fileDir = "goods/category";
 
 	@RequestMapping(path = "/list")
 	public ResultBean<GoodsAttributeDTO> list(@RequestBody QueryInfo<GoodsAttributeDTO> queryInfo) {
@@ -105,21 +122,22 @@ public class GoodsCategoryController {
 
 	@RequestMapping(path = "/load/params/{id}")
 	public ResultBean<GoodsAttributeDTO> load(@PathVariable Long id) {
-		AssertUtil.assertNotNull(id, "找不到记录");
+		AssertUtil.assertNotNull(id, ExceptionMessageConstant.NO_SUCH_RECORD);
 		User user = UserContext.get();
 		Optional<GoodsCategory> dataOp = categoryService.findById(id);
-		AssertUtil.assertTrue(dataOp.isPresent(), "找不到记录");
-		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), "找不到记录");
+		AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
+		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
 		return new ResultBean<>(dataOp.get().asDTO(false, false));
 	}
 
 	@RequestMapping(path = "/save")
 	public ResultBean<Void> save(@RequestBody GoodsAttributeDTO dto) {
+		checkIfApplicationPassed(applicationRepository, "分类");
 		GoodsCategory data = new GoodsCategory();
 		if (dto.getId() != null) {
 			Optional<GoodsCategory> dataOp = categoryService.findById(dto.getId());
-			AssertUtil.assertTrue(dataOp.isPresent(), "找不到记录");
-			AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(UserContext.get().getId()), "找不到记录");
+			AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
+			AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(UserContext.get().getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
 			data = dataOp.get();
 		} else {
 			data.setMerchant(merchantRepository.findById(UserContext.get().getId()).get());
@@ -133,13 +151,27 @@ public class GoodsCategoryController {
 		}
 		data.setName(dto.getName());
 		data.setOrder(dto.getOrder());
+		if (data.getId() == null) {
+			data.setIcon(dto.getIcon());
+			categoryService.save(data);
+		}
+		List<String> tmpPaths = new ArrayList<>();
+		List<String> newPaths = new ArrayList<>();
+		if (dto.getIcon() != null && dto.getIcon().startsWith("temp")) {
+			String newPath = fileDir + "/" + UserContext.get().getId() + "/" + data.getId() + "/icon.png";
+			String tmpPath = dto.getIcon();
+			newPaths.add(newPath);
+			tmpPaths.add(tmpPath);
+			data.setIcon(newPath);
+		}
 		categoryService.save(data);
+		transfer(fileService, true, tmpPaths, newPaths);
 		return new ResultBean<>();
 	}
 
 	@RequestMapping(value = "/delete")
 	public ResultBean<Void> delete(@RequestBody KeyDTO<Long> keys) {
-		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), "必须选择至少一条记录进行删除");
+		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
 		for (Long id : keys.getIds()) {
 			User user = UserContext.get();
 			Optional<GoodsCategory> dataOp = categoryService.findById(id);
@@ -148,6 +180,18 @@ public class GoodsCategoryController {
 			}
 		}
 		return new ResultBean<>();
+	}
+
+	@RequestMapping(value = "/file/upload/params/{id}")
+	public ResultBean<String> upload(@RequestParam("file") MultipartFile file, @PathVariable Long id) throws IOException {
+		Optional<GoodsCategory> data = categoryService.findById(id);
+		AssertUtil.assertTrue(data.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
+		return upload(fileService, file, fileDir, id, UserContext.get().getId(), false);
+	}
+
+	@RequestMapping(value = "/file/load")
+	public Resource load(@RequestParam String filePath) {
+		return load(fileService, UserContext.get().getId(), filePath, fileDir, true);
 	}
 
 }

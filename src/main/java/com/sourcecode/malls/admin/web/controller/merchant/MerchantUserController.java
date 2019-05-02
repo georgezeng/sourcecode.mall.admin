@@ -1,32 +1,27 @@
-package com.sourcecode.malls.admin.web.controller;
+package com.sourcecode.malls.admin.web.controller.merchant;
 
 import java.util.Optional;
 
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sourcecode.malls.admin.context.UserContext;
 import com.sourcecode.malls.admin.domain.redis.CodeStore;
 import com.sourcecode.malls.admin.domain.system.setting.User;
 import com.sourcecode.malls.admin.dto.base.ResultBean;
 import com.sourcecode.malls.admin.repository.redis.impl.CodeStoreRepository;
-import com.sourcecode.malls.admin.service.FileOnlineSystemService;
-import com.sourcecode.malls.admin.service.impl.MerchantUserService;
 import com.sourcecode.malls.admin.service.impl.VerifyCodeService;
+import com.sourcecode.malls.admin.service.impl.merchant.MerchantUserService;
 import com.sourcecode.malls.admin.util.AssertUtil;
+import com.sourcecode.malls.admin.web.controller.base.BaseFileOperationController;
 
 @RestController
 @RequestMapping(path = "/merchant")
-public class MerchantUserController {
+public class MerchantUserController implements BaseFileOperationController {
 	private static final String REGISTER_CODE_CATEGORY = "merchant-register-code";
 	private static final String FORGET_PASSWORD_CODE_CATEGORY = "merchant-forget-password-code";
 	private static final String REGISTER_CODE_TIME_ATTR = "merchant-register-code-time";
@@ -40,12 +35,6 @@ public class MerchantUserController {
 
 	@Autowired
 	private CodeStoreRepository codeStoreRepository;
-	
-	@Value("${user.type.name}")
-	private String userDir;
-
-	@Autowired
-	private FileOnlineSystemService fileService;
 
 	@RequestMapping(path = "/register/code/{mobile}")
 	public ResultBean<Void> sendRegisterVerifyCode(@PathVariable String mobile, HttpSession session) {
@@ -77,10 +66,4 @@ public class MerchantUserController {
 		return new ResultBean<>();
 	}
 
-	@RequestMapping(value = "/header/preview")
-	public Resource previewHeader(@RequestParam String filePath) {
-		AssertUtil.assertTrue(filePath.startsWith("temp/header/" + userDir + "/" + UserContext.get().getId() + "/")
-				|| filePath.equals(userDir + "/" + UserContext.get().getId() + "/header.png"), "图片路径不合法");
-		return new ByteArrayResource(fileService.load(false, filePath));
-	}
 }

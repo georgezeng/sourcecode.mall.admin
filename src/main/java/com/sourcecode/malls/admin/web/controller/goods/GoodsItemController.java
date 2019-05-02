@@ -1,15 +1,14 @@
-package com.sourcecode.malls.admin.web.controller;
+package com.sourcecode.malls.admin.web.controller.goods;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.util.CollectionUtils;
@@ -20,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sourcecode.malls.admin.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.admin.context.UserContext;
 import com.sourcecode.malls.admin.domain.goods.GoodsBrand;
 import com.sourcecode.malls.admin.domain.goods.GoodsCategory;
@@ -32,17 +32,20 @@ import com.sourcecode.malls.admin.dto.base.ResultBean;
 import com.sourcecode.malls.admin.dto.goods.GoodsItemDTO;
 import com.sourcecode.malls.admin.dto.query.PageResult;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
-import com.sourcecode.malls.admin.repository.jpa.impl.GoodsBrandRepository;
-import com.sourcecode.malls.admin.repository.jpa.impl.GoodsCategoryRepository;
-import com.sourcecode.malls.admin.repository.jpa.impl.GoodsItemRepository;
-import com.sourcecode.malls.admin.repository.jpa.impl.MerchantRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsBrandRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsCategoryRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsItemRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantShopApplicationRepository;
 import com.sourcecode.malls.admin.service.FileOnlineSystemService;
-import com.sourcecode.malls.admin.service.impl.GoodsItemService;
+import com.sourcecode.malls.admin.service.impl.goods.GoodsItemService;
 import com.sourcecode.malls.admin.util.AssertUtil;
+import com.sourcecode.malls.admin.web.controller.base.BaseFileOperationController;
+import com.sourcecode.malls.admin.web.controller.base.BaseGoodsController;
 
 @RestController
 @RequestMapping(path = "/goods/item")
-public class GoodsItemController {
+public class GoodsItemController implements BaseFileOperationController, BaseGoodsController {
 
 	@Autowired
 	private MerchantRepository merchantRepository;
@@ -62,6 +65,11 @@ public class GoodsItemController {
 	@Autowired
 	private FileOnlineSystemService fileService;
 
+	@Autowired
+	private MerchantShopApplicationRepository applicationRepository;
+
+	private String fileDir = "goods/item";
+
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<GoodsItemDTO>> list(@RequestBody QueryInfo<GoodsItemDTO> queryInfo) {
 		User user = UserContext.get();
@@ -77,23 +85,14 @@ public class GoodsItemController {
 	public ResultBean<GoodsItemDTO> load(@PathVariable Long id) {
 		User user = UserContext.get();
 		Optional<GoodsItem> dataOp = itemRepository.findById(id);
-		AssertUtil.assertTrue(dataOp.isPresent(), "找不到记录");
-		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), "找不到记录");
+		AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
+		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
 		return new ResultBean<>(dataOp.get().asDTO());
-	}
-
-	@RequestMapping(path = "/update/params/{id}/{status}")
-	public ResultBean<Void> updateStatus(@PathVariable Long id, @PathVariable Boolean status) {
-		Optional<GoodsItem> dataOp = itemRepository.findById(id);
-		AssertUtil.assertTrue(dataOp.isPresent(), "商品不存在");
-		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(UserContext.get().getId()), "商品不存在");
-		dataOp.get().setEnabled(status);
-		itemRepository.save(dataOp.get());
-		return new ResultBean<>();
 	}
 
 	@RequestMapping(path = "/save")
 	public ResultBean<Void> save(@RequestBody GoodsItemDTO dto) {
+		checkIfApplicationPassed(applicationRepository, "信息");
 		if (dto.getId() == null) {
 			dto.setId(0l);
 		}
@@ -117,44 +116,60 @@ public class GoodsItemController {
 		List<String> tmpPaths = new ArrayList<>();
 		List<String> newPaths = new ArrayList<>();
 		if (dto.getThumbnail() != null && dto.getThumbnail().startsWith("temp")) {
-			String newPath = "goods/item/" + UserContext.get().getId() + "/" + data.getId() + "/thumb.png";
+			String newPath = fileDir + "/" + UserContext.get().getId() + "/" + data.getId() + "/thumb.png";
 			String tmpPath = dto.getThumbnail();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
 			data.setThumbnail(newPath);
 		}
-		List<GoodsItemPhoto> oldPhotos = data.getPhotos();
+		List<GoodsItemPhoto> photos = data.getPhotos();
+		if (photos == null) {
+			photos = new ArrayList<>();
+			data.setPhotos(photos);
+		}
 		int order = 0;
-		for (String path : dto.getPhotos()) {
-			GoodsItemPhoto photo = null;
-			if (oldPhotos != null && order < oldPhotos.size()) {
-				photo = oldPhotos.get(order);
+		for (Iterator<GoodsItemPhoto> it = photos.iterator(); it.hasNext();) {
+			GoodsItemPhoto photo = it.next();
+			String path = null;
+			if (order < dto.getPhotos().size()) {
+				path = dto.getPhotos().get(order);
 			}
-			if (photo == null || path.startsWith("temp")) {
-				photo = new GoodsItemPhoto();
-				String newPath = "goods/item/" + UserContext.get().getId() + "/" + data.getId() + "/photo" + (order + 1) + ".png";
+			if (path == null) {
+				it.remove();
+			} else if (path.startsWith("temp")) {
+				String newPath = fileDir + "/" + UserContext.get().getId() + "/" + data.getId() + "/photo/" + (order + 1) + ".png";
 				newPaths.add(newPath);
 				tmpPaths.add(path);
 				photo.setPath(newPath);
-				photo.setOrder(order + 1);
-				photo.setItem(data);
+				order++;
+			} else if (!path.equals(photo.getPath())) {
+				photo.setPath(path);
+				order++;
+			} else {
+				order++;
 			}
-			data.addPhoto(photo);
-			order++;
+		}
+		if (order < dto.getPhotos().size()) {
+			for (int i = order; i < dto.getPhotos().size(); i++) {
+				GoodsItemPhoto photo = new GoodsItemPhoto();
+				photo.setOrder(i + 1);
+				photo.setItem(data);
+				String path = dto.getPhotos().get(i);
+				String newPath = fileDir + "/" + UserContext.get().getId() + "/" + data.getId() + "/photo/" + (order + 1) + ".png";
+				newPaths.add(newPath);
+				tmpPaths.add(path);
+				photo.setPath(newPath);
+				photos.add(photo);
+			}
 		}
 		itemRepository.save(data);
-		for (int i = 0; i < newPaths.size(); i++) {
-			String newPath = newPaths.get(i);
-			String tmpPath = tmpPaths.get(i);
-			byte[] buf = fileService.load(false, tmpPath);
-			fileService.upload(true, newPath, new ByteArrayInputStream(buf));
-		}
+		transfer(fileService, true, tmpPaths, newPaths);
 		return new ResultBean<>();
 	}
 
 	@RequestMapping(value = "/delete")
 	public ResultBean<Void> delete(@RequestBody KeyDTO<Long> keys) {
-		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), "必须选择至少一条记录进行删除");
+		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
 		for (Long id : keys.getIds()) {
 			User user = UserContext.get();
 			Optional<GoodsItem> dataOp = itemService.findById(id);
@@ -165,37 +180,30 @@ public class GoodsItemController {
 		return new ResultBean<>();
 	}
 
-	@RequestMapping(value = "/updateStatus/params/{enabled}")
-	public ResultBean<Void> updateStatus(@RequestBody KeyDTO<Long> keys, @PathVariable Boolean enabled) {
-		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), "必须选择至少一条记录进行更新");
+	@RequestMapping(value = "/updateStatus/params/{status}")
+	public ResultBean<Void> updateStatus(@RequestBody KeyDTO<Long> keys, @PathVariable Boolean status) {
+		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_UPDATE);
 		for (Long id : keys.getIds()) {
 			User user = UserContext.get();
 			Optional<GoodsItem> dataOp = itemService.findById(id);
 			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
-				dataOp.get().setEnabled(enabled);
+				dataOp.get().setEnabled(status);
 				itemService.save(dataOp.get());
 			}
 		}
 		return new ResultBean<>();
 	}
 
-	@RequestMapping(value = "/img/upload/params/{id}")
+	@RequestMapping(value = "/file/upload/params/{id}")
 	public ResultBean<String> upload(@RequestParam("file") MultipartFile file, @PathVariable Long id) throws IOException {
-		String dir = "" + (id.equals(0l) ? System.nanoTime() : id) + "/";
-		String filePath = "temp/goods/item/" + UserContext.get().getId() + "/" + dir + System.nanoTime() + ".png";
-		fileService.upload(false, filePath, file.getInputStream());
-		return new ResultBean<>(filePath);
+		Optional<GoodsItem> data = itemRepository.findById(id);
+		AssertUtil.assertTrue(data.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
+		return upload(fileService, file, fileDir, id, UserContext.get().getId(), false);
 	}
 
-	@RequestMapping(value = "/img/load")
-	public Resource previewImg(@RequestParam String filePath) {
-		AssertUtil.assertTrue(filePath.startsWith("temp/goods/item/" + UserContext.get().getId() + "/")
-				|| filePath.startsWith("goods/item/" + UserContext.get().getId() + "/"), "图片路径不合法");
-		if (filePath.startsWith("temp")) {
-			return new ByteArrayResource(fileService.load(false, filePath));
-		} else {
-			return new ByteArrayResource(fileService.load(true, filePath));
-		}
+	@RequestMapping(value = "/file/load")
+	public Resource load(@RequestParam String filePath) {
+		return load(fileService, UserContext.get().getId(), filePath, fileDir, true);
 	}
 
 }

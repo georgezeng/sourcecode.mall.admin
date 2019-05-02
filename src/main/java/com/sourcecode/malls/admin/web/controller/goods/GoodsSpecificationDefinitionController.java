@@ -1,4 +1,4 @@
-package com.sourcecode.malls.admin.web.controller;
+package com.sourcecode.malls.admin.web.controller.goods;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sourcecode.malls.admin.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.admin.context.UserContext;
 import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationDefinition;
 import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationGroup;
@@ -24,15 +25,17 @@ import com.sourcecode.malls.admin.dto.base.ResultBean;
 import com.sourcecode.malls.admin.dto.goods.GoodsAttributeDTO;
 import com.sourcecode.malls.admin.dto.query.PageResult;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
-import com.sourcecode.malls.admin.repository.jpa.impl.GoodsSpecificationGroupRepository;
-import com.sourcecode.malls.admin.repository.jpa.impl.GoodsSpecificationValueRepository;
-import com.sourcecode.malls.admin.repository.jpa.impl.MerchantRepository;
-import com.sourcecode.malls.admin.service.impl.GoodsSpecificationDefinitionService;
+import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsSpecificationGroupRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsSpecificationValueRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantShopApplicationRepository;
+import com.sourcecode.malls.admin.service.impl.goods.GoodsSpecificationDefinitionService;
 import com.sourcecode.malls.admin.util.AssertUtil;
+import com.sourcecode.malls.admin.web.controller.base.BaseGoodsController;
 
 @RestController
 @RequestMapping(path = "/goods/specification/definition")
-public class GoodsSpecificationDefinitionController {
+public class GoodsSpecificationDefinitionController implements BaseGoodsController {
 
 	@Autowired
 	private MerchantRepository merchantRepository;
@@ -45,6 +48,9 @@ public class GoodsSpecificationDefinitionController {
 
 	@Autowired
 	private GoodsSpecificationGroupRepository groupRepository;
+	
+	@Autowired
+	private MerchantShopApplicationRepository applicationRepository;
 
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<GoodsAttributeDTO>> list(@RequestBody QueryInfo<GoodsAttributeDTO> queryInfo) {
@@ -66,21 +72,22 @@ public class GoodsSpecificationDefinitionController {
 
 	@RequestMapping(path = "/load/params/{id}")
 	public ResultBean<GoodsAttributeDTO> load(@PathVariable Long id) {
-		AssertUtil.assertNotNull(id, "找不到记录");
+		AssertUtil.assertNotNull(id, ExceptionMessageConstant.NO_SUCH_RECORD);
 		User user = UserContext.get();
 		Optional<GoodsSpecificationDefinition> dataOp = definitionService.findById(id);
-		AssertUtil.assertTrue(dataOp.isPresent(), "找不到记录");
-		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), "找不到记录");
+		AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
+		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
 		return new ResultBean<>(dataOp.get().asDTO());
 	}
 
 	@RequestMapping(path = "/save")
 	public ResultBean<Void> save(@RequestBody GoodsAttributeDTO dto) {
+		checkIfApplicationPassed(applicationRepository, "规格");
 		GoodsSpecificationDefinition data = new GoodsSpecificationDefinition();
 		if (dto.getId() != null) {
 			Optional<GoodsSpecificationDefinition> dataOp = definitionService.findById(dto.getId());
-			AssertUtil.assertTrue(dataOp.isPresent(), "找不到记录");
-			AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(UserContext.get().getId()), "找不到记录");
+			AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
+			AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(UserContext.get().getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
 			data = dataOp.get();
 		} else {
 			data.setMerchant(merchantRepository.findById(UserContext.get().getId()).get());
@@ -120,7 +127,7 @@ public class GoodsSpecificationDefinitionController {
 
 	@RequestMapping(value = "/delete")
 	public ResultBean<Void> delete(@RequestBody KeyDTO<Long> keys) {
-		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), "必须选择至少一条记录进行删除");
+		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
 		for (Long id : keys.getIds()) {
 			User user = UserContext.get();
 			Optional<GoodsSpecificationDefinition> dataOp = definitionService.findById(id);

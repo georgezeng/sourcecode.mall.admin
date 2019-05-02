@@ -1,4 +1,4 @@
-package com.sourcecode.malls.admin.service.impl;
+package com.sourcecode.malls.admin.service.impl.merchant;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import com.alibaba.druid.util.StringUtils;
+import com.sourcecode.malls.admin.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.admin.constants.SystemConstant;
 import com.sourcecode.malls.admin.domain.merchant.Merchant;
 import com.sourcecode.malls.admin.domain.system.setting.Authority;
@@ -29,12 +30,11 @@ import com.sourcecode.malls.admin.domain.system.setting.User;
 import com.sourcecode.malls.admin.dto.base.SimpleQueryDTO;
 import com.sourcecode.malls.admin.dto.merchant.MerchantDTO;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
-import com.sourcecode.malls.admin.dto.system.setting.AuthorityDTO;
-import com.sourcecode.malls.admin.properties.UserProperties;
-import com.sourcecode.malls.admin.repository.jpa.impl.AuthorityRepository;
-import com.sourcecode.malls.admin.repository.jpa.impl.MerchantRepository;
-import com.sourcecode.malls.admin.repository.jpa.impl.RoleRepository;
-import com.sourcecode.malls.admin.repository.jpa.impl.UserRepository;
+import com.sourcecode.malls.admin.dto.system.AuthorityDTO;
+import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.system.AuthorityRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.system.RoleRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.system.UserRepository;
 import com.sourcecode.malls.admin.service.base.JpaService;
 import com.sourcecode.malls.admin.util.AssertUtil;
 import com.sourcecode.malls.admin.util.RegexpUtil;
@@ -58,18 +58,14 @@ public class MerchantUserService implements JpaService<Merchant, Long> {
 	@Autowired
 	private PasswordEncoder pwdEncoder;
 
-	@Autowired
-	private UserProperties userProperties;
-
 	public void register(User merchant) {
-		AssertUtil.assertTrue(RegexpUtil.matchMobile(merchant.getUsername()), "账号长度必须是11位且全部是数字");
-		AssertUtil.assertTrue(RegexpUtil.matchPassword(merchant.getPassword()), "密码必须数字+字母（区分大小写）并且不少于8位");
-		AssertUtil.assertTrue(merchant.getPassword().equals(merchant.getConfirmPassword()), "确认密码与密码不一致");
+		AssertUtil.assertTrue(RegexpUtil.matchMobile(merchant.getUsername()), ExceptionMessageConstant.MOBILE_ACCOUNT_SHOULD_BE_THE_RULE);
+		AssertUtil.assertTrue(RegexpUtil.matchPassword(merchant.getPassword()), ExceptionMessageConstant.PASSWORD_SHOULD_BE_THE_RULE);
+		AssertUtil.assertTrue(merchant.getPassword().equals(merchant.getConfirmPassword()), ExceptionMessageConstant.TWO_TIMES_PASSWORD_NOT_EQUALS);
 		Optional<User> existedUser = userRepository.findByUsername(merchant.getUsername());
 		AssertUtil.assertTrue(!existedUser.isPresent(), "用户已存在");
 		merchant.setEnabled(true);
 		merchant.setPassword(pwdEncoder.encode(merchant.getPassword()));
-		merchant.setHeader(userProperties.getAvatar());
 		userRepository.save(merchant);
 		Optional<Role> role = roleRepository.findByCode(SystemConstant.ROLE_MERCHANT_USER_CODE);
 		AssertUtil.assertTrue(role.isPresent(), "商家角色不存在");
@@ -78,15 +74,15 @@ public class MerchantUserService implements JpaService<Merchant, Long> {
 	}
 
 	public void createSubAccount(Merchant parent, MerchantDTO subAccount) {
-		AssertUtil.assertTrue(RegexpUtil.matchMobile(subAccount.getUsername()), "账号长度必须是11位且全部是数字");
-		AssertUtil.assertTrue(RegexpUtil.matchPassword(subAccount.getPassword()), "密码必须数字+字母（区分大小写）并且不少于8位");
-		AssertUtil.assertTrue(subAccount.getPassword().equals(subAccount.getConfirmPassword()), "确认密码与密码不一致");
+		AssertUtil.assertTrue(RegexpUtil.matchMobile(subAccount.getUsername()), ExceptionMessageConstant.MOBILE_ACCOUNT_SHOULD_BE_THE_RULE);
+		AssertUtil.assertTrue(RegexpUtil.matchPassword(subAccount.getPassword()), ExceptionMessageConstant.PASSWORD_SHOULD_BE_THE_RULE);
+		AssertUtil.assertTrue(subAccount.getPassword().equals(subAccount.getConfirmPassword()),
+				ExceptionMessageConstant.TWO_TIMES_PASSWORD_NOT_EQUALS);
 		Optional<Merchant> existedUser = merchantRepository.findByUsername(subAccount.getUsername());
 		AssertUtil.assertTrue(!existedUser.isPresent(), "用户已存在");
 		Merchant data = subAccount.asEntity();
 		data.setEnabled(true);
 		data.setPassword(pwdEncoder.encode(subAccount.getPassword()));
-		data.setHeader(userProperties.getAvatar());
 		data.setParent(parent);
 		merchantRepository.save(data);
 		Optional<User> user = userRepository.findById(data.getId());
@@ -108,11 +104,13 @@ public class MerchantUserService implements JpaService<Merchant, Long> {
 
 	public void updateSubAccount(Merchant parent, MerchantDTO subAccount) {
 		Optional<Merchant> existedUser = merchantRepository.findByUsername(subAccount.getUsername());
-		AssertUtil.assertTrue(existedUser.isPresent() && existedUser.get().isEnabled(), "用户不存在");
-		AssertUtil.assertTrue(existedUser.get().getParent() != null && existedUser.get().getParent().getId().equals(parent.getId()), "用户不存在");
+		AssertUtil.assertTrue(existedUser.isPresent() && existedUser.get().isEnabled(), ExceptionMessageConstant.NO_SUCH_RECORD);
+		AssertUtil.assertTrue(existedUser.get().getParent() != null && existedUser.get().getParent().getId().equals(parent.getId()),
+				ExceptionMessageConstant.NO_SUCH_RECORD);
 		if (!StringUtils.isEmpty(subAccount.getPassword())) {
-			AssertUtil.assertTrue(RegexpUtil.matchPassword(subAccount.getPassword()), "密码必须数字+字母（区分大小写）并且不少于8位");
-			AssertUtil.assertTrue(subAccount.getPassword().equals(subAccount.getConfirmPassword()), "确认密码与密码不一致");
+			AssertUtil.assertTrue(RegexpUtil.matchPassword(subAccount.getPassword()), ExceptionMessageConstant.PASSWORD_SHOULD_BE_THE_RULE);
+			AssertUtil.assertTrue(subAccount.getPassword().equals(subAccount.getConfirmPassword()),
+					ExceptionMessageConstant.TWO_TIMES_PASSWORD_NOT_EQUALS);
 			existedUser.get().setPassword(pwdEncoder.encode(subAccount.getPassword()));
 		}
 		BeanUtils.copyProperties(subAccount, existedUser.get(), "id", "parent", "password");
@@ -181,11 +179,11 @@ public class MerchantUserService implements JpaService<Merchant, Long> {
 	}
 
 	public void resetPassword(User merchant) {
-		AssertUtil.assertTrue(RegexpUtil.matchMobile(merchant.getUsername()), "账号长度必须是11位且全部是数字");
-		AssertUtil.assertTrue(RegexpUtil.matchPassword(merchant.getPassword()), "密码必须数字+字母（区分大小写）并且不少于8位");
-		AssertUtil.assertTrue(merchant.getPassword().equals(merchant.getConfirmPassword()), "确认密码与密码不一致");
+		AssertUtil.assertTrue(RegexpUtil.matchMobile(merchant.getUsername()), ExceptionMessageConstant.MOBILE_ACCOUNT_SHOULD_BE_THE_RULE);
+		AssertUtil.assertTrue(RegexpUtil.matchPassword(merchant.getPassword()), ExceptionMessageConstant.PASSWORD_SHOULD_BE_THE_RULE);
+		AssertUtil.assertTrue(merchant.getPassword().equals(merchant.getConfirmPassword()), ExceptionMessageConstant.TWO_TIMES_PASSWORD_NOT_EQUALS);
 		Optional<User> existedUser = userRepository.findByUsername(merchant.getUsername());
-		AssertUtil.assertTrue(existedUser.isPresent(), "用户不存在");
+		AssertUtil.assertTrue(existedUser.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
 		existedUser.get().setPassword(pwdEncoder.encode(merchant.getPassword()));
 		userRepository.save(existedUser.get());
 	}

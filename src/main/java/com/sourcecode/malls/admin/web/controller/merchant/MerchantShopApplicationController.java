@@ -1,22 +1,20 @@
-package com.sourcecode.malls.admin.web.controller;
+package com.sourcecode.malls.admin.web.controller.merchant;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.aliyuncs.utils.StringUtils;
+import com.sourcecode.malls.admin.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.admin.context.UserContext;
 import com.sourcecode.malls.admin.domain.merchant.Merchant;
 import com.sourcecode.malls.admin.domain.merchant.MerchantShopApplication;
@@ -26,15 +24,16 @@ import com.sourcecode.malls.admin.domain.system.setting.User;
 import com.sourcecode.malls.admin.dto.base.ResultBean;
 import com.sourcecode.malls.admin.dto.merchant.MerchantShopApplicationDTO;
 import com.sourcecode.malls.admin.enums.VerificationStatus;
-import com.sourcecode.malls.admin.repository.jpa.impl.MerchantRepository;
-import com.sourcecode.malls.admin.repository.jpa.impl.MerchantShopApplicationRepository;
-import com.sourcecode.malls.admin.repository.jpa.impl.MerchantVerificationRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantShopApplicationRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantVerificationRepository;
 import com.sourcecode.malls.admin.service.FileOnlineSystemService;
 import com.sourcecode.malls.admin.util.AssertUtil;
+import com.sourcecode.malls.admin.web.controller.base.BaseFileOperationController;
 
 @RestController
 @RequestMapping(path = "/merchant/shop/application")
-public class MerchantShopApplicationController {
+public class MerchantShopApplicationController implements BaseFileOperationController {
 
 	@Autowired
 	private MerchantRepository merchantRepository;
@@ -48,13 +47,24 @@ public class MerchantShopApplicationController {
 	@Autowired
 	private FileOnlineSystemService fileService;
 
+	private String fileDir = "merchant/shop";
+
 	@RequestMapping(path = "/load")
 	public ResultBean<MerchantShopApplicationDTO> load() {
 		User user = UserContext.get();
-		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
-		Optional<MerchantShopApplication> appOp = shopRepository.findByMerchant(merchant.get());
-		MerchantShopApplicationDTO dto = appOp.orElseGet(MerchantShopApplication::new).asDTO();
-		return new ResultBean<>(dto);
+		Optional<MerchantVerification> verificationOp = verificationRepository.findByMerchantId(user.getId());
+		if (verificationOp.isPresent() && VerificationStatus.Passed.equals(verificationOp.get().getStatus())) {
+			Optional<MerchantShopApplication> appOp = shopRepository.findByMerchantId(user.getId());
+			MerchantShopApplicationDTO dto = appOp.orElseGet(MerchantShopApplication::new).asDTO();
+			if (appOp.isPresent()) {
+				dto.setNoPermit(!VerificationStatus.Passed.equals(appOp.get().getStatus()));
+			}
+			return new ResultBean<>(dto);
+		} else {
+			MerchantShopApplicationDTO dto = new MerchantShopApplicationDTO();
+			dto.setNoPermit(true);
+			return new ResultBean<>(dto);
+		}
 	}
 
 	@RequestMapping(path = "/apply")
@@ -62,7 +72,7 @@ public class MerchantShopApplicationController {
 		User user = UserContext.get();
 		check(user, false);
 		Merchant merchant = merchantRepository.findById(user.getId()).get();
-		MerchantShopApplication data = shopRepository.findByMerchant(merchant).orElseGet(MerchantShopApplication::new);
+		MerchantShopApplication data = shopRepository.findByMerchantId(merchant.getId()).orElseGet(MerchantShopApplication::new);
 		if (data.getId() == null) {
 			Optional<MerchantShopApplication> domainOp = shopRepository.findByDomain(dto.getDomain());
 			AssertUtil.assertTrue(!domainOp.isPresent(), "域名已经被占用");
@@ -85,76 +95,91 @@ public class MerchantShopApplicationController {
 		List<String> tmpPaths = new ArrayList<>();
 		List<String> newPaths = new ArrayList<>();
 		if (dto.getAndroidSmallIcon() != null && dto.getAndroidSmallIcon().startsWith("temp")) {
-			String newPath = "merchant/shop/application/" + UserContext.get().getId() + "/android_small_icon.png";
+			String newPath = fileDir + "/" + UserContext.get().getId() + "/android_small_icon.png";
 			String tmpPath = dto.getAndroidSmallIcon();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
 			data.setAndroidSmallIcon(newPath);
 		}
 		if (dto.getAndroidBigIcon() != null && dto.getAndroidBigIcon().startsWith("temp")) {
-			String newPath = "merchant/shop/application/" + UserContext.get().getId() + "/android_big_icon.png";
+			String newPath = fileDir + "/" + UserContext.get().getId() + "/android_big_icon.png";
 			String tmpPath = dto.getAndroidBigIcon();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
 			data.setAndroidBigIcon(newPath);
 		}
 		if (dto.getIosSmallIcon() != null && dto.getIosSmallIcon().startsWith("temp")) {
-			String newPath = "merchant/shop/application/" + UserContext.get().getId() + "/ios_small_icon.png";
+			String newPath = fileDir + "/" + UserContext.get().getId() + "/ios_small_icon.png";
 			String tmpPath = dto.getIosSmallIcon();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
 			data.setIosSmallIcon(newPath);
 		}
 		if (dto.getIosBigIcon() != null && dto.getIosBigIcon().startsWith("temp")) {
-			String newPath = "merchant/shop/application/" + UserContext.get().getId() + "/ios_big_icon.png";
+			String newPath = fileDir + "/" + UserContext.get().getId() + "/ios_big_icon.png";
 			String tmpPath = dto.getIosBigIcon();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
 			data.setIosBigIcon(newPath);
 		}
 		if (dto.getLogo() != null && dto.getLogo().startsWith("temp")) {
-			String newPath = "merchant/shop/application/" + UserContext.get().getId() + "/logo.png";
+			String newPath = fileDir + "/" + UserContext.get().getId() + "/logo.png";
 			String tmpPath = dto.getLogo();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
 			data.setLogo(newPath);
 		}
 		if (dto.getLoginBgImg() != null && dto.getLoginBgImg().startsWith("temp")) {
-			String newPath = "merchant/shop/application/" + UserContext.get().getId() + "/login_bg.png";
+			String newPath = fileDir + "/" + UserContext.get().getId() + "/login_bg.png";
 			String tmpPath = dto.getLoginBgImg();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
 			data.setLoginBgImg(newPath);
 		}
-		List<MerchantShopApplicationInstruction> oldInstructions = data.getInstructions();
-		data.setInstructions(null);
+		List<MerchantShopApplicationInstruction> instructions = data.getInstructions();
+		if (instructions == null) {
+			instructions = new ArrayList<>();
+			data.setInstructions(instructions);
+		}
 		int order = 0;
-		for (String path : dto.getInstructions()) {
-			MerchantShopApplicationInstruction instruction = null;
-			if (oldInstructions != null && order < oldInstructions.size()) {
-				instruction = oldInstructions.get(order);
+		for (Iterator<MerchantShopApplicationInstruction> it = instructions.iterator(); it.hasNext();) {
+			MerchantShopApplicationInstruction instruction = it.next();
+			String path = null;
+			if (order < dto.getInstructions().size()) {
+				path = dto.getInstructions().get(order);
 			}
-			if (instruction == null || path.startsWith("temp")) {
-				instruction = new MerchantShopApplicationInstruction();
-				String newPath = "merchant/shop/application/" + UserContext.get().getId() + "/instruction" + (order + 1) + ".png";
+			if (path == null) {
+				it.remove();
+			} else if (path.startsWith("temp")) {
+				String newPath = fileDir + "/" + UserContext.get().getId() + "/instruction_" + (order + 1) + ".png";
 				newPaths.add(newPath);
 				tmpPaths.add(path);
 				instruction.setPath(newPath);
-				instruction.setOrder(order + 1);
-				instruction.setShopApplication(data);
+				order++;
+			} else if (!path.equals(instruction.getPath())) {
+				instruction.setPath(path);
+				order++;
+			} else {
+				order++;
 			}
-			data.addInstruction(instruction);
-			order++;
+		}
+		if (order < dto.getInstructions().size()) {
+			for (int i = order; i < dto.getInstructions().size(); i++) {
+				MerchantShopApplicationInstruction instruction = new MerchantShopApplicationInstruction();
+				instruction.setOrder(i + 1);
+				instruction.setShopApplication(data);
+				String path = dto.getInstructions().get(i);
+				String newPath = fileDir + "/" + UserContext.get().getId() + "/instruction_" + (order + 1) + ".png";
+				newPaths.add(newPath);
+				tmpPaths.add(path);
+				instruction.setPath(newPath);
+				instructions.add(instruction);
+			}
 		}
 		data.setReason(null);
 		data.setDeployed(false);
 		shopRepository.save(data);
-		for (int i = 0; i < newPaths.size(); i++) {
-			String newPath = newPaths.get(i);
-			String tmpPath = tmpPaths.get(i);
-			byte[] buf = fileService.load(false, tmpPath);
-			fileService.upload(false, newPath, new ByteArrayInputStream(buf));
-		}
+		transfer(fileService, true, tmpPaths, newPaths);
 		return new ResultBean<>();
 	}
 
@@ -162,9 +187,8 @@ public class MerchantShopApplicationController {
 	public ResultBean<Void> update(@RequestBody MerchantShopApplicationDTO dto) {
 		User user = UserContext.get();
 		check(user, true);
-		Merchant merchant = merchantRepository.findById(user.getId()).get();
-		Optional<MerchantShopApplication> dataOp = shopRepository.findByMerchant(merchant);
-		AssertUtil.assertTrue(dataOp.isPresent(), "找不到申请记录");
+		Optional<MerchantShopApplication> dataOp = shopRepository.findByMerchantId(user.getId());
+		AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
 		MerchantShopApplication data = dataOp.get();
 		return update(dto, data);
 	}
@@ -172,7 +196,7 @@ public class MerchantShopApplicationController {
 	private void check(User user, boolean isUpdate) {
 		Optional<MerchantVerification> data = verificationRepository.findByMerchantId(user.getId());
 		AssertUtil.assertTrue(data.isPresent() && data.get().getStatus().equals(VerificationStatus.Passed), "还没通过实名认证，请先进行实名认证");
-		Optional<MerchantShopApplication> appOp = shopRepository.findByMerchant(merchantRepository.findById(user.getId()).get());
+		Optional<MerchantShopApplication> appOp = shopRepository.findByMerchantId(user.getId());
 		if (appOp.isPresent()) {
 			if (!isUpdate) {
 				AssertUtil.assertTrue(!appOp.get().getStatus().equals(VerificationStatus.UnPay), "申请已经提交，不能重复提交");
@@ -186,27 +210,14 @@ public class MerchantShopApplicationController {
 		}
 	}
 
-	@RequestMapping(value = "/upload/params/{type}/{isUpdate}")
-	public ResultBean<String> upload(@RequestParam("file") MultipartFile file, @PathVariable String type, @PathVariable Boolean isUpdate,
-			@RequestParam(required = false) String extendDir) throws IOException {
-		check(UserContext.get(), isUpdate);
-		String dir = type + (StringUtils.isEmpty(extendDir) ? "" : extendDir);
-		String filePath = "temp/merchant/shop/application/" + UserContext.get().getId() + "/" + dir + System.nanoTime() + ".png";
-		fileService.upload(false, filePath, file.getInputStream());
-		return new ResultBean<>(filePath);
+	@RequestMapping(value = "/file/upload")
+	public ResultBean<String> upload(@RequestParam("file") MultipartFile file) throws IOException {
+		return upload(fileService, file, fileDir, null, UserContext.get().getId(), false);
 	}
 
-	@RequestMapping(value = "/img/load")
-	public Resource loadImg(@RequestParam String filePath) {
-		AssertUtil.assertTrue(filePath.startsWith("merchant/shop/application/" + UserContext.get().getId() + "/"), "图片路径不合法");
-		return new ByteArrayResource(fileService.load(false, filePath));
-	}
-
-	@RequestMapping(value = "/img/preview")
-	public Resource previewImg(@RequestParam String filePath) {
-		AssertUtil.assertTrue(filePath.startsWith("temp/merchant/shop/application/" + UserContext.get().getId() + "/")
-				|| filePath.startsWith("merchant/shop/application/" + UserContext.get().getId() + "/"), "图片路径不合法");
-		return new ByteArrayResource(fileService.load(false, filePath));
+	@RequestMapping(value = "/file/load")
+	public Resource load(@RequestParam String filePath) {
+		return load(fileService, UserContext.get().getId(), filePath, fileDir, true);
 	}
 
 }

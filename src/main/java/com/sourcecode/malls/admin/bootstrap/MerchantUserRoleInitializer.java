@@ -5,7 +5,7 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.sourcecode.malls.admin.service.impl.MerchantRoleService;
+import com.sourcecode.malls.admin.service.impl.merchant.MerchantRoleService;
 
 @Component
 public class MerchantUserRoleInitializer {

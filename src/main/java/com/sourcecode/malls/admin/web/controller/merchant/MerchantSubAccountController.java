@@ -1,4 +1,4 @@
-package com.sourcecode.malls.admin.web.controller;
+package com.sourcecode.malls.admin.web.controller.merchant;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sourcecode.malls.admin.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.admin.constants.SystemConstant;
 import com.sourcecode.malls.admin.context.UserContext;
 import com.sourcecode.malls.admin.domain.merchant.Merchant;
@@ -25,11 +26,11 @@ import com.sourcecode.malls.admin.dto.base.SimpleQueryDTO;
 import com.sourcecode.malls.admin.dto.merchant.MerchantDTO;
 import com.sourcecode.malls.admin.dto.query.PageResult;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
-import com.sourcecode.malls.admin.dto.system.setting.AuthorityDTO;
-import com.sourcecode.malls.admin.repository.jpa.impl.AuthorityRepository;
-import com.sourcecode.malls.admin.repository.jpa.impl.MerchantRepository;
-import com.sourcecode.malls.admin.repository.jpa.impl.UserRepository;
-import com.sourcecode.malls.admin.service.impl.MerchantUserService;
+import com.sourcecode.malls.admin.dto.system.AuthorityDTO;
+import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.system.AuthorityRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.system.UserRepository;
+import com.sourcecode.malls.admin.service.impl.merchant.MerchantUserService;
 import com.sourcecode.malls.admin.util.AssertUtil;
 
 @RestController
@@ -53,15 +54,12 @@ public class MerchantSubAccountController {
 		User parentUser = UserContext.get();
 		Optional<Merchant> parent = merchantRepository.findById(parentUser.getId());
 		Page<Merchant> pageResult = userService.findAllSubAccounts(parent.get(), queryInfo);
-		PageResult<MerchantDTO> dtoResult = new PageResult<>();
-		if (pageResult.hasContent()) {
-			dtoResult = new PageResult<>(pageResult.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()),
-					pageResult.getTotalElements());
-		}
+		PageResult<MerchantDTO> dtoResult = new PageResult<>(pageResult.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()),
+				pageResult.getTotalElements());
 		return new ResultBean<>(dtoResult);
 	}
 
-	@RequestMapping(value = "/one/params/{id}")
+	@RequestMapping(value = "/load/params/{id}")
 	public ResultBean<MerchantDTO> load(@PathVariable Long id) {
 		Optional<Merchant> dataOp = merchantRepository.findById(id);
 		AssertUtil.assertTrue(dataOp.isPresent(), "查找不到相应的记录");
@@ -92,7 +90,7 @@ public class MerchantSubAccountController {
 
 	@RequestMapping(value = "/delete")
 	public ResultBean<Void> delete(@RequestBody KeyDTO<Long> keys) {
-		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), "必须选择至少一条记录进行删除");
+		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
 		User parentUser = UserContext.get();
 		for (Long id : keys.getIds()) {
 			Optional<Merchant> userOp = merchantRepository.findById(id);
@@ -111,14 +109,14 @@ public class MerchantSubAccountController {
 				new PageResult<>(auths.getContent().stream().map(auth -> auth.asDTO()).collect(Collectors.toList()), auths.getTotalElements()));
 	}
 
-	@RequestMapping(value = "/updateStatus/params/{enabled}")
-	public ResultBean<Void> updateStatus(@RequestBody KeyDTO<Long> keys, @PathVariable Boolean enabled) {
-		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), "必须选择至少一条记录进行状态更新");
+	@RequestMapping(value = "/updateStatus/params/{status}")
+	public ResultBean<Void> updateStatus(@RequestBody KeyDTO<Long> keys, @PathVariable Boolean status) {
+		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_UPDATE);
 		for (Long id : keys.getIds()) {
 			Optional<Merchant> userOp = userService.findById(id);
 			if (userOp.isPresent() && userOp.get().getParent() != null && userOp.get().getParent().getId().equals(UserContext.get().getId())) {
 				Merchant user = userOp.get();
-				user.setEnabled(enabled);
+				user.setEnabled(status);
 				userService.save(user);
 			}
 		}

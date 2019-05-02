@@ -1,12 +1,12 @@
-package com.sourcecode.malls.admin.web.controller;
+package com.sourcecode.malls.admin.web.controller.merchant;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sourcecode.malls.admin.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.admin.context.UserContext;
 import com.sourcecode.malls.admin.domain.merchant.Merchant;
 import com.sourcecode.malls.admin.domain.merchant.MerchantVerification;
@@ -21,14 +22,15 @@ import com.sourcecode.malls.admin.domain.system.setting.User;
 import com.sourcecode.malls.admin.dto.base.ResultBean;
 import com.sourcecode.malls.admin.dto.merchant.MerchantVerificationDTO;
 import com.sourcecode.malls.admin.enums.VerificationStatus;
-import com.sourcecode.malls.admin.repository.jpa.impl.MerchantRepository;
-import com.sourcecode.malls.admin.repository.jpa.impl.MerchantVerificationRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantVerificationRepository;
 import com.sourcecode.malls.admin.service.FileOnlineSystemService;
 import com.sourcecode.malls.admin.util.AssertUtil;
+import com.sourcecode.malls.admin.web.controller.base.BaseFileOperationController;
 
 @RestController
 @RequestMapping(path = "/merchant/verification")
-public class MerchantVerificationController {
+public class MerchantVerificationController implements BaseFileOperationController {
 
 	@Autowired
 	private MerchantRepository merchantRepository;
@@ -38,6 +40,8 @@ public class MerchantVerificationController {
 
 	@Autowired
 	private FileOnlineSystemService fileService;
+
+	private String fileDir = "merchant/verification";
 
 	@RequestMapping(path = "/load")
 	public ResultBean<MerchantVerificationDTO> load() {
@@ -57,24 +61,21 @@ public class MerchantVerificationController {
 			verification = oldDataOp.get();
 		} else {
 			Optional<Merchant> merchant = merchantRepository.findById(UserContext.get().getId());
-			AssertUtil.assertNotNull(merchant, "找不到商家记录");
+			AssertUtil.assertNotNull(merchant, "商家信息不存在");
 			verification.setMerchant(merchant.get());
 		}
 		verification.setReason(null);
 		verification.setStatus(VerificationStatus.Checking);
-
-		String newPath = null;
-		String tempPath = verification.getPhoto();
-		if (tempPath != null && tempPath.startsWith("temp")) {
-			newPath = "merchant/" + UserContext.get().getId() + "/verification.png";
+		List<String> tmpPaths = new ArrayList<>();
+		List<String> newPaths = new ArrayList<>();
+		if (verification.getPhoto() != null && verification.getPhoto().startsWith("temp")) {
+			String newPath = fileDir + "/" + UserContext.get().getId() + "/certificate.png";
+			newPaths.add(newPath);
+			tmpPaths.add(verification.getPhoto());
 			verification.setPhoto(newPath);
 		}
 		merchantVerificationRepository.save(verification);
-		if (newPath != null) {
-			byte[] buf = fileService.load(false, tempPath);
-			fileService.upload(false, newPath, new ByteArrayInputStream(buf));
-		}
-
+		transfer(fileService, false, tmpPaths, newPaths);
 		return new ResultBean<>();
 	}
 
@@ -89,11 +90,11 @@ public class MerchantVerificationController {
 
 	@RequestMapping(path = "/update")
 	public ResultBean<Void> update(@RequestBody MerchantVerification verification) {
-		AssertUtil.assertNotNull(verification.getId(), "找不到认证信息");
+		AssertUtil.assertNotNull(verification.getId(), ExceptionMessageConstant.NO_SUCH_RECORD);
 		Long currentUserId = UserContext.get().getId();
 		Optional<MerchantVerification> oldDataOp = merchantVerificationRepository.findByMerchantId(currentUserId);
-		AssertUtil.assertNotNull(oldDataOp.isPresent(), "找不到认证信息");
-		AssertUtil.assertTrue(verification.getId().equals(oldDataOp.get().getId()), "找不到认证信息");
+		AssertUtil.assertNotNull(oldDataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
+		AssertUtil.assertTrue(verification.getId().equals(oldDataOp.get().getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
 		AssertUtil.assertTrue(oldDataOp.get().getStatus().equals(VerificationStatus.Passed), "尚未通过认证，不能修改信息");
 		MerchantVerification oldData = oldDataOp.get();
 		oldData.setAddress(verification.getAddress());
@@ -104,24 +105,14 @@ public class MerchantVerificationController {
 		return new ResultBean<>();
 	}
 
-	@RequestMapping(value = "/photo/upload")
+	@RequestMapping(value = "/file/upload")
 	public ResultBean<String> upload(@RequestParam("file") MultipartFile file) throws IOException {
-		check(UserContext.get());
-		String filePath = "temp/merchant/verification/" + UserContext.get().getId() + "/" + System.nanoTime() + ".png";
-		fileService.upload(false, filePath, file.getInputStream());
-		return new ResultBean<>(filePath);
+		return upload(fileService, file, fileDir, null, UserContext.get().getId(), false);
 	}
 
-	@RequestMapping(value = "/photo/load")
-	public Resource loadPhoto() {
-		Optional<MerchantVerification> dataOp = merchantVerificationRepository.findByMerchantId(UserContext.get().getId());
-		return new ByteArrayResource(fileService.load(false, dataOp.get().getPhoto()));
+	@RequestMapping(value = "/file/load")
+	public Resource load(@RequestParam String filePath) {
+		return load(fileService, UserContext.get().getId(), filePath, fileDir, false);
 	}
 
-	@RequestMapping(value = "/photo/preview")
-	public Resource previewPhoto(@RequestParam String filePath) {
-		AssertUtil.assertTrue(filePath.startsWith("temp/merchant/verification/" + UserContext.get().getId() + "/")
-				|| filePath.equals("merchant/" + UserContext.get().getId() + "/verification.png"), "图片路径不合法");
-		return new ByteArrayResource(fileService.load(false, filePath));
-	}
 }

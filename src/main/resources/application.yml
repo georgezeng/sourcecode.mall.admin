@@ -4,6 +4,5 @@ spring:
   datasource:
     table:
       prefix: merchant_
-schedule.cron.sub-auth-sync-job: "0 0/5 * * * ?"
 
-user.type.name: merchant
+user.type.name: merchant/user
