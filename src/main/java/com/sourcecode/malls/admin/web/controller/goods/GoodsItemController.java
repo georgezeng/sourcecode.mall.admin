@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sourcecode.malls.admin.constants.ExceptionMessageConstant;
-import com.sourcecode.malls.admin.context.UserContext;
 import com.sourcecode.malls.admin.domain.goods.GoodsBrand;
 import com.sourcecode.malls.admin.domain.goods.GoodsCategory;
 import com.sourcecode.malls.admin.domain.goods.GoodsItem;
@@ -36,16 +35,13 @@ import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsBrandRepository
 import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsCategoryRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsItemRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantRepository;
-import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantShopApplicationRepository;
-import com.sourcecode.malls.admin.service.FileOnlineSystemService;
 import com.sourcecode.malls.admin.service.impl.goods.GoodsItemService;
 import com.sourcecode.malls.admin.util.AssertUtil;
-import com.sourcecode.malls.admin.web.controller.base.BaseFileOperationController;
-import com.sourcecode.malls.admin.web.controller.base.BaseGoodsController;
+import com.sourcecode.malls.admin.web.controller.base.BaseController;
 
 @RestController
 @RequestMapping(path = "/goods/item")
-public class GoodsItemController implements BaseFileOperationController, BaseGoodsController {
+public class GoodsItemController extends BaseController {
 
 	@Autowired
 	private MerchantRepository merchantRepository;
@@ -62,17 +58,11 @@ public class GoodsItemController implements BaseFileOperationController, BaseGoo
 	@Autowired
 	private GoodsItemService itemService;
 
-	@Autowired
-	private FileOnlineSystemService fileService;
-
-	@Autowired
-	private MerchantShopApplicationRepository applicationRepository;
-
 	private String fileDir = "goods/item";
 
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<GoodsItemDTO>> list(@RequestBody QueryInfo<GoodsItemDTO> queryInfo) {
-		User user = UserContext.get();
+		User user = getRelatedCurrentUser();
 		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
 		queryInfo.getData().setMerchantId(merchant.get().getId());
 		Page<GoodsItem> result = itemService.findAll(queryInfo);
@@ -83,7 +73,7 @@ public class GoodsItemController implements BaseFileOperationController, BaseGoo
 
 	@RequestMapping(path = "/load/params/{id}")
 	public ResultBean<GoodsItemDTO> load(@PathVariable Long id) {
-		User user = UserContext.get();
+		User user = getRelatedCurrentUser();
 		Optional<GoodsItem> dataOp = itemRepository.findById(id);
 		AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
 		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
@@ -92,11 +82,11 @@ public class GoodsItemController implements BaseFileOperationController, BaseGoo
 
 	@RequestMapping(path = "/save")
 	public ResultBean<Void> save(@RequestBody GoodsItemDTO dto) {
-		checkIfApplicationPassed(applicationRepository, "信息");
+		checkIfApplicationPassed("信息");
 		if (dto.getId() == null) {
 			dto.setId(0l);
 		}
-		User user = UserContext.get();
+		User user = getRelatedCurrentUser();
 		Merchant merchant = merchantRepository.findById(user.getId()).get();
 		GoodsItem data = itemRepository.findById(dto.getId()).orElseGet(GoodsItem::new);
 		BeanUtils.copyProperties(dto, data, "id", "merchant", "category", "brand", "photos");
@@ -116,7 +106,7 @@ public class GoodsItemController implements BaseFileOperationController, BaseGoo
 		List<String> tmpPaths = new ArrayList<>();
 		List<String> newPaths = new ArrayList<>();
 		if (dto.getThumbnail() != null && dto.getThumbnail().startsWith("temp")) {
-			String newPath = fileDir + "/" + UserContext.get().getId() + "/" + data.getId() + "/thumb.png";
+			String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/thumb.png";
 			String tmpPath = dto.getThumbnail();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
@@ -137,7 +127,7 @@ public class GoodsItemController implements BaseFileOperationController, BaseGoo
 			if (path == null) {
 				it.remove();
 			} else if (path.startsWith("temp")) {
-				String newPath = fileDir + "/" + UserContext.get().getId() + "/" + data.getId() + "/photo/" + (order + 1) + ".png";
+				String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/photo/" + (order + 1) + ".png";
 				newPaths.add(newPath);
 				tmpPaths.add(path);
 				photo.setPath(newPath);
@@ -155,7 +145,7 @@ public class GoodsItemController implements BaseFileOperationController, BaseGoo
 				photo.setOrder(i + 1);
 				photo.setItem(data);
 				String path = dto.getPhotos().get(i);
-				String newPath = fileDir + "/" + UserContext.get().getId() + "/" + data.getId() + "/photo/" + (order + 1) + ".png";
+				String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/photo/" + (order + 1) + ".png";
 				newPaths.add(newPath);
 				tmpPaths.add(path);
 				photo.setPath(newPath);
@@ -163,7 +153,7 @@ public class GoodsItemController implements BaseFileOperationController, BaseGoo
 			}
 		}
 		itemRepository.save(data);
-		transfer(fileService, true, tmpPaths, newPaths);
+		transfer(true, tmpPaths, newPaths);
 		return new ResultBean<>();
 	}
 
@@ -171,7 +161,7 @@ public class GoodsItemController implements BaseFileOperationController, BaseGoo
 	public ResultBean<Void> delete(@RequestBody KeyDTO<Long> keys) {
 		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
 		for (Long id : keys.getIds()) {
-			User user = UserContext.get();
+			User user = getRelatedCurrentUser();
 			Optional<GoodsItem> dataOp = itemService.findById(id);
 			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
 				itemService.delete(dataOp.get());
@@ -184,7 +174,7 @@ public class GoodsItemController implements BaseFileOperationController, BaseGoo
 	public ResultBean<Void> updateStatus(@RequestBody KeyDTO<Long> keys, @PathVariable Boolean status) {
 		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_UPDATE);
 		for (Long id : keys.getIds()) {
-			User user = UserContext.get();
+			User user = getRelatedCurrentUser();
 			Optional<GoodsItem> dataOp = itemService.findById(id);
 			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
 				dataOp.get().setEnabled(status);
@@ -196,14 +186,12 @@ public class GoodsItemController implements BaseFileOperationController, BaseGoo
 
 	@RequestMapping(value = "/file/upload/params/{id}")
 	public ResultBean<String> upload(@RequestParam("file") MultipartFile file, @PathVariable Long id) throws IOException {
-		Optional<GoodsItem> data = itemRepository.findById(id);
-		AssertUtil.assertTrue(data.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
-		return upload(fileService, file, fileDir, id, UserContext.get().getId(), false);
+		return upload(file, fileDir, id, getRelatedCurrentUser().getId(), false);
 	}
 
 	@RequestMapping(value = "/file/load")
 	public Resource load(@RequestParam String filePath) {
-		return load(fileService, UserContext.get().getId(), filePath, fileDir, true);
+		return load(getRelatedCurrentUser().getId(), filePath, fileDir, true);
 	}
 
 }

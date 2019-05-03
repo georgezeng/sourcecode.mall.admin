@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sourcecode.malls.admin.constants.ExceptionMessageConstant;
-import com.sourcecode.malls.admin.context.UserContext;
 import com.sourcecode.malls.admin.domain.merchant.Merchant;
 import com.sourcecode.malls.admin.domain.merchant.MerchantShopApplication;
 import com.sourcecode.malls.admin.domain.merchant.MerchantShopApplicationInstruction;
@@ -27,13 +26,12 @@ import com.sourcecode.malls.admin.enums.VerificationStatus;
 import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantShopApplicationRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantVerificationRepository;
-import com.sourcecode.malls.admin.service.FileOnlineSystemService;
 import com.sourcecode.malls.admin.util.AssertUtil;
-import com.sourcecode.malls.admin.web.controller.base.BaseFileOperationController;
+import com.sourcecode.malls.admin.web.controller.base.BaseController;
 
 @RestController
 @RequestMapping(path = "/merchant/shop/application")
-public class MerchantShopApplicationController implements BaseFileOperationController {
+public class MerchantShopApplicationController extends BaseController {
 
 	@Autowired
 	private MerchantRepository merchantRepository;
@@ -44,14 +42,11 @@ public class MerchantShopApplicationController implements BaseFileOperationContr
 	@Autowired
 	private MerchantShopApplicationRepository shopRepository;
 
-	@Autowired
-	private FileOnlineSystemService fileService;
-
 	private String fileDir = "merchant/shop";
 
 	@RequestMapping(path = "/load")
 	public ResultBean<MerchantShopApplicationDTO> load() {
-		User user = UserContext.get();
+		User user = getRelatedCurrentUser();
 		Optional<MerchantVerification> verificationOp = verificationRepository.findByMerchantId(user.getId());
 		if (verificationOp.isPresent() && VerificationStatus.Passed.equals(verificationOp.get().getStatus())) {
 			Optional<MerchantShopApplication> appOp = shopRepository.findByMerchantId(user.getId());
@@ -69,7 +64,7 @@ public class MerchantShopApplicationController implements BaseFileOperationContr
 
 	@RequestMapping(path = "/apply")
 	public ResultBean<Void> apply(@RequestBody MerchantShopApplicationDTO dto) {
-		User user = UserContext.get();
+		User user = getRelatedCurrentUser();
 		check(user, false);
 		Merchant merchant = merchantRepository.findById(user.getId()).get();
 		MerchantShopApplication data = shopRepository.findByMerchantId(merchant.getId()).orElseGet(MerchantShopApplication::new);
@@ -94,43 +89,44 @@ public class MerchantShopApplicationController implements BaseFileOperationContr
 	private ResultBean<Void> update(MerchantShopApplicationDTO dto, MerchantShopApplication data) {
 		List<String> tmpPaths = new ArrayList<>();
 		List<String> newPaths = new ArrayList<>();
+		User user = getRelatedCurrentUser();
 		if (dto.getAndroidSmallIcon() != null && dto.getAndroidSmallIcon().startsWith("temp")) {
-			String newPath = fileDir + "/" + UserContext.get().getId() + "/android_small_icon.png";
+			String newPath = fileDir + "/" + user.getId() + "/android_small_icon.png";
 			String tmpPath = dto.getAndroidSmallIcon();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
 			data.setAndroidSmallIcon(newPath);
 		}
 		if (dto.getAndroidBigIcon() != null && dto.getAndroidBigIcon().startsWith("temp")) {
-			String newPath = fileDir + "/" + UserContext.get().getId() + "/android_big_icon.png";
+			String newPath = fileDir + "/" + user.getId() + "/android_big_icon.png";
 			String tmpPath = dto.getAndroidBigIcon();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
 			data.setAndroidBigIcon(newPath);
 		}
 		if (dto.getIosSmallIcon() != null && dto.getIosSmallIcon().startsWith("temp")) {
-			String newPath = fileDir + "/" + UserContext.get().getId() + "/ios_small_icon.png";
+			String newPath = fileDir + "/" + user.getId() + "/ios_small_icon.png";
 			String tmpPath = dto.getIosSmallIcon();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
 			data.setIosSmallIcon(newPath);
 		}
 		if (dto.getIosBigIcon() != null && dto.getIosBigIcon().startsWith("temp")) {
-			String newPath = fileDir + "/" + UserContext.get().getId() + "/ios_big_icon.png";
+			String newPath = fileDir + "/" + user.getId() + "/ios_big_icon.png";
 			String tmpPath = dto.getIosBigIcon();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
 			data.setIosBigIcon(newPath);
 		}
 		if (dto.getLogo() != null && dto.getLogo().startsWith("temp")) {
-			String newPath = fileDir + "/" + UserContext.get().getId() + "/logo.png";
+			String newPath = fileDir + "/" + user.getId() + "/logo.png";
 			String tmpPath = dto.getLogo();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
 			data.setLogo(newPath);
 		}
 		if (dto.getLoginBgImg() != null && dto.getLoginBgImg().startsWith("temp")) {
-			String newPath = fileDir + "/" + UserContext.get().getId() + "/login_bg.png";
+			String newPath = fileDir + "/" + user.getId() + "/login_bg.png";
 			String tmpPath = dto.getLoginBgImg();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
@@ -151,7 +147,7 @@ public class MerchantShopApplicationController implements BaseFileOperationContr
 			if (path == null) {
 				it.remove();
 			} else if (path.startsWith("temp")) {
-				String newPath = fileDir + "/" + UserContext.get().getId() + "/instruction_" + (order + 1) + ".png";
+				String newPath = fileDir + "/" + user.getId() + "/instruction_" + (order + 1) + ".png";
 				newPaths.add(newPath);
 				tmpPaths.add(path);
 				instruction.setPath(newPath);
@@ -169,7 +165,7 @@ public class MerchantShopApplicationController implements BaseFileOperationContr
 				instruction.setOrder(i + 1);
 				instruction.setShopApplication(data);
 				String path = dto.getInstructions().get(i);
-				String newPath = fileDir + "/" + UserContext.get().getId() + "/instruction_" + (order + 1) + ".png";
+				String newPath = fileDir + "/" + user.getId() + "/instruction_" + (order + 1) + ".png";
 				newPaths.add(newPath);
 				tmpPaths.add(path);
 				instruction.setPath(newPath);
@@ -179,13 +175,13 @@ public class MerchantShopApplicationController implements BaseFileOperationContr
 		data.setReason(null);
 		data.setDeployed(false);
 		shopRepository.save(data);
-		transfer(fileService, true, tmpPaths, newPaths);
+		transfer(true, tmpPaths, newPaths);
 		return new ResultBean<>();
 	}
 
 	@RequestMapping(path = "/update")
 	public ResultBean<Void> update(@RequestBody MerchantShopApplicationDTO dto) {
-		User user = UserContext.get();
+		User user = getRelatedCurrentUser();
 		check(user, true);
 		Optional<MerchantShopApplication> dataOp = shopRepository.findByMerchantId(user.getId());
 		AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
@@ -212,12 +208,14 @@ public class MerchantShopApplicationController implements BaseFileOperationContr
 
 	@RequestMapping(value = "/file/upload")
 	public ResultBean<String> upload(@RequestParam("file") MultipartFile file) throws IOException {
-		return upload(fileService, file, fileDir, null, UserContext.get().getId(), false);
+		User user = getRelatedCurrentUser();
+		return upload(file, fileDir, null, user.getId(), false);
 	}
 
 	@RequestMapping(value = "/file/load")
 	public Resource load(@RequestParam String filePath) {
-		return load(fileService, UserContext.get().getId(), filePath, fileDir, true);
+		User user = getRelatedCurrentUser();
+		return load(user.getId(), filePath, fileDir, true);
 	}
 
 }

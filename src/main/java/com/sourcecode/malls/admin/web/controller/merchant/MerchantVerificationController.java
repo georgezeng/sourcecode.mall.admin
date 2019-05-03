@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sourcecode.malls.admin.constants.ExceptionMessageConstant;
-import com.sourcecode.malls.admin.context.UserContext;
 import com.sourcecode.malls.admin.domain.merchant.Merchant;
 import com.sourcecode.malls.admin.domain.merchant.MerchantVerification;
 import com.sourcecode.malls.admin.domain.system.setting.User;
@@ -24,13 +23,12 @@ import com.sourcecode.malls.admin.dto.merchant.MerchantVerificationDTO;
 import com.sourcecode.malls.admin.enums.VerificationStatus;
 import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantVerificationRepository;
-import com.sourcecode.malls.admin.service.FileOnlineSystemService;
 import com.sourcecode.malls.admin.util.AssertUtil;
-import com.sourcecode.malls.admin.web.controller.base.BaseFileOperationController;
+import com.sourcecode.malls.admin.web.controller.base.BaseController;
 
 @RestController
 @RequestMapping(path = "/merchant/verification")
-public class MerchantVerificationController implements BaseFileOperationController {
+public class MerchantVerificationController extends BaseController {
 
 	@Autowired
 	private MerchantRepository merchantRepository;
@@ -38,14 +36,11 @@ public class MerchantVerificationController implements BaseFileOperationControll
 	@Autowired
 	private MerchantVerificationRepository merchantVerificationRepository;
 
-	@Autowired
-	private FileOnlineSystemService fileService;
-
 	private String fileDir = "merchant/verification";
 
 	@RequestMapping(path = "/load")
 	public ResultBean<MerchantVerificationDTO> load() {
-		Long currentUserId = UserContext.get().getId();
+		Long currentUserId = getRelatedCurrentUser().getId();
 		Optional<MerchantVerification> oldDataOp = merchantVerificationRepository.findByMerchantId(currentUserId);
 		MerchantVerification newData = new MerchantVerification();
 		Optional<Merchant> merchant = merchantRepository.findById(currentUserId);
@@ -55,12 +50,13 @@ public class MerchantVerificationController implements BaseFileOperationControll
 
 	@RequestMapping(path = "/verify")
 	public ResultBean<Void> verify(@RequestBody MerchantVerification verification) {
-		Optional<MerchantVerification> oldDataOp = check(UserContext.get());
+		User user = getRelatedCurrentUser();
+		Optional<MerchantVerification> oldDataOp = check(user);
 		if (oldDataOp.isPresent()) {
 			BeanUtils.copyProperties(verification, oldDataOp.get(), "id", "createBy", "updateBy", "createTime", "updateTime", "merchant");
 			verification = oldDataOp.get();
 		} else {
-			Optional<Merchant> merchant = merchantRepository.findById(UserContext.get().getId());
+			Optional<Merchant> merchant = merchantRepository.findById(user.getId());
 			AssertUtil.assertNotNull(merchant, "商家信息不存在");
 			verification.setMerchant(merchant.get());
 		}
@@ -69,13 +65,13 @@ public class MerchantVerificationController implements BaseFileOperationControll
 		List<String> tmpPaths = new ArrayList<>();
 		List<String> newPaths = new ArrayList<>();
 		if (verification.getPhoto() != null && verification.getPhoto().startsWith("temp")) {
-			String newPath = fileDir + "/" + UserContext.get().getId() + "/certificate.png";
+			String newPath = fileDir + "/" + user.getId() + "/certificate.png";
 			newPaths.add(newPath);
 			tmpPaths.add(verification.getPhoto());
 			verification.setPhoto(newPath);
 		}
 		merchantVerificationRepository.save(verification);
-		transfer(fileService, false, tmpPaths, newPaths);
+		transfer(false, tmpPaths, newPaths);
 		return new ResultBean<>();
 	}
 
@@ -91,7 +87,7 @@ public class MerchantVerificationController implements BaseFileOperationControll
 	@RequestMapping(path = "/update")
 	public ResultBean<Void> update(@RequestBody MerchantVerification verification) {
 		AssertUtil.assertNotNull(verification.getId(), ExceptionMessageConstant.NO_SUCH_RECORD);
-		Long currentUserId = UserContext.get().getId();
+		Long currentUserId = getRelatedCurrentUser().getId();
 		Optional<MerchantVerification> oldDataOp = merchantVerificationRepository.findByMerchantId(currentUserId);
 		AssertUtil.assertNotNull(oldDataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
 		AssertUtil.assertTrue(verification.getId().equals(oldDataOp.get().getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
@@ -107,12 +103,12 @@ public class MerchantVerificationController implements BaseFileOperationControll
 
 	@RequestMapping(value = "/file/upload")
 	public ResultBean<String> upload(@RequestParam("file") MultipartFile file) throws IOException {
-		return upload(fileService, file, fileDir, null, UserContext.get().getId(), false);
+		return upload(file, fileDir, null, getRelatedCurrentUser().getId(), false);
 	}
 
 	@RequestMapping(value = "/file/load")
 	public Resource load(@RequestParam String filePath) {
-		return load(fileService, UserContext.get().getId(), filePath, fileDir, false);
+		return load(getRelatedCurrentUser().getId(), filePath, fileDir, false);
 	}
 
 }

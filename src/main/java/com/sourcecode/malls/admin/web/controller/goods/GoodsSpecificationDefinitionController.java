@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sourcecode.malls.admin.constants.ExceptionMessageConstant;
-import com.sourcecode.malls.admin.context.UserContext;
 import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationDefinition;
 import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationGroup;
 import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationValue;
@@ -28,14 +27,13 @@ import com.sourcecode.malls.admin.dto.query.QueryInfo;
 import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsSpecificationGroupRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsSpecificationValueRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantRepository;
-import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantShopApplicationRepository;
 import com.sourcecode.malls.admin.service.impl.goods.GoodsSpecificationDefinitionService;
 import com.sourcecode.malls.admin.util.AssertUtil;
-import com.sourcecode.malls.admin.web.controller.base.BaseGoodsController;
+import com.sourcecode.malls.admin.web.controller.base.BaseController;
 
 @RestController
 @RequestMapping(path = "/goods/specification/definition")
-public class GoodsSpecificationDefinitionController implements BaseGoodsController {
+public class GoodsSpecificationDefinitionController extends BaseController {
 
 	@Autowired
 	private MerchantRepository merchantRepository;
@@ -48,13 +46,10 @@ public class GoodsSpecificationDefinitionController implements BaseGoodsControll
 
 	@Autowired
 	private GoodsSpecificationGroupRepository groupRepository;
-	
-	@Autowired
-	private MerchantShopApplicationRepository applicationRepository;
 
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<GoodsAttributeDTO>> list(@RequestBody QueryInfo<GoodsAttributeDTO> queryInfo) {
-		User user = UserContext.get();
+		User user = getRelatedCurrentUser();
 		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
 		queryInfo.getData().setMerchantId(merchant.get().getId());
 		Page<GoodsSpecificationDefinition> result = definitionService.findAll(queryInfo);
@@ -65,7 +60,7 @@ public class GoodsSpecificationDefinitionController implements BaseGoodsControll
 
 	@RequestMapping(path = "/groups")
 	public ResultBean<GoodsAttributeDTO> groups() {
-		Optional<Merchant> merchant = merchantRepository.findById(UserContext.get().getId());
+		Optional<Merchant> merchant = merchantRepository.findById(getRelatedCurrentUser().getId());
 		List<GoodsSpecificationGroup> groups = groupRepository.findByMerchant(merchant.get());
 		return new ResultBean<>(groups.stream().map(group -> group.asDTO()).collect(Collectors.toList()));
 	}
@@ -73,7 +68,7 @@ public class GoodsSpecificationDefinitionController implements BaseGoodsControll
 	@RequestMapping(path = "/load/params/{id}")
 	public ResultBean<GoodsAttributeDTO> load(@PathVariable Long id) {
 		AssertUtil.assertNotNull(id, ExceptionMessageConstant.NO_SUCH_RECORD);
-		User user = UserContext.get();
+		User user = getRelatedCurrentUser();
 		Optional<GoodsSpecificationDefinition> dataOp = definitionService.findById(id);
 		AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
 		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
@@ -82,15 +77,16 @@ public class GoodsSpecificationDefinitionController implements BaseGoodsControll
 
 	@RequestMapping(path = "/save")
 	public ResultBean<Void> save(@RequestBody GoodsAttributeDTO dto) {
-		checkIfApplicationPassed(applicationRepository, "规格");
+		checkIfApplicationPassed("规格");
+		User user = getRelatedCurrentUser();
 		GoodsSpecificationDefinition data = new GoodsSpecificationDefinition();
 		if (dto.getId() != null) {
 			Optional<GoodsSpecificationDefinition> dataOp = definitionService.findById(dto.getId());
 			AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
-			AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(UserContext.get().getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
+			AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
 			data = dataOp.get();
 		} else {
-			data.setMerchant(merchantRepository.findById(UserContext.get().getId()).get());
+			data.setMerchant(merchantRepository.findById(user.getId()).get());
 		}
 		AssertUtil.assertNotNull(dto.getParent(), "请选择一个商品类型");
 		AssertUtil.assertNotNull(dto.getParent().getId(), "请选择一个商品类型");
@@ -129,7 +125,7 @@ public class GoodsSpecificationDefinitionController implements BaseGoodsControll
 	public ResultBean<Void> delete(@RequestBody KeyDTO<Long> keys) {
 		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
 		for (Long id : keys.getIds()) {
-			User user = UserContext.get();
+			User user = getRelatedCurrentUser();
 			Optional<GoodsSpecificationDefinition> dataOp = definitionService.findById(id);
 			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
 				definitionService.delete(dataOp.get());

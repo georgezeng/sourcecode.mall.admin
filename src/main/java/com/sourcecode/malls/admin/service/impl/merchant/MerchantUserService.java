@@ -38,6 +38,7 @@ import com.sourcecode.malls.admin.repository.jpa.impl.system.UserRepository;
 import com.sourcecode.malls.admin.service.base.JpaService;
 import com.sourcecode.malls.admin.util.AssertUtil;
 import com.sourcecode.malls.admin.util.RegexpUtil;
+import com.sourcecode.malls.admin.web.controller.AuthorityDefinitions;
 
 @Service
 @Transactional
@@ -73,7 +74,7 @@ public class MerchantUserService implements JpaService<Merchant, Long> {
 		roleRepository.save(role.get());
 	}
 
-	public void createSubAccount(Merchant parent, MerchantDTO subAccount) {
+	public Merchant createSubAccount(Merchant parent, MerchantDTO subAccount) {
 		AssertUtil.assertTrue(RegexpUtil.matchMobile(subAccount.getUsername()), ExceptionMessageConstant.MOBILE_ACCOUNT_SHOULD_BE_THE_RULE);
 		AssertUtil.assertTrue(RegexpUtil.matchPassword(subAccount.getPassword()), ExceptionMessageConstant.PASSWORD_SHOULD_BE_THE_RULE);
 		AssertUtil.assertTrue(subAccount.getPassword().equals(subAccount.getConfirmPassword()),
@@ -92,17 +93,22 @@ public class MerchantUserService implements JpaService<Merchant, Long> {
 		role.addUser(user.get());
 		role.setHidden(true);
 		roleRepository.save(role);
-		if (!CollectionUtils.isEmpty(subAccount.getAuthorities())) {
-			for (AuthorityDTO authDTO : subAccount.getAuthorities()) {
-				Authority auth = authRepository.findById(authDTO.getId()).get();
-				auth.addRole(role);
-				role.addAuthority(auth);
-				authRepository.save(auth);
+		if (CollectionUtils.isEmpty(subAccount.getAuthorities())) {
+			Optional<Authority> authOp = authRepository.findByCode(AuthorityDefinitions.MERCHANT_USER_PROFILE_PAGE.getCode());
+			if (authOp.isPresent()) {
+				subAccount.addAuthority(authOp.get().asDTO());
 			}
 		}
+		for (AuthorityDTO authDTO : subAccount.getAuthorities()) {
+			Authority auth = authRepository.findById(authDTO.getId()).get();
+			auth.addRole(role);
+			role.addAuthority(auth);
+			authRepository.save(auth);
+		}
+		return data;
 	}
 
-	public void updateSubAccount(Merchant parent, MerchantDTO subAccount) {
+	public Merchant updateSubAccount(Merchant parent, MerchantDTO subAccount) {
 		Optional<Merchant> existedUser = merchantRepository.findByUsername(subAccount.getUsername());
 		AssertUtil.assertTrue(existedUser.isPresent() && existedUser.get().isEnabled(), ExceptionMessageConstant.NO_SUCH_RECORD);
 		AssertUtil.assertTrue(existedUser.get().getParent() != null && existedUser.get().getParent().getId().equals(parent.getId()),
@@ -144,6 +150,7 @@ public class MerchantUserService implements JpaService<Merchant, Long> {
 			}
 		}
 		roleRepository.save(role);
+		return existedUser.get();
 	}
 
 	@Transactional(readOnly = true)

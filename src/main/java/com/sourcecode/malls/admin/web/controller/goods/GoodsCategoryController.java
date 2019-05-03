@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sourcecode.malls.admin.constants.ExceptionMessageConstant;
-import com.sourcecode.malls.admin.context.UserContext;
 import com.sourcecode.malls.admin.domain.goods.GoodsCategory;
 import com.sourcecode.malls.admin.domain.merchant.Merchant;
 import com.sourcecode.malls.admin.domain.system.setting.User;
@@ -27,16 +26,13 @@ import com.sourcecode.malls.admin.dto.goods.GoodsAttributeDTO;
 import com.sourcecode.malls.admin.dto.query.PageInfo;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
 import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantRepository;
-import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantShopApplicationRepository;
-import com.sourcecode.malls.admin.service.FileOnlineSystemService;
 import com.sourcecode.malls.admin.service.impl.goods.GoodsCategoryService;
 import com.sourcecode.malls.admin.util.AssertUtil;
-import com.sourcecode.malls.admin.web.controller.base.BaseFileOperationController;
-import com.sourcecode.malls.admin.web.controller.base.BaseGoodsController;
+import com.sourcecode.malls.admin.web.controller.base.BaseController;
 
 @RestController
 @RequestMapping(path = "/goods/category")
-public class GoodsCategoryController implements BaseFileOperationController, BaseGoodsController {
+public class GoodsCategoryController extends BaseController {
 
 	@Autowired
 	private MerchantRepository merchantRepository;
@@ -44,17 +40,11 @@ public class GoodsCategoryController implements BaseFileOperationController, Bas
 	@Autowired
 	private GoodsCategoryService categoryService;
 
-	@Autowired
-	private MerchantShopApplicationRepository applicationRepository;
-
-	@Autowired
-	private FileOnlineSystemService fileService;
-
 	private String fileDir = "goods/category";
 
 	@RequestMapping(path = "/list")
 	public ResultBean<GoodsAttributeDTO> list(@RequestBody QueryInfo<GoodsAttributeDTO> queryInfo) {
-		User user = UserContext.get();
+		User user = getRelatedCurrentUser();
 		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
 		queryInfo.getData().setMerchantId(merchant.get().getId());
 		queryInfo.getData().setLevel(1);
@@ -86,7 +76,7 @@ public class GoodsCategoryController implements BaseFileOperationController, Bas
 		page.setNum(1);
 		page.setSize(99999999);
 		queryInfo.setPage(page);
-		User user = UserContext.get();
+		User user = getRelatedCurrentUser();
 		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
 		queryInfo.getData().setLevel(1);
 		queryInfo.getData().setMerchantId(merchant.get().getId());
@@ -107,7 +97,7 @@ public class GoodsCategoryController implements BaseFileOperationController, Bas
 		page.setNum(1);
 		page.setSize(99999999);
 		queryInfo.setPage(page);
-		User user = UserContext.get();
+		User user = getRelatedCurrentUser();
 		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
 		queryInfo.getData().setMerchantId(merchant.get().getId());
 		queryInfo.getData().setLevel(1);
@@ -123,7 +113,7 @@ public class GoodsCategoryController implements BaseFileOperationController, Bas
 	@RequestMapping(path = "/load/params/{id}")
 	public ResultBean<GoodsAttributeDTO> load(@PathVariable Long id) {
 		AssertUtil.assertNotNull(id, ExceptionMessageConstant.NO_SUCH_RECORD);
-		User user = UserContext.get();
+		User user = getRelatedCurrentUser();
 		Optional<GoodsCategory> dataOp = categoryService.findById(id);
 		AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
 		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
@@ -132,15 +122,16 @@ public class GoodsCategoryController implements BaseFileOperationController, Bas
 
 	@RequestMapping(path = "/save")
 	public ResultBean<Void> save(@RequestBody GoodsAttributeDTO dto) {
-		checkIfApplicationPassed(applicationRepository, "分类");
+		checkIfApplicationPassed("分类");
 		GoodsCategory data = new GoodsCategory();
+		User user = getRelatedCurrentUser();
 		if (dto.getId() != null) {
 			Optional<GoodsCategory> dataOp = categoryService.findById(dto.getId());
 			AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
-			AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(UserContext.get().getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
+			AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
 			data = dataOp.get();
 		} else {
-			data.setMerchant(merchantRepository.findById(UserContext.get().getId()).get());
+			data.setMerchant(merchantRepository.findById(user.getId()).get());
 			if (dto.getLevel() > 1) {
 				AssertUtil.assertNotNull(dto.getParent().getId(), "必须选择上级分类");
 				Optional<GoodsCategory> parentOp = categoryService.findById(dto.getParent().getId());
@@ -158,14 +149,14 @@ public class GoodsCategoryController implements BaseFileOperationController, Bas
 		List<String> tmpPaths = new ArrayList<>();
 		List<String> newPaths = new ArrayList<>();
 		if (dto.getIcon() != null && dto.getIcon().startsWith("temp")) {
-			String newPath = fileDir + "/" + UserContext.get().getId() + "/" + data.getId() + "/icon.png";
+			String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/icon.png";
 			String tmpPath = dto.getIcon();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
 			data.setIcon(newPath);
 		}
 		categoryService.save(data);
-		transfer(fileService, true, tmpPaths, newPaths);
+		transfer(true, tmpPaths, newPaths);
 		return new ResultBean<>();
 	}
 
@@ -173,7 +164,7 @@ public class GoodsCategoryController implements BaseFileOperationController, Bas
 	public ResultBean<Void> delete(@RequestBody KeyDTO<Long> keys) {
 		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
 		for (Long id : keys.getIds()) {
-			User user = UserContext.get();
+			User user = getRelatedCurrentUser();
 			Optional<GoodsCategory> dataOp = categoryService.findById(id);
 			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
 				categoryService.delete(dataOp.get());
@@ -184,14 +175,12 @@ public class GoodsCategoryController implements BaseFileOperationController, Bas
 
 	@RequestMapping(value = "/file/upload/params/{id}")
 	public ResultBean<String> upload(@RequestParam("file") MultipartFile file, @PathVariable Long id) throws IOException {
-		Optional<GoodsCategory> data = categoryService.findById(id);
-		AssertUtil.assertTrue(data.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
-		return upload(fileService, file, fileDir, id, UserContext.get().getId(), false);
+		return upload(file, fileDir, id, getRelatedCurrentUser().getId(), false);
 	}
 
 	@RequestMapping(value = "/file/load")
 	public Resource load(@RequestParam String filePath) {
-		return load(fileService, UserContext.get().getId(), filePath, fileDir, true);
+		return load(getRelatedCurrentUser().getId(), filePath, fileDir, true);
 	}
 
 }

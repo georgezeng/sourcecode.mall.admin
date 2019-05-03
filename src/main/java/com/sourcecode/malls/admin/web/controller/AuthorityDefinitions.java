@@ -72,8 +72,10 @@ public enum AuthorityDefinitions {
 	MERCHANT_SUB_ACCOUNT_SAVE("子账号-保存请求", "AUTH_MERCHANT_SUB_ACCOUNT_SAVE", "/merchant/subAccount/save", "POST"),
 	MERCHANT_SUB_ACCOUNT_DELETE("子账号-删除请求", "AUTH_MERCHANT_SUB_ACCOUNT_DELETE", "/merchant/subAccount/delete", "POST"),
 	MERCHANT_SUB_ACCOUNT_UPDATE_STATUS("子账号-更新状态请求", "AUTH_MERCHANT_SUB_ACCOUNT_UPDATE_STATUS", "/merchant/subAccount/updateStatus", "POST"),
+	MERCHANT_SUB_ACCOUNT_FILE_UPLOAD("子账号-文件上传请求", "AUTH_MERCHANT_SUB_ACCOUNT_FILE_UPLOAD", "/merchant/subAccount/file/upload", "POST"),
+	MERCHANT_SUB_ACCOUNT_FILE_LOAD("子账号-文件读取请求", "AUTH_MERCHANT_SUB_ACCOUNT_FILE_LOAD", "/merchant/subAccount/file/load", "GET"),
 	
-	MERCHANT_USER_PROFILE_PAGE("商家信息-账户信息页面", "AUTH_MERCHANT_USER_PROFILE_PAGE", "/Merchant/Profile/Page", "GET"),
+	MERCHANT_USER_PROFILE_PAGE("商家信息-账户信息页面", "AUTH_MERCHANT_USER_PROFILE_PAGE", "/Merchant/User/Profile/Page", "GET"),
 	
 	MERCHANT_VERIFICATION_INDEX_PAGE("实名认证-索引页面", "AUTH_MERCHANT_VERIFICATION_INDEX_PAGE", "/Merchant/Verification/Index/Page", "GET"),
 	MERCHANT_VERIFICATION_VERIFY_PAGE("实名认证-申请页面", "AUTH_MERCHANT_VERIFICATION_VERIFY_PAGE", "/Merchant/Verification/Verify/Page", "GET"),

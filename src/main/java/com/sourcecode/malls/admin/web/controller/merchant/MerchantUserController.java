@@ -17,11 +17,10 @@ import com.sourcecode.malls.admin.repository.redis.impl.CodeStoreRepository;
 import com.sourcecode.malls.admin.service.impl.VerifyCodeService;
 import com.sourcecode.malls.admin.service.impl.merchant.MerchantUserService;
 import com.sourcecode.malls.admin.util.AssertUtil;
-import com.sourcecode.malls.admin.web.controller.base.BaseFileOperationController;
 
 @RestController
 @RequestMapping(path = "/merchant")
-public class MerchantUserController implements BaseFileOperationController {
+public class MerchantUserController {
 	private static final String REGISTER_CODE_CATEGORY = "merchant-register-code";
 	private static final String FORGET_PASSWORD_CODE_CATEGORY = "merchant-forget-password-code";
 	private static final String REGISTER_CODE_TIME_ATTR = "merchant-register-code-time";
