@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
+import org.springframework.http.MediaType;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -146,7 +147,7 @@ public class MerchantSubAccountController extends BaseController {
 		return upload(file, userDir, null, id, false);
 	}
 
-	@RequestMapping(value = "/file/load/params/{id}")
+	@RequestMapping(value = "/file/load/params/{id}", produces = { MediaType.IMAGE_PNG_VALUE, MediaType.APPLICATION_OCTET_STREAM_VALUE })
 	public Resource load(@RequestParam String filePath, @PathVariable Long id) {
 		return load(id, filePath, userDir, false);
 	}

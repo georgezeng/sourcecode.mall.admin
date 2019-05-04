@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -106,7 +107,7 @@ public class MerchantVerificationController extends BaseController {
 		return upload(file, fileDir, null, getRelatedCurrentUser().getId(), false);
 	}
 
-	@RequestMapping(value = "/file/load")
+	@RequestMapping(value = "/file/load", produces = { MediaType.IMAGE_PNG_VALUE, MediaType.APPLICATION_OCTET_STREAM_VALUE })
 	public Resource load(@RequestParam String filePath) {
 		return load(getRelatedCurrentUser().getId(), filePath, fileDir, false);
 	}
