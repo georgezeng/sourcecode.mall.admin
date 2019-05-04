@@ -89,27 +89,6 @@ public class GoodsCategoryController extends BaseController {
 		return new ResultBean<>(list);
 	}
 
-	@RequestMapping(path = "/list/all")
-	public ResultBean<GoodsAttributeDTO> listAll() {
-		QueryInfo<GoodsAttributeDTO> queryInfo = new QueryInfo<>();
-		queryInfo.setData(new GoodsAttributeDTO());
-		PageInfo page = new PageInfo();
-		page.setNum(1);
-		page.setSize(99999999);
-		queryInfo.setPage(page);
-		User user = getRelatedCurrentUser();
-		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
-		queryInfo.getData().setMerchantId(merchant.get().getId());
-		queryInfo.getData().setLevel(1);
-		Page<GoodsCategory> result = categoryService.findAll(queryInfo);
-		List<GoodsAttributeDTO> list = new ArrayList<>();
-		result.getContent().stream().map(data -> data.asDTO(false, true)).forEach(data -> {
-			list.add(data);
-			appendSubList(list, data, true);
-		});
-		return new ResultBean<>(list);
-	}
-
 	@RequestMapping(path = "/load/params/{id}")
 	public ResultBean<GoodsAttributeDTO> load(@PathVariable Long id) {
 		AssertUtil.assertNotNull(id, ExceptionMessageConstant.NO_SUCH_RECORD);

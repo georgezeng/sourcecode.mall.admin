@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sourcecode.malls.admin.constants.ExceptionMessageConstant;
+import com.sourcecode.malls.admin.domain.goods.GoodsCategory;
 import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationDefinition;
 import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationGroup;
 import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationValue;
@@ -24,6 +25,7 @@ import com.sourcecode.malls.admin.dto.base.ResultBean;
 import com.sourcecode.malls.admin.dto.goods.GoodsAttributeDTO;
 import com.sourcecode.malls.admin.dto.query.PageResult;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
+import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsCategoryRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsSpecificationGroupRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsSpecificationValueRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantRepository;
@@ -47,6 +49,9 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 	@Autowired
 	private GoodsSpecificationGroupRepository groupRepository;
 
+	@Autowired
+	private GoodsCategoryRepository categoryRepository;
+
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<GoodsAttributeDTO>> list(@RequestBody QueryInfo<GoodsAttributeDTO> queryInfo) {
 		User user = getRelatedCurrentUser();
@@ -58,10 +63,22 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 		return new ResultBean<>(dtoResult);
 	}
 
-	@RequestMapping(path = "/groups")
-	public ResultBean<GoodsAttributeDTO> groups() {
+	@RequestMapping(path = "/categoryId/params/{id}")
+	public ResultBean<Long> categoryId(@PathVariable Long id) {
+		Optional<GoodsSpecificationGroup> group = groupRepository.findById(id);
+		if (group.isPresent()) {
+			return new ResultBean<>(group.get().getCategory().getId());
+		} else {
+			return new ResultBean<>();
+		}
+	}
+
+	@RequestMapping(path = "/groups/params/{id}")
+	public ResultBean<GoodsAttributeDTO> groups(@PathVariable Long id) {
+		Optional<GoodsCategory> category = categoryRepository.findById(id);
+		AssertUtil.assertTrue(category.isPresent(), "商品分类不存在");
 		Optional<Merchant> merchant = merchantRepository.findById(getRelatedCurrentUser().getId());
-		List<GoodsSpecificationGroup> groups = groupRepository.findByMerchant(merchant.get());
+		List<GoodsSpecificationGroup> groups = groupRepository.findByCategoryAndMerchant(category.get(), merchant.get());
 		return new ResultBean<>(groups.stream().map(group -> group.asDTO()).collect(Collectors.toList()));
 	}
 

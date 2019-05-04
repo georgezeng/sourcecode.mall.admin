@@ -99,8 +99,8 @@ public class GoodsItemController extends BaseController {
 		Optional<GoodsBrand> brandOp = brandRepository.findById(dto.getBrandId());
 		AssertUtil.assertTrue(brandOp.isPresent(), "商品品牌不存在");
 		data.setBrand(brandOp.get());
-		data.setPhotos(null);
 		if (data.getId() == null) {
+			data.setPhotos(null);
 			itemRepository.save(data);
 		}
 		List<String> tmpPaths = new ArrayList<>();
@@ -139,7 +139,7 @@ public class GoodsItemController extends BaseController {
 				order++;
 			}
 		}
-		if (order < dto.getPhotos().size()) {
+		if ((order + 1) < dto.getPhotos().size()) {
 			for (int i = order; i < dto.getPhotos().size(); i++) {
 				GoodsItemPhoto photo = new GoodsItemPhoto();
 				photo.setOrder(i + 1);

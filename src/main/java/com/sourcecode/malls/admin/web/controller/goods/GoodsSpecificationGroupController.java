@@ -1,6 +1,5 @@
 package com.sourcecode.malls.admin.web.controller.goods;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -50,13 +49,6 @@ public class GoodsSpecificationGroupController extends BaseController {
 		PageResult<GoodsAttributeDTO> dtoResult = new PageResult<>(
 				result.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()), result.getTotalElements());
 		return new ResultBean<>(dtoResult);
-	}
-
-	@RequestMapping(path = "/categories")
-	public ResultBean<List<GoodsAttributeDTO>> categories() {
-		Optional<Merchant> merchant = merchantRepository.findById(getRelatedCurrentUser().getId());
-		List<GoodsCategory> categories = categoryRepository.findByMerchant(merchant.get());
-		return new ResultBean<>(categories.stream().map(category -> category.asDTO()).collect(Collectors.toList()));
 	}
 
 	@RequestMapping(path = "/load/params/{id}")

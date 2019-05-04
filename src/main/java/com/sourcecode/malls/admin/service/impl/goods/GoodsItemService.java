@@ -54,8 +54,8 @@ public class GoodsItemService implements JpaService<GoodsItem, Long> {
 						predicate.add(criteriaBuilder.or(criteriaBuilder.like(root.get("name").as(String.class), like),
 								criteriaBuilder.like(root.get("code").as(String.class), like)));
 					}
-					if (!"all".equals(queryInfo.getData().getStatus())) {
-						predicate.add(criteriaBuilder.equal(root.get("enabled").as(boolean.class), Boolean.valueOf(queryInfo.getData().getStatus())));
+					if (!"all".equals(queryInfo.getData().getStatusText())) {
+						predicate.add(criteriaBuilder.equal(root.get("enabled").as(boolean.class), Boolean.valueOf(queryInfo.getData().getStatusText())));
 					}
 				}
 				return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
