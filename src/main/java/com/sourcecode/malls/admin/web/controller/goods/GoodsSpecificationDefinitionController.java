@@ -141,8 +141,8 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 	@RequestMapping(value = "/delete")
 	public ResultBean<Void> delete(@RequestBody KeyDTO<Long> keys) {
 		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
+		User user = getRelatedCurrentUser();
 		for (Long id : keys.getIds()) {
-			User user = getRelatedCurrentUser();
 			Optional<GoodsSpecificationDefinition> dataOp = definitionService.findById(id);
 			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
 				definitionService.delete(dataOp.get());

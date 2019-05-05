@@ -161,8 +161,8 @@ public class GoodsItemController extends BaseController {
 	@RequestMapping(value = "/delete")
 	public ResultBean<Void> delete(@RequestBody KeyDTO<Long> keys) {
 		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
+		User user = getRelatedCurrentUser();
 		for (Long id : keys.getIds()) {
-			User user = getRelatedCurrentUser();
 			Optional<GoodsItem> dataOp = itemService.findById(id);
 			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
 				itemService.delete(dataOp.get());
@@ -174,8 +174,8 @@ public class GoodsItemController extends BaseController {
 	@RequestMapping(value = "/updateStatus/params/{status}")
 	public ResultBean<Void> updateStatus(@RequestBody KeyDTO<Long> keys, @PathVariable Boolean status) {
 		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_UPDATE);
+		User user = getRelatedCurrentUser();
 		for (Long id : keys.getIds()) {
-			User user = getRelatedCurrentUser();
 			Optional<GoodsItem> dataOp = itemService.findById(id);
 			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
 				dataOp.get().setEnabled(status);

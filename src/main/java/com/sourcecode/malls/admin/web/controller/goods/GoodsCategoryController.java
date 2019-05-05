@@ -143,8 +143,8 @@ public class GoodsCategoryController extends BaseController {
 	@RequestMapping(value = "/delete")
 	public ResultBean<Void> delete(@RequestBody KeyDTO<Long> keys) {
 		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
+		User user = getRelatedCurrentUser();
 		for (Long id : keys.getIds()) {
-			User user = getRelatedCurrentUser();
 			Optional<GoodsCategory> dataOp = categoryService.findById(id);
 			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
 				categoryService.delete(dataOp.get());

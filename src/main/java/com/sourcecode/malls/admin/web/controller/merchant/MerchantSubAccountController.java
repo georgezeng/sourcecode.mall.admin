@@ -131,9 +131,10 @@ public class MerchantSubAccountController extends BaseController {
 	@RequestMapping(value = "/updateStatus/params/{status}")
 	public ResultBean<Void> updateStatus(@RequestBody KeyDTO<Long> keys, @PathVariable Boolean status) {
 		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_UPDATE);
+		User parentUser = getRelatedCurrentUser();
 		for (Long id : keys.getIds()) {
 			Optional<Merchant> userOp = userService.findById(id);
-			if (userOp.isPresent() && userOp.get().getParent() != null && userOp.get().getParent().getId().equals(getRelatedCurrentUser().getId())) {
+			if (userOp.isPresent() && userOp.get().getParent() != null && userOp.get().getParent().getId().equals(parentUser.getId())) {
 				Merchant user = userOp.get();
 				user.setEnabled(status);
 				userService.save(user);
