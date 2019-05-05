@@ -14,7 +14,7 @@ public enum AuthorityDefinitions {
 	GOODS_BRAND_FILE_LOAD("商品品牌-文件读取请求", "AUTH_GOODS_BRAND_FILE_LOAD", "/goods/brand/file/load", "GET"),
 	
 	GOODS_CATEGORY_LIST_PAGE("商品分类-列表页面", "AUTH_GOODS_CATEGORY_LIST_PAGE", "/Goods/Category/List/Page", "GET"),
-	GOODS_CATEGORY_EDIT_PAGE("商品分类-列表页面", "AUTH_GOODS_CATEGORY_EDIT_PAGE", "/Goods/Category/Edit/Page", "GET"),
+	GOODS_CATEGORY_EDIT_PAGE("商品分类-编辑页面", "AUTH_GOODS_CATEGORY_EDIT_PAGE", "/Goods/Category/Edit/Page", "GET"),
 	GOODS_CATEGORY_LIST("商品分类-列表请求", "AUTH_GOODS_CATEGORY_LIST", "/goods/category/list", "POST"),
 	GOODS_CATEGORY_LOAD("商品分类-单个加载请求", "AUTH_GOODS_CATEGORY_LOAD", "/goods/category/load", "GET"),
 	GOODS_CATEGORY_LIST_ALL("商品品牌-所有分类请求", "AUTH_GOODS_CATEGORY_LIST_ALL", "/goods/category/list/all", "GET"),
