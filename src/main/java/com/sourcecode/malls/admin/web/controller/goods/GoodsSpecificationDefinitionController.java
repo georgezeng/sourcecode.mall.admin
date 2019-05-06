@@ -63,16 +63,6 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 		return new ResultBean<>(dtoResult);
 	}
 
-	@RequestMapping(path = "/categoryId/params/{id}")
-	public ResultBean<Long> categoryId(@PathVariable Long id) {
-		Optional<GoodsSpecificationGroup> group = groupRepository.findById(id);
-		if (group.isPresent()) {
-			return new ResultBean<>(group.get().getCategory().getId());
-		} else {
-			return new ResultBean<>();
-		}
-	}
-
 	@RequestMapping(path = "/groups/params/{id}")
 	public ResultBean<GoodsAttributeDTO> groups(@PathVariable Long id) {
 		Optional<GoodsCategory> category = categoryRepository.findById(id);
@@ -104,13 +94,14 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 			data = dataOp.get();
 		} else {
 			data.setMerchant(merchantRepository.findById(user.getId()).get());
+			AssertUtil.assertTrue(!CollectionUtils.isEmpty(dto.getParentIds()), "请选择一个商品类型");
+			for (Long groupId : dto.getParentIds()) {
+				Optional<GoodsSpecificationGroup> groupOp = groupRepository.findById(groupId);
+				AssertUtil.assertTrue(groupOp.isPresent(), "商品类型不存在");
+				AssertUtil.assertTrue(groupOp.get().getMerchant().getId().equals(data.getMerchant().getId()), "商品类型不存在");
+				data.addGroup(groupOp.get());
+			}
 		}
-		AssertUtil.assertNotNull(dto.getParent(), "请选择一个商品类型");
-		AssertUtil.assertNotNull(dto.getParent().getId(), "请选择一个商品类型");
-		Optional<GoodsSpecificationGroup> groupOp = groupRepository.findById(dto.getParent().getId());
-		AssertUtil.assertTrue(groupOp.isPresent(), "商品类型不存在");
-		AssertUtil.assertTrue(groupOp.get().getMerchant().getId().equals(data.getMerchant().getId()), "商品类型不存在");
-		data.setGroup(groupOp.get());
 		data.setName(dto.getName());
 		data.setOrder(dto.getOrder());
 		definitionService.save(data);

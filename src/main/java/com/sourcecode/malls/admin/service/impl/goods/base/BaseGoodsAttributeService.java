@@ -37,7 +37,11 @@ public abstract class BaseGoodsAttributeService<T extends BaseGoodsAttribute> im
 				List<Predicate> predicate = new ArrayList<>();
 				if (queryInfo.getData() != null) {
 					if (queryInfo.getData().getParent() != null && queryInfo.getData().getParent().getId() > 0l) {
-						predicate.add(criteriaBuilder.equal(root.get(getParentName()), queryInfo.getData().getParent().getId()));
+						if (getParentName().equals("group")) {
+							predicate.add(root.join("groups").in(queryInfo.getData().getParent().getId()));
+						} else {
+							predicate.add(criteriaBuilder.equal(root.get(getParentName()), queryInfo.getData().getParent().getId()));
+						}
 					}
 					if (queryInfo.getData().getLeafLevel() > 0) {
 						predicate.add(criteriaBuilder.notEqual(root.get("level"), queryInfo.getData().getLeafLevel()));

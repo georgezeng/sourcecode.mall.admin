@@ -39,7 +39,6 @@ public enum AuthorityDefinitions {
 	GOODS_SPECIFICATION_DEFINITION_EDIT_PAGE("商品规格-编辑页面", "AUTH_GOODS_SPECIFICATION_DEFINITION_EDIT_PAGE", "/Goods/Specification/Definition/Edit/Page", "GET"),
 	GOODS_SPECIFICATION_DEFINITION_LIST("商品规格-列表请求", "AUTH_GOODS_SPECIFICATION_DEFINITION_LIST", "/goods/specification/definition/list", "POST"),
 	GOODS_SPECIFICATION_DEFINITION_GROUPS("商品规格-类型请求", "AUTH_GOODS_SPECIFICATION_DEFINITION_GROUPS", "/goods/specification/definition/groups", "GET"),
-	GOODS_SPECIFICATION_DEFINITION_CATEGORY_ID("商品规格-分类ID请求", "AUTH_GOODS_SPECIFICATION_DEFINITION_CATEGORY_ID", "/goods/specification/definition/categoryId", "GET"),
 	GOODS_SPECIFICATION_DEFINITION_LOAD("商品规格-单个加载请求", "AUTH_GOODS_SPECIFICATION_DEFINITION_LOAD", "/goods/specification/definition/load", "GET"),
 	GOODS_SPECIFICATION_DEFINITION_SAVE("商品规格-保存请求", "AUTH_GOODS_SPECIFICATION_DEFINITION_SAVE", "/goods/specification/definition/save", "POST"),
 	GOODS_SPECIFICATION_DEFINITION_DELETE("商品规格-删除请求", "AUTH_GOODS_SPECIFICATION_DEFINITION_DELETE", "/goods/specification/definition/delete", "POST"),
