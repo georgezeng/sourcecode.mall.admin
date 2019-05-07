@@ -39,7 +39,7 @@ public class GoodsSpecificationGroupController extends BaseController {
 
 	@Autowired
 	private GoodsCategoryRepository categoryRepository;
-
+	
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<GoodsAttributeDTO>> list(@RequestBody QueryInfo<GoodsAttributeDTO> queryInfo) {
 		User user = getRelatedCurrentUser();
@@ -58,7 +58,7 @@ public class GoodsSpecificationGroupController extends BaseController {
 		Optional<GoodsSpecificationGroup> dataOp = groupService.findById(id);
 		AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
 		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
-		return new ResultBean<>(dataOp.get().asDTO(false));
+		return new ResultBean<>(dataOp.get().asDTO(true));
 	}
 
 	@RequestMapping(path = "/save")
@@ -98,5 +98,5 @@ public class GoodsSpecificationGroupController extends BaseController {
 		}
 		return new ResultBean<>();
 	}
-
+	
 }
