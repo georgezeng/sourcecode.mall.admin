@@ -126,6 +126,19 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 				data.addGroup(groupOp.get());
 			}
 		}
+		for (Iterator<GoodsSpecificationGroup> it = data.getGroups().iterator(); it.hasNext();) {
+			GoodsSpecificationGroup group = it.next();
+			boolean found = false;
+			for (Long groupId : dto.getParentIds()) {
+				if (groupId.equals(group.getId())) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				it.remove();
+			}
+		}
 		data.setName(dto.getName());
 		data.setOrder(dto.getOrder());
 		definitionService.save(data);
