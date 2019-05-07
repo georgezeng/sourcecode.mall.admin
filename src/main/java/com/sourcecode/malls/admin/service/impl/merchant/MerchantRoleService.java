@@ -42,13 +42,19 @@ public class MerchantRoleService {
 		Authority auth = null;
 		if (!authOp.isPresent()) {
 			auth = new Authority();
-			auth.setName(definition.getName());
 			auth.setCode(definition.getCode());
+			auth.setName(definition.getName());
 			auth.setLink(definition.getLink());
 			auth.setMethod(definition.getMethod());
 			auth.addRole(role);
 			authRepository.save(auth);
 			role.addAuthority(auth);
+		} else {
+			auth = authOp.get();
+			auth.setName(definition.getName());
+			auth.setLink(definition.getLink());
+			auth.setMethod(definition.getMethod());
+			authRepository.save(auth);
 		}
 	}
 
