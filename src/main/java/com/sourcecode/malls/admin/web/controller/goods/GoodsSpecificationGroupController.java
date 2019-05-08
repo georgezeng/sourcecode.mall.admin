@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sourcecode.malls.admin.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.admin.domain.goods.GoodsCategory;
-import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationDefinition;
 import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationGroup;
 import com.sourcecode.malls.admin.domain.merchant.Merchant;
 import com.sourcecode.malls.admin.domain.system.setting.User;
@@ -23,7 +22,6 @@ import com.sourcecode.malls.admin.dto.goods.GoodsAttributeDTO;
 import com.sourcecode.malls.admin.dto.query.PageResult;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
 import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsCategoryRepository;
-import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsSpecificationDefinitionRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantRepository;
 import com.sourcecode.malls.admin.service.impl.goods.GoodsSpecificationGroupService;
 import com.sourcecode.malls.admin.util.AssertUtil;
@@ -41,9 +39,6 @@ public class GoodsSpecificationGroupController extends BaseController {
 
 	@Autowired
 	private GoodsCategoryRepository categoryRepository;
-
-	@Autowired
-	private GoodsSpecificationDefinitionRepository definitionRepository;
 
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<GoodsAttributeDTO>> list(@RequestBody QueryInfo<GoodsAttributeDTO> queryInfo) {
@@ -84,16 +79,7 @@ public class GoodsSpecificationGroupController extends BaseController {
 		Optional<GoodsCategory> categoryOp = categoryRepository.findById(dto.getParent().getId());
 		AssertUtil.assertTrue(categoryOp.isPresent(), "商品分型不存在");
 		AssertUtil.assertTrue(categoryOp.get().getMerchant().getId().equals(data.getMerchant().getId()), "商品分型不存在");
-		GoodsCategory oldCategory = data.getCategory();
 		data.setCategory(categoryOp.get());
-		if (oldCategory == null || !oldCategory.getId().equals(categoryOp.get().getId())) {
-			if (!CollectionUtils.isEmpty(data.getDefinitions())) {
-				for (GoodsSpecificationDefinition definition : data.getDefinitions()) {
-					definition.setCategory(categoryOp.get());
-				}
-				definitionRepository.saveAll(data.getDefinitions());
-			}
-		}
 		data.setName(dto.getName());
 		data.setOrder(dto.getOrder());
 		groupService.save(data);

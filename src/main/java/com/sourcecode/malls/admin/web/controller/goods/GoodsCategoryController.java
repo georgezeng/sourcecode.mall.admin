@@ -19,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.sourcecode.malls.admin.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.admin.domain.goods.GoodsCategory;
-import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationDefinition;
 import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationGroup;
 import com.sourcecode.malls.admin.domain.merchant.Merchant;
 import com.sourcecode.malls.admin.domain.system.setting.User;
@@ -28,7 +27,6 @@ import com.sourcecode.malls.admin.dto.base.ResultBean;
 import com.sourcecode.malls.admin.dto.goods.GoodsAttributeDTO;
 import com.sourcecode.malls.admin.dto.query.PageInfo;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
-import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsSpecificationDefinitionRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsSpecificationGroupRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantRepository;
 import com.sourcecode.malls.admin.service.impl.goods.GoodsCategoryService;
@@ -47,9 +45,6 @@ public class GoodsCategoryController extends BaseController {
 
 	@Autowired
 	private GoodsSpecificationGroupRepository groupRepository;
-
-	@Autowired
-	private GoodsSpecificationDefinitionRepository definitionRepository;
 
 	private String fileDir = "goods/category";
 
@@ -160,12 +155,6 @@ public class GoodsCategoryController extends BaseController {
 				if (!CollectionUtils.isEmpty(dataOp.get().getGroups())) {
 					for (GoodsSpecificationGroup group : dataOp.get().getGroups()) {
 						group.setCategory(null);
-						if (CollectionUtils.isEmpty(group.getDefinitions())) {
-							for (GoodsSpecificationDefinition definition : group.getDefinitions()) {
-								definition.setCategory(null);
-							}
-							definitionRepository.saveAll(group.getDefinitions());
-						}
 					}
 					groupRepository.saveAll(dataOp.get().getGroups());
 				}

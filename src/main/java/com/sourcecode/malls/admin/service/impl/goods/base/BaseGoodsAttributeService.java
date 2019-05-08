@@ -5,8 +5,11 @@ import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.ListJoin;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -15,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.druid.util.StringUtils;
 import com.sourcecode.malls.admin.domain.base.BaseGoodsAttribute;
+import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationDefinition;
+import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationGroup;
 import com.sourcecode.malls.admin.dto.goods.GoodsAttributeDTO;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
 import com.sourcecode.malls.admin.service.base.JpaService;
@@ -38,7 +43,15 @@ public abstract class BaseGoodsAttributeService<T extends BaseGoodsAttribute> im
 				if (queryInfo.getData() != null) {
 					if (queryInfo.getData().getParent() != null && queryInfo.getData().getParent().getId() > 0l) {
 						if (getParentName().equals("group")) {
-							predicate.add(root.join("groups").in(queryInfo.getData().getParent().getId()));
+							if ("true".equals(queryInfo.getData().getStatusText())) {
+								predicate.add(criteriaBuilder.equal(root.join("groups"), queryInfo.getData().getParent().getId()));
+							} else if ("false".equals(queryInfo.getData().getStatusText())) {
+								Subquery<GoodsSpecificationDefinition> subquery = query.subquery(GoodsSpecificationDefinition.class);
+								Root<GoodsSpecificationDefinition> subRoot = subquery.from(GoodsSpecificationDefinition.class);
+								subquery.select(subRoot.get("id"));
+								subquery.where(criteriaBuilder.equal(subRoot.join("groups"), queryInfo.getData().getParent().getId()));
+								predicate.add(criteriaBuilder.not(root.in(subquery)));
+							}
 						} else {
 							predicate.add(criteriaBuilder.equal(root.get(getParentName()), queryInfo.getData().getParent().getId()));
 						}
