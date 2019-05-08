@@ -105,37 +105,11 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 			data = dataOp.get();
 		} else {
 			data.setMerchant(merchantRepository.findById(user.getId()).get());
-		}
-		AssertUtil.assertTrue(!CollectionUtils.isEmpty(dto.getParentIds()), "请选择一个商品类型");
-		for (Long groupId : dto.getParentIds()) {
-			Optional<GoodsSpecificationGroup> groupOp = groupRepository.findById(groupId);
+			AssertUtil.assertTrue(dto.getParent() != null && dto.getParent().getId() != null, "请选择一个商品类型");
+			Optional<GoodsSpecificationGroup> groupOp = groupRepository.findById(dto.getParent().getId());
 			AssertUtil.assertTrue(groupOp.isPresent(), "商品类型不存在");
 			AssertUtil.assertTrue(groupOp.get().getMerchant().getId().equals(data.getMerchant().getId()), "商品类型不存在");
-			boolean found = false;
-			if (!CollectionUtils.isEmpty(data.getGroups())) {
-				for (GoodsSpecificationGroup group : data.getGroups()) {
-					if (group.getId().equals(groupId)) {
-						found = true;
-						break;
-					}
-				}
-			}
-			if (!found) {
-				data.addGroup(groupOp.get());
-			}
-		}
-		for (Iterator<GoodsSpecificationGroup> it = data.getGroups().iterator(); it.hasNext();) {
-			GoodsSpecificationGroup group = it.next();
-			boolean found = false;
-			for (Long groupId : dto.getParentIds()) {
-				if (groupId.equals(group.getId())) {
-					found = true;
-					break;
-				}
-			}
-			if (!found) {
-				it.remove();
-			}
+			data.addGroup(groupOp.get());
 		}
 		data.setName(dto.getName());
 		data.setOrder(dto.getOrder());
@@ -164,39 +138,17 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 		return new ResultBean<>();
 	}
 
-	@RequestMapping(value = "/delete/params/{groupId}")
-	public ResultBean<Void> delete(@RequestBody KeyDTO<Long> keys, @PathVariable Long groupId) {
+	@RequestMapping(value = "/delete")
+	public ResultBean<Void> delete(@RequestBody KeyDTO<Long> keys) {
 		User user = getRelatedCurrentUser();
-		if (groupId == null || groupId.equals(0l)) {
-			AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
-			for (Long id : keys.getIds()) {
-				Optional<GoodsSpecificationDefinition> dataOp = definitionService.findById(id);
-				if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
-					definitionService.delete(dataOp.get());
-				}
+		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
+		for (Long id : keys.getIds()) {
+			Optional<GoodsSpecificationDefinition> dataOp = definitionService.findById(id);
+			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
+				definitionService.delete(dataOp.get());
 			}
-			return new ResultBean<>();
-		} else {
-			AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_UPDATE);
-			Optional<GoodsSpecificationGroup> groupOp = groupRepository.findById(groupId);
-			AssertUtil.assertTrue(groupOp.isPresent() && groupOp.get().getMerchant().getId().equals(user.getId()),
-					ExceptionMessageConstant.NO_SUCH_RECORD);
-			GoodsSpecificationGroup group = groupOp.get();
-			for (Long id : keys.getIds()) {
-				Optional<GoodsSpecificationDefinition> dataOp = definitionService.findById(id);
-				if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
-					for (Iterator<GoodsSpecificationGroup> it = dataOp.get().getGroups().iterator(); it.hasNext();) {
-						GoodsSpecificationGroup groupItem = it.next();
-						if (group.getId().equals(groupItem.getId())) {
-							it.remove();
-							break;
-						}
-					}
-					definitionService.save(dataOp.get());
-				}
-			}
-			return new ResultBean<>();
 		}
+		return new ResultBean<>();
 	}
 
 	@RequestMapping(value = "/relate/params/{groupId}/{status}")
