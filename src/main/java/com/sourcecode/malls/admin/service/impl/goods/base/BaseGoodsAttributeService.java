@@ -5,8 +5,6 @@ import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.ListJoin;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
@@ -19,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.alibaba.druid.util.StringUtils;
 import com.sourcecode.malls.admin.domain.base.BaseGoodsAttribute;
 import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationDefinition;
-import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationGroup;
 import com.sourcecode.malls.admin.dto.goods.GoodsAttributeDTO;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
 import com.sourcecode.malls.admin.service.base.JpaService;

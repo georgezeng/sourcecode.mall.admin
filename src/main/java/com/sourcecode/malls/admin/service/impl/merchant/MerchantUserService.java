@@ -1,7 +1,7 @@
 package com.sourcecode.malls.admin.service.impl.merchant;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -129,7 +129,6 @@ public class MerchantUserService implements JpaService<Merchant, Long> {
 				break;
 			}
 		}
-		role.setAuthorities(new HashSet<>());
 		if (!CollectionUtils.isEmpty(subAccount.getAuthorities())) {
 			for (AuthorityDTO authDTO : subAccount.getAuthorities()) {
 				Authority auth = authRepository.findById(authDTO.getId()).get();
@@ -145,8 +144,21 @@ public class MerchantUserService implements JpaService<Merchant, Long> {
 				if (!found) {
 					auth.addRole(role);
 					authRepository.save(auth);
+					role.addAuthority(auth);
 				}
-				role.addAuthority(auth);
+			}
+			for (Iterator<Authority> it = role.getAuthorities().iterator(); it.hasNext();) {
+				Authority auth = it.next();
+				boolean found = false;
+				for (AuthorityDTO authDTO : subAccount.getAuthorities()) {
+					if (authDTO.getId().equals(auth.getId())) {
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					it.remove();
+				}
 			}
 		}
 		roleRepository.save(role);

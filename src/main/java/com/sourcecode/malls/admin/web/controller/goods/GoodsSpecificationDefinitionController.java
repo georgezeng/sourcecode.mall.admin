@@ -105,11 +105,11 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 			data = dataOp.get();
 		} else {
 			data.setMerchant(merchantRepository.findById(user.getId()).get());
-			AssertUtil.assertTrue(dto.getParent() != null && dto.getParent().getId() != null, "请选择一个商品类型");
 			Optional<GoodsSpecificationGroup> groupOp = groupRepository.findById(dto.getParent().getId());
-			AssertUtil.assertTrue(groupOp.isPresent(), "商品类型不存在");
-			AssertUtil.assertTrue(groupOp.get().getMerchant().getId().equals(data.getMerchant().getId()), "商品类型不存在");
-			data.addGroup(groupOp.get());
+			if (groupOp.isPresent()) {
+				AssertUtil.assertTrue(groupOp.get().getMerchant().getId().equals(data.getMerchant().getId()), "商品类型不存在");
+				data.addGroup(groupOp.get());
+			}
 		}
 		data.setName(dto.getName());
 		data.setOrder(dto.getOrder());
