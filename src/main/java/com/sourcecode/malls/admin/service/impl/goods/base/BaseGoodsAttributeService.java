@@ -53,9 +53,7 @@ public abstract class BaseGoodsAttributeService<T extends BaseGoodsAttribute> im
 							predicate.add(criteriaBuilder.equal(root.get(getParentName()), queryInfo.getData().getParent().getId()));
 						}
 					}
-					if (queryInfo.getData().getLeafLevel() > 0) {
-						predicate.add(criteriaBuilder.notEqual(root.get("level"), queryInfo.getData().getLeafLevel()));
-					} else if (queryInfo.getData().getLevel() > 0) {
+					if (queryInfo.getData().getLevel() > 0) {
 						predicate.add(criteriaBuilder.equal(root.get("level"), queryInfo.getData().getLevel()));
 					}
 					predicate.add(criteriaBuilder.equal(root.get("merchant"), queryInfo.getData().getMerchantId()));
