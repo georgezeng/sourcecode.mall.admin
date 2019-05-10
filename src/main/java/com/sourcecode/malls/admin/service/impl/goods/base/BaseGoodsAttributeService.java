@@ -49,7 +49,8 @@ public abstract class BaseGoodsAttributeService<T extends BaseGoodsAttribute> im
 								subquery.where(criteriaBuilder.equal(subRoot.join("groups"), queryInfo.getData().getParent().getId()));
 								predicate.add(criteriaBuilder.not(root.in(subquery)));
 							}
-						} else {
+						} 
+						else if (queryInfo.getData().getParent() != null) {
 							predicate.add(criteriaBuilder.equal(root.get(getParentName()), queryInfo.getData().getParent().getId()));
 						}
 					}

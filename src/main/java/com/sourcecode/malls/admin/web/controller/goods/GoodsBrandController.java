@@ -21,7 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.sourcecode.malls.admin.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.admin.domain.goods.GoodsBrand;
-import com.sourcecode.malls.admin.domain.merchant.Merchant;
+import com.sourcecode.malls.admin.domain.goods.GoodsCategory;
 import com.sourcecode.malls.admin.domain.system.setting.User;
 import com.sourcecode.malls.admin.dto.base.KeyDTO;
 import com.sourcecode.malls.admin.dto.base.ResultBean;
@@ -29,6 +29,7 @@ import com.sourcecode.malls.admin.dto.goods.GoodsBrandDTO;
 import com.sourcecode.malls.admin.dto.query.PageInfo;
 import com.sourcecode.malls.admin.dto.query.PageResult;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
+import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsCategoryRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantRepository;
 import com.sourcecode.malls.admin.service.impl.goods.GoodsBrandService;
 import com.sourcecode.malls.admin.util.AssertUtil;
@@ -42,6 +43,9 @@ public class GoodsBrandController extends BaseController {
 	private MerchantRepository merchantRepository;
 
 	@Autowired
+	private GoodsCategoryRepository categoryRepository;
+
+	@Autowired
 	private GoodsBrandService brandService;
 
 	private String fileDir = "goods/brand";
@@ -49,25 +53,24 @@ public class GoodsBrandController extends BaseController {
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<GoodsBrandDTO>> list(@RequestBody QueryInfo<GoodsBrandDTO> queryInfo) {
 		User user = getRelatedCurrentUser();
-		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
-		queryInfo.getData().setMerchantId(merchant.get().getId());
+		queryInfo.getData().setMerchantId(user.getId());
 		Page<GoodsBrand> result = brandService.findAll(queryInfo);
 		PageResult<GoodsBrandDTO> dtoResult = new PageResult<>(result.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()),
 				result.getTotalElements());
 		return new ResultBean<>(dtoResult);
 	}
 
-	@RequestMapping(path = "/list/all")
-	public ResultBean<GoodsBrandDTO> listAll() {
+	@RequestMapping(path = "/listInCategory/params/{categoryId}")
+	public ResultBean<GoodsBrandDTO> listInCategory(@PathVariable Long categoryId) {
 		QueryInfo<GoodsBrandDTO> queryInfo = new QueryInfo<>();
 		queryInfo.setData(new GoodsBrandDTO());
 		PageInfo page = new PageInfo();
 		page.setNum(1);
 		page.setSize(99999999);
 		queryInfo.setPage(page);
+		queryInfo.getData().setCategoryId(categoryId);
 		User user = getRelatedCurrentUser();
-		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
-		queryInfo.getData().setMerchantId(merchant.get().getId());
+		queryInfo.getData().setMerchantId(user.getId());
 		Page<GoodsBrand> result = brandService.findAll(queryInfo);
 		return new ResultBean<>(result.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()));
 	}
@@ -98,6 +101,13 @@ public class GoodsBrandController extends BaseController {
 			BeanUtils.copyProperties(dto, data, "merchant");
 			data.setMerchant(merchantRepository.findById(user.getId()).get());
 		}
+		AssertUtil.assertNotNull(dto.getCategoryId(), "商品分类不能为空");
+		Optional<GoodsCategory> categoryOp = categoryRepository.findById(dto.getCategoryId());
+		AssertUtil.assertTrue(categoryOp.isPresent(), "商品分类不存在");
+		GoodsCategory category = categoryOp.get();
+		AssertUtil.assertTrue(category.getMerchant().getId().equals(getRelatedCurrentUser().getId()), "商品分类不存在");
+		AssertUtil.assertTrue(category.getLevel() == 3, "必须是三级分类");
+		data.setCategory(category);
 		if (data.getId() == null) {
 			brandService.save(data);
 		}

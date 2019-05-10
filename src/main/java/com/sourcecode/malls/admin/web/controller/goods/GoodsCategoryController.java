@@ -20,7 +20,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.sourcecode.malls.admin.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.admin.domain.goods.GoodsCategory;
 import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationGroup;
-import com.sourcecode.malls.admin.domain.merchant.Merchant;
 import com.sourcecode.malls.admin.domain.system.setting.User;
 import com.sourcecode.malls.admin.dto.base.KeyDTO;
 import com.sourcecode.malls.admin.dto.base.ResultBean;
@@ -51,8 +50,7 @@ public class GoodsCategoryController extends BaseController {
 	@RequestMapping(path = "/list")
 	public ResultBean<GoodsAttributeDTO> list(@RequestBody QueryInfo<GoodsAttributeDTO> queryInfo) {
 		User user = getRelatedCurrentUser();
-		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
-		queryInfo.getData().setMerchantId(merchant.get().getId());
+		queryInfo.getData().setMerchantId(user.getId());
 		queryInfo.getData().setLevel(1);
 		Page<GoodsCategory> result = categoryService.findAll(queryInfo);
 		List<GoodsAttributeDTO> list = new ArrayList<>();
@@ -83,9 +81,8 @@ public class GoodsCategoryController extends BaseController {
 		page.setSize(99999999);
 		queryInfo.setPage(page);
 		User user = getRelatedCurrentUser();
-		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
 		queryInfo.getData().setLevel(1);
-		queryInfo.getData().setMerchantId(merchant.get().getId());
+		queryInfo.getData().setMerchantId(user.getId());
 		Page<GoodsCategory> result = categoryService.findAll(queryInfo);
 		List<GoodsAttributeDTO> list = new ArrayList<>();
 		result.getContent().stream().map(data -> data.asDTO(false, true)).forEach(data -> {

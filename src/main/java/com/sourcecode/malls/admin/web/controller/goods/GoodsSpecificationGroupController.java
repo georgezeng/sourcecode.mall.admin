@@ -1,5 +1,7 @@
 package com.sourcecode.malls.admin.web.controller.goods;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -14,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.sourcecode.malls.admin.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.admin.domain.goods.GoodsCategory;
 import com.sourcecode.malls.admin.domain.goods.GoodsSpecificationGroup;
-import com.sourcecode.malls.admin.domain.merchant.Merchant;
 import com.sourcecode.malls.admin.domain.system.setting.User;
 import com.sourcecode.malls.admin.dto.base.KeyDTO;
 import com.sourcecode.malls.admin.dto.base.ResultBean;
@@ -43,12 +44,32 @@ public class GoodsSpecificationGroupController extends BaseController {
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<GoodsAttributeDTO>> list(@RequestBody QueryInfo<GoodsAttributeDTO> queryInfo) {
 		User user = getRelatedCurrentUser();
-		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
-		queryInfo.getData().setMerchantId(merchant.get().getId());
+		queryInfo.getData().setMerchantId(user.getId());
 		Page<GoodsSpecificationGroup> result = groupService.findAll(queryInfo);
 		PageResult<GoodsAttributeDTO> dtoResult = new PageResult<>(
 				result.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()), result.getTotalElements());
 		return new ResultBean<>(dtoResult);
+	}
+
+	@RequestMapping(path = "/listInCategory/params/{categoryId}")
+	public ResultBean<GoodsAttributeDTO> listInCategory(@PathVariable Long categoryId) {
+		List<GoodsSpecificationGroup> groups = new ArrayList<>();
+		getList(groups, categoryId);
+		return new ResultBean<>(groups.stream().map(data -> data.asDTO()).collect(Collectors.toList()));
+	}
+
+	private void getList(List<GoodsSpecificationGroup> groups, Long categoryId) {
+		Optional<GoodsCategory> parentCategoryOp = categoryRepository.findById(categoryId);
+		if (parentCategoryOp.isPresent()) {
+			GoodsCategory parentCategory = parentCategoryOp.get();
+			if (!CollectionUtils.isEmpty(parentCategory.getSubList())) {
+				for (GoodsCategory sub : parentCategory.getSubList()) {
+					getList(groups, sub.getId());
+				}
+			} else if (!CollectionUtils.isEmpty(parentCategory.getGroups())) {
+				groups.addAll(parentCategory.getGroups());
+			}
+		}
 	}
 
 	@RequestMapping(path = "/load/params/{id}")
@@ -77,8 +98,9 @@ public class GoodsSpecificationGroupController extends BaseController {
 		AssertUtil.assertNotNull(dto.getParent(), "请选择一个商品分类");
 		AssertUtil.assertNotNull(dto.getParent().getId(), "请选择一个商品分类");
 		Optional<GoodsCategory> categoryOp = categoryRepository.findById(dto.getParent().getId());
-		AssertUtil.assertTrue(categoryOp.isPresent(), "商品分型不存在");
-		AssertUtil.assertTrue(categoryOp.get().getMerchant().getId().equals(data.getMerchant().getId()), "商品分型不存在");
+		AssertUtil.assertTrue(categoryOp.isPresent(), "商品分类不存在");
+		AssertUtil.assertTrue(categoryOp.get().getMerchant().getId().equals(data.getMerchant().getId()), "商品分类不存在");
+		AssertUtil.assertTrue(categoryOp.get().getLevel() == 3, "必须是三级分类");
 		data.setCategory(categoryOp.get());
 		data.setName(dto.getName());
 		data.setOrder(dto.getOrder());

@@ -25,17 +25,21 @@ import com.sourcecode.malls.admin.domain.goods.GoodsBrand;
 import com.sourcecode.malls.admin.domain.goods.GoodsCategory;
 import com.sourcecode.malls.admin.domain.goods.GoodsItem;
 import com.sourcecode.malls.admin.domain.goods.GoodsItemPhoto;
+import com.sourcecode.malls.admin.domain.goods.GoodsItemValue;
 import com.sourcecode.malls.admin.domain.merchant.Merchant;
 import com.sourcecode.malls.admin.domain.system.setting.User;
 import com.sourcecode.malls.admin.dto.base.KeyDTO;
 import com.sourcecode.malls.admin.dto.base.ResultBean;
 import com.sourcecode.malls.admin.dto.goods.GoodsItemDTO;
+import com.sourcecode.malls.admin.dto.goods.GoodsItemPropertyDTO;
 import com.sourcecode.malls.admin.dto.query.PageResult;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
 import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsBrandRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsCategoryRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsItemRepository;
+import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsItemValueRepository;
 import com.sourcecode.malls.admin.repository.jpa.impl.merchant.MerchantRepository;
+import com.sourcecode.malls.admin.service.impl.goods.GoodsItemPropertyService;
 import com.sourcecode.malls.admin.service.impl.goods.GoodsItemService;
 import com.sourcecode.malls.admin.util.AssertUtil;
 import com.sourcecode.malls.admin.web.controller.base.BaseController;
@@ -57,6 +61,12 @@ public class GoodsItemController extends BaseController {
 	private GoodsBrandRepository brandRepository;
 
 	@Autowired
+	private GoodsItemPropertyService propertyService;
+
+	@Autowired
+	private GoodsItemValueRepository valueRepository;
+
+	@Autowired
 	private GoodsItemService itemService;
 
 	private String fileDir = "goods/item";
@@ -64,8 +74,7 @@ public class GoodsItemController extends BaseController {
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<GoodsItemDTO>> list(@RequestBody QueryInfo<GoodsItemDTO> queryInfo) {
 		User user = getRelatedCurrentUser();
-		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
-		queryInfo.getData().setMerchantId(merchant.get().getId());
+		queryInfo.getData().setMerchantId(user.getId());
 		Page<GoodsItem> result = itemService.findAll(queryInfo);
 		PageResult<GoodsItemDTO> dtoResult = new PageResult<>(result.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()),
 				result.getTotalElements());
@@ -78,11 +87,18 @@ public class GoodsItemController extends BaseController {
 		Optional<GoodsItem> dataOp = itemRepository.findById(id);
 		AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
 		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
-		return new ResultBean<>(dataOp.get().asDTO());
+		GoodsItemDTO dto = dataOp.get().asDTO();
+		if (!CollectionUtils.isEmpty(dto.getProperties())) {
+			for (GoodsItemPropertyDTO p : dto.getProperties()) {
+				List<GoodsItemValue> values = valueRepository.findAllByUid(p.getUid());
+				p.setValues(values.stream().map(it -> it.getValue().asDTO()).collect(Collectors.toList()));
+			}
+		}
+		return new ResultBean<>(dto);
 	}
 
 	@RequestMapping(path = "/save")
-	public ResultBean<Void> save(@RequestBody GoodsItemDTO dto) {
+	public ResultBean<Long> save(@RequestBody GoodsItemDTO dto) {
 		checkIfApplicationPassed("信息");
 		if (dto.getId() == null) {
 			dto.setId(0l);
@@ -140,7 +156,7 @@ public class GoodsItemController extends BaseController {
 				order++;
 			}
 		}
-		if ((order + 1) < dto.getPhotos().size()) {
+		if (order < dto.getPhotos().size()) {
 			for (int i = order; i < dto.getPhotos().size(); i++) {
 				GoodsItemPhoto photo = new GoodsItemPhoto();
 				photo.setOrder(i + 1);
@@ -155,6 +171,17 @@ public class GoodsItemController extends BaseController {
 		}
 		itemRepository.save(data);
 		transfer(true, tmpPaths, newPaths);
+		return new ResultBean<>(data.getId());
+	}
+
+	@RequestMapping(path = "/properties/save")
+	public ResultBean<Void> saveProperties(@RequestBody GoodsItemDTO dto) {
+		AssertUtil.assertNotNull(dto.getId(), "商品ID不存在");
+		checkIfApplicationPassed("信息");
+		User user = getRelatedCurrentUser();
+		Optional<GoodsItem> item = itemRepository.findById(dto.getId());
+		AssertUtil.assertTrue(item.isPresent() && item.get().getMerchant().getId().equals(user.getId()), "商品不存在");
+		propertyService.save(item.get(), dto.getProperties());
 		return new ResultBean<>();
 	}
 

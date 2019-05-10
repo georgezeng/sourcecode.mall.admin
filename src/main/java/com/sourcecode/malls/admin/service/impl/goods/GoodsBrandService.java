@@ -48,6 +48,9 @@ public class GoodsBrandService implements JpaService<GoodsBrand, Long> {
 				List<Predicate> predicate = new ArrayList<>();
 				if (queryInfo.getData() != null) {
 					predicate.add(criteriaBuilder.equal(root.get("merchant"), queryInfo.getData().getMerchantId()));
+					if (queryInfo.getData().getCategoryId() != null) {
+						predicate.add(criteriaBuilder.equal(root.get("category"), queryInfo.getData().getCategoryId()));
+					}
 					String searchText = queryInfo.getData().getSearchText();
 					if (!StringUtils.isEmpty(searchText)) {
 						String like = "%" + searchText + "%";

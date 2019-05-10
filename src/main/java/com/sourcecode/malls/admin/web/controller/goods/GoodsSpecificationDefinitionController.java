@@ -24,6 +24,7 @@ import com.sourcecode.malls.admin.domain.system.setting.User;
 import com.sourcecode.malls.admin.dto.base.KeyDTO;
 import com.sourcecode.malls.admin.dto.base.ResultBean;
 import com.sourcecode.malls.admin.dto.goods.GoodsAttributeDTO;
+import com.sourcecode.malls.admin.dto.query.PageInfo;
 import com.sourcecode.malls.admin.dto.query.PageResult;
 import com.sourcecode.malls.admin.dto.query.QueryInfo;
 import com.sourcecode.malls.admin.repository.jpa.impl.goods.GoodsCategoryRepository;
@@ -56,8 +57,7 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<GoodsAttributeDTO>> list(@RequestBody QueryInfo<GoodsAttributeDTO> queryInfo) {
 		User user = getRelatedCurrentUser();
-		Optional<Merchant> merchant = merchantRepository.findById(user.getId());
-		queryInfo.getData().setMerchantId(merchant.get().getId());
+		queryInfo.getData().setMerchantId(user.getId());
 		Page<GoodsSpecificationDefinition> result = definitionService.findAll(queryInfo);
 		PageResult<GoodsAttributeDTO> dtoResult = new PageResult<>(result.getContent().stream().map(data -> {
 			GoodsAttributeDTO dto = data.asDTO();
@@ -72,6 +72,24 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 			return dto;
 		}).collect(Collectors.toList()), result.getTotalElements());
 		return new ResultBean<>(dtoResult);
+	}
+
+	@RequestMapping(path = "/listInGroup/params/{groupId}")
+	public ResultBean<GoodsAttributeDTO> list(@PathVariable Long groupId) {
+		QueryInfo<GoodsAttributeDTO> queryInfo = new QueryInfo<>();
+		queryInfo.setData(new GoodsAttributeDTO());
+		PageInfo pageInfo = new PageInfo();
+		pageInfo.setNum(1);
+		pageInfo.setSize(999999999);
+		queryInfo.setPage(pageInfo);
+		User user = getRelatedCurrentUser();
+		queryInfo.getData().setMerchantId(user.getId());
+		GoodsAttributeDTO parent = new GoodsAttributeDTO();
+		parent.setId(groupId);
+		queryInfo.getData().setParent(parent);
+		queryInfo.getData().setStatusText("true");
+		Page<GoodsSpecificationDefinition> result = definitionService.findAll(queryInfo);
+		return new ResultBean<>(result.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()));
 	}
 
 	@RequestMapping(path = "/groups/params/{id}")
@@ -94,7 +112,7 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 	}
 
 	@RequestMapping(path = "/save")
-	public ResultBean<Void> save(@RequestBody GoodsAttributeDTO dto) {
+	public ResultBean<GoodsAttributeDTO> save(@RequestBody GoodsAttributeDTO dto) {
 		checkIfApplicationPassed("规格");
 		User user = getRelatedCurrentUser();
 		GoodsSpecificationDefinition data = new GoodsSpecificationDefinition();
@@ -135,7 +153,7 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 			values.add(value);
 		}
 		valueRepository.saveAll(values);
-		return new ResultBean<>();
+		return load(data.getId());
 	}
 
 	@RequestMapping(value = "/delete")
