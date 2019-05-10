@@ -106,7 +106,7 @@ public class GoodsItemController extends BaseController {
 		User user = getRelatedCurrentUser();
 		Merchant merchant = merchantRepository.findById(user.getId()).get();
 		GoodsItem data = itemRepository.findById(dto.getId()).orElseGet(GoodsItem::new);
-		BeanUtils.copyProperties(dto, data, "id", "merchant", "category", "brand", "photos");
+		BeanUtils.copyProperties(dto, data, "id", "merchant", "category", "brand", "photos", "properties");
 		data.setMerchant(merchant);
 		AssertUtil.assertNotNull(dto.getCategoryId(), "必须选择商品分类");
 		Optional<GoodsCategory> categoryOp = categoryRepository.findById(dto.getCategoryId());
