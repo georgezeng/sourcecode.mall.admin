@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.sourcecode.malls.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.domain.goods.GoodsCategory;
 import com.sourcecode.malls.domain.goods.GoodsSpecificationGroup;
-import com.sourcecode.malls.domain.system.setting.User;
+import com.sourcecode.malls.domain.system.User;
 import com.sourcecode.malls.dto.base.KeyDTO;
 import com.sourcecode.malls.dto.base.ResultBean;
 import com.sourcecode.malls.dto.goods.GoodsAttributeDTO;

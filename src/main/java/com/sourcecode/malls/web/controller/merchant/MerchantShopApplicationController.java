@@ -20,7 +20,7 @@ import com.sourcecode.malls.domain.merchant.Merchant;
 import com.sourcecode.malls.domain.merchant.MerchantShopApplication;
 import com.sourcecode.malls.domain.merchant.MerchantShopApplicationInstruction;
 import com.sourcecode.malls.domain.merchant.MerchantVerification;
-import com.sourcecode.malls.domain.system.setting.User;
+import com.sourcecode.malls.domain.system.User;
 import com.sourcecode.malls.dto.base.ResultBean;
 import com.sourcecode.malls.dto.merchant.MerchantShopApplicationDTO;
 import com.sourcecode.malls.enums.VerificationStatus;

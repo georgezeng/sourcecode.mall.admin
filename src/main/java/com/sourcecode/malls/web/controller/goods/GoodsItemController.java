@@ -27,7 +27,7 @@ import com.sourcecode.malls.domain.goods.GoodsItem;
 import com.sourcecode.malls.domain.goods.GoodsItemPhoto;
 import com.sourcecode.malls.domain.goods.GoodsItemValue;
 import com.sourcecode.malls.domain.merchant.Merchant;
-import com.sourcecode.malls.domain.system.setting.User;
+import com.sourcecode.malls.domain.system.User;
 import com.sourcecode.malls.dto.base.KeyDTO;
 import com.sourcecode.malls.dto.base.ResultBean;
 import com.sourcecode.malls.dto.goods.GoodsItemDTO;

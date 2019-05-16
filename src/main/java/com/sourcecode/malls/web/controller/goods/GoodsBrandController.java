@@ -22,7 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.sourcecode.malls.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.domain.goods.GoodsBrand;
 import com.sourcecode.malls.domain.goods.GoodsCategory;
-import com.sourcecode.malls.domain.system.setting.User;
+import com.sourcecode.malls.domain.system.User;
 import com.sourcecode.malls.dto.base.KeyDTO;
 import com.sourcecode.malls.dto.base.ResultBean;
 import com.sourcecode.malls.dto.goods.GoodsBrandDTO;

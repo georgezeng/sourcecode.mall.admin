@@ -18,7 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.sourcecode.malls.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.domain.merchant.Merchant;
 import com.sourcecode.malls.domain.merchant.MerchantVerification;
-import com.sourcecode.malls.domain.system.setting.User;
+import com.sourcecode.malls.domain.system.User;
 import com.sourcecode.malls.dto.base.ResultBean;
 import com.sourcecode.malls.dto.merchant.MerchantVerificationDTO;
 import com.sourcecode.malls.enums.VerificationStatus;
