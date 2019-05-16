@@ -125,7 +125,7 @@ public class MerchantSubAccountController extends BaseController {
 	@RequestMapping(value = "/authorities")
 	public ResultBean<AuthorityDTO> authorities() {
 		List<Authority> auths = authRepository.findAllWithoutSuperAdmin();
-		return new ResultBean<>(auths.stream().map(auth -> auth.asDTO()));
+		return new ResultBean<>(auths.stream().map(auth -> auth.asDTO()).collect(Collectors.toList()));
 	}
 
 	@RequestMapping(value = "/updateStatus/params/{status}")
