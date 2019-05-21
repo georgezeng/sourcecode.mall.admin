@@ -1,2 +1,1 @@
 server.port: 9001
-access.control.allow.origin: http://localhost:8081

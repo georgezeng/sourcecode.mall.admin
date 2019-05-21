@@ -94,6 +94,10 @@ public enum AuthorityDefinitions {
 	MERCHANT_VERIFICATION_UPDATE("实名认证-编辑更新请求", "AUTH_MERCHANT_VERIFICATION_UPDATE", "/merchant/verification/update", "POST"),
 	MERCHANT_VERIFICATION_FILE_UPLOAD("实名认证-文件上传请求", "AUTH_MERCHANT_VERIFICATION_FILE_UPLOAD", "/merchant/verification/file/upload", "POST"),
 	MERCHANT_VERIFICATION_FILE_LOAD("实名认证-文件读取请求", "AUTH_MERCHANT_VERIFICATION_FILE_LOAD", "/merchant/verification/file/load", "GET"),
+	
+	WECHAT_SETTING_PAGE("微信配置-配置页面", "AUTH_WECHAT_SETTING_PAGE", "/Setting/Wechat/Page", "GET"),
+	WECHAT_SETTING_LOAD("微信配置-加载请求", "AUTH_WECHAT_SETTING_LOAD", "/setting/wechat/load", "GET"),
+	WECHAT_SETTING_SAVE("微信配置-保存请求", "AUTH_WECHAT_SETTING_SAVE", "/setting/wechat/save", "POST"),
 	;
 	
 	private String name;
