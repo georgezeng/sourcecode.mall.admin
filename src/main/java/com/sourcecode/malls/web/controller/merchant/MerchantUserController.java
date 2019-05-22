@@ -2,8 +2,6 @@ package com.sourcecode.malls.web.controller.merchant;
 
 import java.util.Optional;
 
-import javax.servlet.http.HttpSession;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,7 +25,7 @@ public class MerchantUserController {
 	private static final String FORGET_PASSWORD_CODE_CATEGORY = "merchant-forget-password-code";
 	private static final String REGISTER_CODE_TIME_ATTR = "merchant-register-code-time";
 	private static final String FORGET_PASSWORD_TIME_ATTR = "merchant-forget-password-code-time";
-	
+
 	@Autowired
 	private MerchantRepository repository;
 
@@ -41,8 +39,8 @@ public class MerchantUserController {
 	private CodeStoreRepository codeStoreRepository;
 
 	@RequestMapping(path = "/register/code/{mobile}")
-	public ResultBean<Void> sendRegisterVerifyCode(@PathVariable String mobile, HttpSession session) {
-		verifyCodeService.sendRegisterCode(mobile, session, REGISTER_CODE_TIME_ATTR, REGISTER_CODE_CATEGORY, null);
+	public ResultBean<Void> sendRegisterVerifyCode(@PathVariable String mobile) {
+		verifyCodeService.sendRegisterCode(mobile, REGISTER_CODE_TIME_ATTR, REGISTER_CODE_CATEGORY, null);
 		return new ResultBean<>();
 	}
 
@@ -56,10 +54,10 @@ public class MerchantUserController {
 	}
 
 	@RequestMapping(path = "/forgetPassword/code/{mobile}")
-	public ResultBean<Void> sendForgetPasswordCode(@PathVariable String mobile, HttpSession session) {
+	public ResultBean<Void> sendForgetPasswordCode(@PathVariable String mobile) {
 		Optional<Merchant> merchant = repository.findByUsername(mobile);
 		AssertUtil.assertTrue(merchant.isPresent(), "手机号不存在");
-		verifyCodeService.sendForgetPasswordCode(mobile, session, FORGET_PASSWORD_TIME_ATTR, FORGET_PASSWORD_CODE_CATEGORY, null);
+		verifyCodeService.sendForgetPasswordCode(mobile, FORGET_PASSWORD_TIME_ATTR, FORGET_PASSWORD_CODE_CATEGORY, null);
 		return new ResultBean<>();
 	}
 
