@@ -19,8 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
-import com.alibaba.druid.util.StringUtils;
 import com.sourcecode.malls.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.constants.SystemConstant;
 import com.sourcecode.malls.domain.merchant.Merchant;

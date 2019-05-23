@@ -14,8 +14,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-import com.alibaba.druid.util.StringUtils;
 import com.sourcecode.malls.domain.goods.GoodsItem;
 import com.sourcecode.malls.dto.goods.GoodsItemDTO;
 import com.sourcecode.malls.dto.query.QueryInfo;

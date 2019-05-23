@@ -13,8 +13,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-import com.alibaba.druid.util.StringUtils;
 import com.sourcecode.malls.domain.base.BaseGoodsAttribute;
 import com.sourcecode.malls.domain.goods.GoodsSpecificationDefinition;
 import com.sourcecode.malls.dto.goods.GoodsAttributeDTO;
