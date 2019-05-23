@@ -97,7 +97,7 @@ public enum AuthorityDefinitions {
 	
 	WECHAT_SETTING_PAGE("微信配置-配置页面", "AUTH_WECHAT_SETTING_PAGE", "/Setting/Wechat/Page", "GET"),
 	WECHAT_SETTING_LOAD("微信配置-加载请求", "AUTH_WECHAT_SETTING_LOAD", "/setting/wechat/load", "GET"),
-	WECHAT_SETTING_SAVE("微信配置-保存请求", "AUTH_WECHAT_SETTING_SAVE", "/setting/wechat/save", "POST"),
+	WECHAT_SETTING_SAVE_GZH("微信配置-保存请求", "AUTH_WECHAT_SETTING_SAVE_GZH", "/setting/wechat/gzh/save", "POST"),
 	;
 	
 	private String name;

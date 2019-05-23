@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sourcecode.malls.WechatInfo;
 import com.sourcecode.malls.context.UserContext;
 import com.sourcecode.malls.dto.base.ResultBean;
 import com.sourcecode.malls.dto.setting.DeveloperSettingDTO;
@@ -18,15 +19,17 @@ public class WechatSettingController extends BaseController {
 	@Autowired
 	private MerchantSettingService settingService;
 
-	@RequestMapping(path = "/save")
+	@RequestMapping(path = "/gzh/save")
 	public ResultBean<Void> save(@RequestBody DeveloperSettingDTO setting) {
-		settingService.saveWechat(setting, UserContext.get().getId());
+		settingService.saveWechatGzh(setting, UserContext.get().getId());
 		return new ResultBean<>();
 	}
 
 	@RequestMapping(path = "/load")
-	public ResultBean<DeveloperSettingDTO> load() {
-		return new ResultBean<>(settingService.loadWechat(UserContext.get().getId()).orElseGet(DeveloperSettingDTO::new));
+	public ResultBean<WechatInfo> load() {
+		WechatInfo info = new WechatInfo();
+		info.setGzhInfo(settingService.loadWechatGzh(UserContext.get().getId()).orElseGet(DeveloperSettingDTO::new));
+		return new ResultBean<>(info);
 	}
 
 }
