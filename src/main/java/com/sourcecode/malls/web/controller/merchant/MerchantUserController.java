@@ -23,8 +23,6 @@ import com.sourcecode.malls.util.AssertUtil;
 public class MerchantUserController {
 	private static final String REGISTER_CODE_CATEGORY = "merchant-register-code";
 	private static final String FORGET_PASSWORD_CODE_CATEGORY = "merchant-forget-password-code";
-	private static final String REGISTER_CODE_TIME_ATTR = "merchant-register-code-time";
-	private static final String FORGET_PASSWORD_TIME_ATTR = "merchant-forget-password-code-time";
 
 	@Autowired
 	private MerchantRepository repository;
@@ -40,7 +38,7 @@ public class MerchantUserController {
 
 	@RequestMapping(path = "/register/code/{mobile}")
 	public ResultBean<Void> sendRegisterVerifyCode(@PathVariable String mobile) {
-		verifyCodeService.sendRegisterCode(mobile, REGISTER_CODE_TIME_ATTR, REGISTER_CODE_CATEGORY, null);
+		verifyCodeService.sendRegisterCode(mobile, REGISTER_CODE_CATEGORY, null);
 		return new ResultBean<>();
 	}
 
@@ -57,7 +55,7 @@ public class MerchantUserController {
 	public ResultBean<Void> sendForgetPasswordCode(@PathVariable String mobile) {
 		Optional<Merchant> merchant = repository.findByUsername(mobile);
 		AssertUtil.assertTrue(merchant.isPresent(), "手机号不存在");
-		verifyCodeService.sendForgetPasswordCode(mobile, FORGET_PASSWORD_TIME_ATTR, FORGET_PASSWORD_CODE_CATEGORY, null);
+		verifyCodeService.sendForgetPasswordCode(mobile, FORGET_PASSWORD_CODE_CATEGORY, null);
 		return new ResultBean<>();
 	}
 
