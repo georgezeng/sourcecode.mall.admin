@@ -54,6 +54,8 @@ public class MerchantShopApplicationController extends BaseController {
 			MerchantShopApplicationDTO dto = appOp.orElseGet(MerchantShopApplication::new).asDTO();
 			if (appOp.isPresent()) {
 				dto.setNoPermit(!VerificationStatus.Passed.equals(appOp.get().getStatus()));
+			} else {
+				dto.setNoPermit(true);
 			}
 			return new ResultBean<>(dto);
 		} else {
