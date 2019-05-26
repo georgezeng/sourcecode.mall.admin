@@ -51,6 +51,12 @@ public class MerchantUserController {
 		return new ResultBean<>();
 	}
 
+	@RequestMapping(path = "/register/exists/{mobile}")
+	public ResultBean<Boolean> exists(@PathVariable String mobile) {
+		Optional<Merchant> user = repository.findByUsername(mobile);
+		return new ResultBean<>(user.isPresent());
+	}
+
 	@RequestMapping(path = "/forgetPassword/code/{mobile}")
 	public ResultBean<Void> sendForgetPasswordCode(@PathVariable String mobile) {
 		Optional<Merchant> merchant = repository.findByUsername(mobile);
