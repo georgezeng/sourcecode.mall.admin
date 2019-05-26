@@ -46,7 +46,7 @@ public class MerchantShopApplicationController extends BaseController {
 	private String fileDir = "merchant/shop";
 
 	@RequestMapping(path = "/load")
-	public ResultBean<MerchantShopApplicationDTO> load() {
+	public ResultBean<MerchantShopApplicationDTO> load(@RequestParam boolean fromGoods) {
 		User user = getRelatedCurrentUser();
 		Optional<MerchantVerification> verificationOp = verificationRepository.findByMerchantId(user.getId());
 		if (verificationOp.isPresent() && VerificationStatus.Passed.equals(verificationOp.get().getStatus())) {
@@ -55,7 +55,7 @@ public class MerchantShopApplicationController extends BaseController {
 			if (appOp.isPresent()) {
 				dto.setNoPermit(!VerificationStatus.Passed.equals(appOp.get().getStatus()));
 			} else {
-				dto.setNoPermit(true);
+				dto.setNoPermit(fromGoods);
 			}
 			return new ResultBean<>(dto);
 		} else {
