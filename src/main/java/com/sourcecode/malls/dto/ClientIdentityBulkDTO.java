@@ -2,18 +2,9 @@ package com.sourcecode.malls.dto;
 
 import com.sourcecode.malls.dto.base.KeyDTO;
 
-public class ClientIdentityBulkDTO {
-	private KeyDTO<Long> ids;
+public class ClientIdentityBulkDTO extends KeyDTO<Long> {
 	private boolean pass;
 	private String reason;
-
-	public KeyDTO<Long> getIds() {
-		return ids;
-	}
-
-	public void setIds(KeyDTO<Long> ids) {
-		this.ids = ids;
-	}
 
 	public boolean isPass() {
 		return pass;

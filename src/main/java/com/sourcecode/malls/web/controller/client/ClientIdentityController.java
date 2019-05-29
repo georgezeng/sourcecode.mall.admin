@@ -52,10 +52,11 @@ public class ClientIdentityController extends BaseController {
 
 	@RequestMapping(path = "/updateStatus")
 	public ResultBean<Void> save(@RequestBody ClientIdentityBulkDTO dto) {
-		for (Long id : dto.getIds().getIds()) {
+		for (Long id : dto.getIds()) {
 			ClientIdentity data = check(id);
 			if (dto.isPass()) {
 				data.setStatus(VerificationStatus.Passed);
+				data.setReason(null);
 			} else {
 				data.setReason(dto.getReason());
 				data.setStatus(VerificationStatus.UnPassed);

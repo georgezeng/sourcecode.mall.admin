@@ -102,6 +102,7 @@ public enum AuthorityDefinitions {
 	CLIENT_IDENTITY_LIST_PAGE("用户实名认证-列表页面", "AUTH_CLIENT_IDENTITY_LIST_PAGE", "/Client/Identity/List/Page", "GET"),
 	CLIENT_IDENTITY_EDIT_PAGE("用户实名认证-编辑页面", "AUTH_CLIENT_IDENTITY_EDIT_PAGE", "/Client/Identity/Edit/Page", "GET"),
 	CLIENT_IDENTITY_LIST("用户实名认证-列表请求", "CLIENT_IDENTITY_LIST", "/client/identity/list", "POST"),
+	CLIENT_IDENTITY_LOAD("用户实名认证-加载请求", "CLIENT_IDENTITY_LOAD", "/client/identity/load", "GET"),
 	CLIENT_IDENTITY_UPDATE_STATUS("用户实名认证-修改审核状态", "CLIENT_IDENTITY_UPDATE_STATUS", "/client/identity/updateStatus", "POST"),
 	;
 	
