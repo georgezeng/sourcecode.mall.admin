@@ -98,6 +98,11 @@ public enum AuthorityDefinitions {
 	WECHAT_SETTING_PAGE("微信配置-配置页面", "AUTH_WECHAT_SETTING_PAGE", "/Setting/Wechat/Page", "GET"),
 	WECHAT_SETTING_LOAD("微信配置-加载请求", "AUTH_WECHAT_SETTING_LOAD", "/setting/wechat/load", "GET"),
 	WECHAT_SETTING_SAVE_GZH("微信配置-保存请求", "AUTH_WECHAT_SETTING_SAVE_GZH", "/setting/wechat/gzh/save", "POST"),
+	
+	CLIENT_IDENTITY_LIST_PAGE("用户实名认证-列表页面", "AUTH_CLIENT_IDENTITY_LIST_PAGE", "/Client/Identity/List/Page", "GET"),
+	CLIENT_IDENTITY_EDIT_PAGE("用户实名认证-编辑页面", "AUTH_CLIENT_IDENTITY_EDIT_PAGE", "/Client/Identity/Edit/Page", "GET"),
+	CLIENT_IDENTITY_LIST("用户实名认证-列表请求", "CLIENT_IDENTITY_LIST", "/client/identity/list", "POST"),
+	CLIENT_IDENTITY_UPDATE_STATUS("用户实名认证-修改审核状态", "CLIENT_IDENTITY_UPDATE_STATUS", "/client/identity/updateStatus", "POST"),
 	;
 	
 	private String name;

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sourcecode.malls.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.domain.merchant.Merchant;
 import com.sourcecode.malls.domain.redis.CodeStore;
 import com.sourcecode.malls.domain.system.User;
@@ -45,8 +46,8 @@ public class MerchantUserController {
 	@RequestMapping(path = "/register/{code}")
 	public ResultBean<Void> register(@RequestBody User merchant, @PathVariable String code) {
 		Optional<CodeStore> codeStoreOp = codeStoreRepository.findByCategoryAndKey(REGISTER_CODE_CATEGORY, merchant.getUsername());
-		AssertUtil.assertTrue(codeStoreOp.isPresent(), "验证码无效");
-		AssertUtil.assertTrue(codeStoreOp.get().getValue().equals(code), "验证码无效");
+		AssertUtil.assertTrue(codeStoreOp.isPresent(), ExceptionMessageConstant.VERIFY_CODE_INVALID);
+		AssertUtil.assertTrue(codeStoreOp.get().getValue().equals(code), ExceptionMessageConstant.VERIFY_CODE_INVALID);
 		userService.register(merchant);
 		return new ResultBean<>();
 	}
@@ -68,8 +69,8 @@ public class MerchantUserController {
 	@RequestMapping(path = "/forgetPassword/{code}")
 	public ResultBean<Void> resetPassword(@RequestBody User merchant, @PathVariable String code) {
 		Optional<CodeStore> codeStoreOp = codeStoreRepository.findByCategoryAndKey(FORGET_PASSWORD_CODE_CATEGORY, merchant.getUsername());
-		AssertUtil.assertTrue(codeStoreOp.isPresent(), "验证码无效");
-		AssertUtil.assertTrue(codeStoreOp.get().getValue().equals(code), "验证码无效");
+		AssertUtil.assertTrue(codeStoreOp.isPresent(), ExceptionMessageConstant.VERIFY_CODE_INVALID);
+		AssertUtil.assertTrue(codeStoreOp.get().getValue().equals(code), ExceptionMessageConstant.VERIFY_CODE_INVALID);
 		userService.resetPassword(merchant);
 		return new ResultBean<>();
 	}

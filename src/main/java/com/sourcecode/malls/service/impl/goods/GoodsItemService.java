@@ -57,8 +57,10 @@ public class GoodsItemService implements JpaService<GoodsItem, Long> {
 					if (!"all".equals(queryInfo.getData().getStatusText())) {
 						predicate.add(criteriaBuilder.equal(root.get("enabled").as(boolean.class), Boolean.valueOf(queryInfo.getData().getStatusText())));
 					}
+					return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
+				} else {
+					return null;
 				}
-				return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
 			}
 		};
 		pageReulst = itemRepository.findAll(spec, queryInfo.getPage().pageable());

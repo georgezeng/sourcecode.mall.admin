@@ -63,8 +63,9 @@ public abstract class BaseGoodsAttributeService<T extends BaseGoodsAttribute> im
 						String like = "%" + searchText + "%";
 						predicate.add(criteriaBuilder.like(root.get("name").as(String.class), like));
 					}
+					return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
 				}
-				return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
+				return null;
 			}
 		};
 		pageReulst = ((JpaSpecificationExecutor<T>) getRepository()).findAll(spec, queryInfo.getPage().pageable());

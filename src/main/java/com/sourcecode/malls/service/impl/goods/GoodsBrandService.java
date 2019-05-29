@@ -56,8 +56,10 @@ public class GoodsBrandService implements JpaService<GoodsBrand, Long> {
 						String like = "%" + searchText + "%";
 						predicate.add(criteriaBuilder.like(root.get("name").as(String.class), like));
 					}
+					return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
+				} else {
+					return null;
 				}
-				return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
 			}
 		};
 		pageReulst = brandRepository.findAll(spec, queryInfo.getPage().pageable());
