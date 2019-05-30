@@ -99,12 +99,19 @@ public enum AuthorityDefinitions {
 	WECHAT_SETTING_LOAD("微信配置-加载请求", "AUTH_WECHAT_SETTING_LOAD", "/setting/wechat/load", "GET"),
 	WECHAT_SETTING_SAVE_GZH("微信配置-保存请求", "AUTH_WECHAT_SETTING_SAVE_GZH", "/setting/wechat/gzh/save", "POST"),
 	
-	CLIENT_IDENTITY_LIST_PAGE("用户实名认证-列表页面", "AUTH_CLIENT_IDENTITY_LIST_PAGE", "/Client/Identity/List/Page", "GET"),
-	CLIENT_IDENTITY_EDIT_PAGE("用户实名认证-编辑页面", "AUTH_CLIENT_IDENTITY_EDIT_PAGE", "/Client/Identity/Edit/Page", "GET"),
-	CLIENT_IDENTITY_LIST("用户实名认证-列表请求", "CLIENT_IDENTITY_LIST", "/client/identity/list", "POST"),
-	CLIENT_IDENTITY_LOAD("用户实名认证-加载请求", "CLIENT_IDENTITY_LOAD", "/client/identity/load", "GET"),
-	CLIENT_IDENTITY_FILE_LOAD("用户实名认证-文件请求", "CLIENT_IDENTITY_FILE_LOAD", "/client/identity/file/load", "GET"),
-	CLIENT_IDENTITY_UPDATE_STATUS("用户实名认证-修改审核状态", "CLIENT_IDENTITY_UPDATE_STATUS", "/client/identity/updateStatus", "POST"),
+	CLIENT_IDENTITY_LIST_PAGE("会员认证-列表页面", "AUTH_CLIENT_IDENTITY_LIST_PAGE", "/Client/Identity/List/Page", "GET"),
+	CLIENT_IDENTITY_EDIT_PAGE("会员认证-编辑页面", "AUTH_CLIENT_IDENTITY_EDIT_PAGE", "/Client/Identity/Edit/Page", "GET"),
+	CLIENT_IDENTITY_LIST("会员认证-列表请求", "CLIENT_IDENTITY_LIST", "/client/identity/list", "POST"),
+	CLIENT_IDENTITY_LOAD("会员认证-加载请求", "CLIENT_IDENTITY_LOAD", "/client/identity/load", "GET"),
+	CLIENT_IDENTITY_FILE_LOAD("会员认证-文件请求", "CLIENT_IDENTITY_FILE_LOAD", "/client/identity/file/load", "GET"),
+	CLIENT_IDENTITY_UPDATE_STATUS("会员认证-修改审核状态", "CLIENT_IDENTITY_UPDATE_STATUS", "/client/identity/updateStatus", "POST"),
+	
+	CLIENT_USER_LIST_PAGE("会员列表-列表页面", "AUTH_CLIENT_USER_LIST_PAGE", "/Client/User/List/Page", "GET"),
+	CLIENT_USER_EDIT_PAGE("会员列表-编辑页面", "AUTH_CLIENT_USER_EDIT_PAGE", "/Client/User/Edit/Page", "GET"),
+	CLIENT_USER_LIST("会员列表-列表请求", "CLIENT_USER_LIST", "/client/user/list", "POST"),
+	CLIENT_USER_LOAD("会员列表-加载请求", "CLIENT_USER_LOAD", "/client/user/load", "GET"),
+	CLIENT_USER_FILE_LOAD("会员列表-文件请求", "CLIENT_USER_FILE_LOAD", "/client/user/file/load", "GET"),
+	CLIENT_USER_UPDATE_STATUS("会员列表-修改状态", "CLIENT_USER_UPDATE_STATUS", "/client/user/updateStatus", "POST"),
 	;
 	
 	private String name;
