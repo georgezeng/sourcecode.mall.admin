@@ -76,8 +76,8 @@ public class ClientIdentityController extends BaseController {
 
 	@RequestMapping(value = "/file/load/params/{id}", produces = { MediaType.IMAGE_PNG_VALUE, MediaType.APPLICATION_OCTET_STREAM_VALUE })
 	public Resource load(@RequestParam String filePath, @PathVariable Long id) {
-		check(id);
-		return load(id, filePath, fileDir, false);
+		ClientIdentity identity = check(id);
+		return load(identity.getClient().getId(), filePath, fileDir, false);
 	}
 
 }
