@@ -33,7 +33,7 @@ public class ClientIdentityController extends BaseController {
 	@Autowired
 	private ClientIdentityService clientIdentityService;
 
-	private String fileDir = "identity";
+	private String fileDir = "client";
 
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<ClientIdentityDTO>> list(@RequestBody QueryInfo<ClientIdentityDTO> queryInfo) {
