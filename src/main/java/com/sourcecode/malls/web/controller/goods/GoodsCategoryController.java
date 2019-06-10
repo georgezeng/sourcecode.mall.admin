@@ -98,7 +98,8 @@ public class GoodsCategoryController extends BaseController {
 		User user = getRelatedCurrentUser();
 		Optional<GoodsCategory> dataOp = categoryService.findById(id);
 		AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
-		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
+		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()),
+				ExceptionMessageConstant.NO_SUCH_RECORD);
 		return new ResultBean<>(dataOp.get().asDTO(false, false));
 	}
 
@@ -110,7 +111,8 @@ public class GoodsCategoryController extends BaseController {
 		if (dto.getId() != null) {
 			Optional<GoodsCategory> dataOp = categoryService.findById(dto.getId());
 			AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
-			AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
+			AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()),
+					ExceptionMessageConstant.NO_SUCH_RECORD);
 			data = dataOp.get();
 		} else {
 			data.setMerchant(merchantRepository.findById(user.getId()).get());
@@ -144,11 +146,13 @@ public class GoodsCategoryController extends BaseController {
 
 	@RequestMapping(value = "/delete")
 	public ResultBean<Void> delete(@RequestBody KeyDTO<Long> keys) {
-		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
+		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()),
+				ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
 		User user = getRelatedCurrentUser();
 		for (Long id : keys.getIds()) {
 			Optional<GoodsCategory> dataOp = categoryService.findById(id);
 			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
+				AssertUtil.assertTrue(CollectionUtils.isEmpty(dataOp.get().getSubList()), "请先删除所有子类");
 				if (!CollectionUtils.isEmpty(dataOp.get().getGroups())) {
 					for (GoodsSpecificationGroup group : dataOp.get().getGroups()) {
 						group.setCategory(null);
@@ -162,11 +166,13 @@ public class GoodsCategoryController extends BaseController {
 	}
 
 	@RequestMapping(value = "/file/upload/params/{id}")
-	public ResultBean<String> upload(@RequestParam("file") MultipartFile file, @PathVariable Long id) throws IOException {
+	public ResultBean<String> upload(@RequestParam("file") MultipartFile file, @PathVariable Long id)
+			throws IOException {
 		return upload(file, fileDir, id, getRelatedCurrentUser().getId(), false);
 	}
 
-	@RequestMapping(value = "/file/load", produces = { MediaType.IMAGE_PNG_VALUE, MediaType.APPLICATION_OCTET_STREAM_VALUE })
+	@RequestMapping(value = "/file/load", produces = { MediaType.IMAGE_PNG_VALUE,
+			MediaType.APPLICATION_OCTET_STREAM_VALUE })
 	public Resource load(@RequestParam String filePath) {
 		return load(getRelatedCurrentUser().getId(), filePath, fileDir, true);
 	}
