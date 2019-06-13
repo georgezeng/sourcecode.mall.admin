@@ -2,6 +2,7 @@ package com.sourcecode.malls.web.controller.goods;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +26,7 @@ import com.sourcecode.malls.domain.goods.GoodsBrand;
 import com.sourcecode.malls.domain.goods.GoodsCategory;
 import com.sourcecode.malls.domain.goods.GoodsItem;
 import com.sourcecode.malls.domain.goods.GoodsItemPhoto;
+import com.sourcecode.malls.domain.goods.GoodsItemRank;
 import com.sourcecode.malls.domain.goods.GoodsItemValue;
 import com.sourcecode.malls.domain.merchant.Merchant;
 import com.sourcecode.malls.domain.system.User;
@@ -36,6 +38,7 @@ import com.sourcecode.malls.dto.query.PageResult;
 import com.sourcecode.malls.dto.query.QueryInfo;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsBrandRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsCategoryRepository;
+import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemRankRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemValueRepository;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
@@ -65,6 +68,9 @@ public class GoodsItemController extends BaseController {
 
 	@Autowired
 	private GoodsItemValueRepository valueRepository;
+	
+	@Autowired
+	private GoodsItemRankRepository rankRepository;
 
 	@Autowired
 	private GoodsItemService itemService;
@@ -76,7 +82,8 @@ public class GoodsItemController extends BaseController {
 		User user = getRelatedCurrentUser();
 		queryInfo.getData().setMerchantId(user.getId());
 		Page<GoodsItem> result = itemService.findAll(queryInfo);
-		PageResult<GoodsItemDTO> dtoResult = new PageResult<>(result.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()),
+		PageResult<GoodsItemDTO> dtoResult = new PageResult<>(
+				result.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()),
 				result.getTotalElements());
 		return new ResultBean<>(dtoResult);
 	}
@@ -86,7 +93,8 @@ public class GoodsItemController extends BaseController {
 		User user = getRelatedCurrentUser();
 		Optional<GoodsItem> dataOp = itemRepository.findById(id);
 		AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
-		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
+		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()),
+				ExceptionMessageConstant.NO_SUCH_RECORD);
 		GoodsItemDTO dto = dataOp.get().asDTO();
 		if (!CollectionUtils.isEmpty(dto.getProperties())) {
 			for (GoodsItemPropertyDTO p : dto.getProperties()) {
@@ -106,7 +114,7 @@ public class GoodsItemController extends BaseController {
 		User user = getRelatedCurrentUser();
 		Merchant merchant = merchantRepository.findById(user.getId()).get();
 		GoodsItem data = itemRepository.findById(dto.getId()).orElseGet(GoodsItem::new);
-		BeanUtils.copyProperties(dto, data, "id", "merchant", "category", "brand", "photos", "properties");
+		BeanUtils.copyProperties(dto, data, "id", "merchant", "category", "brand", "photos", "properties", "enabled");
 		data.setMerchant(merchant);
 		AssertUtil.assertNotNull(dto.getCategoryId(), "必须选择商品分类");
 		Optional<GoodsCategory> categoryOp = categoryRepository.findById(dto.getCategoryId());
@@ -170,6 +178,11 @@ public class GoodsItemController extends BaseController {
 			}
 		}
 		itemRepository.save(data);
+		if(data.getRank() == null) {
+			GoodsItemRank rank = new GoodsItemRank();
+			rank.setItem(data);
+			rankRepository.save(rank);
+		}
 		transfer(true, tmpPaths, newPaths);
 		return new ResultBean<>(data.getId());
 	}
@@ -187,7 +200,8 @@ public class GoodsItemController extends BaseController {
 
 	@RequestMapping(value = "/delete")
 	public ResultBean<Void> delete(@RequestBody KeyDTO<Long> keys) {
-		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
+		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()),
+				ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
 		User user = getRelatedCurrentUser();
 		for (Long id : keys.getIds()) {
 			Optional<GoodsItem> dataOp = itemService.findById(id);
@@ -200,12 +214,16 @@ public class GoodsItemController extends BaseController {
 
 	@RequestMapping(value = "/updateStatus/params/{status}")
 	public ResultBean<Void> updateStatus(@RequestBody KeyDTO<Long> keys, @PathVariable Boolean status) {
-		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_UPDATE);
+		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()),
+				ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_UPDATE);
 		User user = getRelatedCurrentUser();
 		for (Long id : keys.getIds()) {
 			Optional<GoodsItem> dataOp = itemService.findById(id);
 			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
 				dataOp.get().setEnabled(status);
+				if (status) {
+					dataOp.get().setPutTime(new Date());
+				}
 				itemService.save(dataOp.get());
 			}
 		}
@@ -213,11 +231,13 @@ public class GoodsItemController extends BaseController {
 	}
 
 	@RequestMapping(value = "/file/upload/params/{id}")
-	public ResultBean<String> upload(@RequestParam("file") MultipartFile file, @PathVariable Long id) throws IOException {
+	public ResultBean<String> upload(@RequestParam("file") MultipartFile file, @PathVariable Long id)
+			throws IOException {
 		return upload(file, fileDir, id, getRelatedCurrentUser().getId(), false);
 	}
 
-	@RequestMapping(value = "/file/load", produces = { MediaType.IMAGE_PNG_VALUE, MediaType.APPLICATION_OCTET_STREAM_VALUE })
+	@RequestMapping(value = "/file/load", produces = { MediaType.IMAGE_PNG_VALUE,
+			MediaType.APPLICATION_OCTET_STREAM_VALUE })
 	public Resource load(@RequestParam String filePath) {
 		return load(getRelatedCurrentUser().getId(), filePath, fileDir, true);
 	}
