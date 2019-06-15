@@ -27,20 +27,17 @@ import com.sourcecode.malls.domain.goods.GoodsCategory;
 import com.sourcecode.malls.domain.goods.GoodsItem;
 import com.sourcecode.malls.domain.goods.GoodsItemPhoto;
 import com.sourcecode.malls.domain.goods.GoodsItemRank;
-import com.sourcecode.malls.domain.goods.GoodsItemValue;
 import com.sourcecode.malls.domain.merchant.Merchant;
 import com.sourcecode.malls.domain.system.User;
 import com.sourcecode.malls.dto.base.KeyDTO;
 import com.sourcecode.malls.dto.base.ResultBean;
 import com.sourcecode.malls.dto.goods.GoodsItemDTO;
-import com.sourcecode.malls.dto.goods.GoodsItemPropertyDTO;
 import com.sourcecode.malls.dto.query.PageResult;
 import com.sourcecode.malls.dto.query.QueryInfo;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsBrandRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsCategoryRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemRankRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemRepository;
-import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemValueRepository;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
 import com.sourcecode.malls.service.impl.goods.GoodsItemPropertyService;
 import com.sourcecode.malls.service.impl.goods.GoodsItemService;
@@ -67,9 +64,6 @@ public class GoodsItemController extends BaseController {
 	private GoodsItemPropertyService propertyService;
 
 	@Autowired
-	private GoodsItemValueRepository valueRepository;
-	
-	@Autowired
 	private GoodsItemRankRepository rankRepository;
 
 	@Autowired
@@ -83,7 +77,7 @@ public class GoodsItemController extends BaseController {
 		queryInfo.getData().setMerchantId(user.getId());
 		Page<GoodsItem> result = itemService.findAll(queryInfo);
 		PageResult<GoodsItemDTO> dtoResult = new PageResult<>(
-				result.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()),
+				result.getContent().stream().map(data -> data.asDTO(false, false)).collect(Collectors.toList()),
 				result.getTotalElements());
 		return new ResultBean<>(dtoResult);
 	}
@@ -91,18 +85,7 @@ public class GoodsItemController extends BaseController {
 	@RequestMapping(path = "/load/params/{id}")
 	public ResultBean<GoodsItemDTO> load(@PathVariable Long id) {
 		User user = getRelatedCurrentUser();
-		Optional<GoodsItem> dataOp = itemRepository.findById(id);
-		AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
-		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()),
-				ExceptionMessageConstant.NO_SUCH_RECORD);
-		GoodsItemDTO dto = dataOp.get().asDTO();
-		if (!CollectionUtils.isEmpty(dto.getProperties())) {
-			for (GoodsItemPropertyDTO p : dto.getProperties()) {
-				List<GoodsItemValue> values = valueRepository.findAllByUid(p.getUid());
-				p.setValues(values.stream().map(it -> it.getValue().asDTO()).collect(Collectors.toList()));
-			}
-		}
-		return new ResultBean<>(dto);
+		return new ResultBean<>(itemService.load(user.getId(), id));
 	}
 
 	@RequestMapping(path = "/save")
@@ -177,8 +160,11 @@ public class GoodsItemController extends BaseController {
 				photos.add(photo);
 			}
 		}
+		if (dto.getMaxPrice() == null) {
+			data.setMaxPrice(data.getMinPrice());
+		}
 		itemRepository.save(data);
-		if(data.getRank() == null) {
+		if (data.getRank() == null) {
 			GoodsItemRank rank = new GoodsItemRank();
 			rank.setItem(data);
 			rankRepository.save(rank);
