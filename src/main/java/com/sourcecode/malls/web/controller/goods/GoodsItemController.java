@@ -1,6 +1,7 @@
 package com.sourcecode.malls.web.controller.goods;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -160,7 +161,7 @@ public class GoodsItemController extends BaseController {
 				photos.add(photo);
 			}
 		}
-		if (dto.getMaxPrice() == null) {
+		if (dto.getMaxPrice() == null || dto.getMaxPrice().compareTo(BigDecimal.ZERO) == 0) {
 			data.setMaxPrice(data.getMinPrice());
 		}
 		itemRepository.save(data);
