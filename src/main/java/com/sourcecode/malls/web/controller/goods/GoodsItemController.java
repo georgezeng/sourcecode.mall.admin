@@ -108,6 +108,9 @@ public class GoodsItemController extends BaseController {
 		Optional<GoodsBrand> brandOp = brandRepository.findById(dto.getBrandId());
 		AssertUtil.assertTrue(brandOp.isPresent(), "商品品牌不存在");
 		data.setBrand(brandOp.get());
+		if (dto.getMaxPrice() == null || dto.getMaxPrice().compareTo(BigDecimal.ZERO) == 0) {
+			data.setMaxPrice(data.getMinPrice());
+		}
 		if (data.getId() == null) {
 			data.setPhotos(null);
 			itemRepository.save(data);
@@ -160,9 +163,6 @@ public class GoodsItemController extends BaseController {
 				photo.setPath(newPath);
 				photos.add(photo);
 			}
-		}
-		if (dto.getMaxPrice() == null || dto.getMaxPrice().compareTo(BigDecimal.ZERO) == 0) {
-			data.setMaxPrice(data.getMinPrice());
 		}
 		itemRepository.save(data);
 		if (data.getRank() == null) {
