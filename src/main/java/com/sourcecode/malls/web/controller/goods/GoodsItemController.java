@@ -78,7 +78,7 @@ public class GoodsItemController extends BaseController {
 		queryInfo.getData().setMerchantId(user.getId());
 		Page<GoodsItem> result = itemService.findAll(queryInfo);
 		PageResult<GoodsItemDTO> dtoResult = new PageResult<>(
-				result.getContent().stream().map(data -> data.asDTO(false, false)).collect(Collectors.toList()),
+				result.getContent().stream().map(data -> data.asDTO(false, false, false)).collect(Collectors.toList()),
 				result.getTotalElements());
 		return new ResultBean<>(dtoResult);
 	}
