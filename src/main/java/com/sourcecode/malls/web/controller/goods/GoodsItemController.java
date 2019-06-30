@@ -1,11 +1,14 @@
 package com.sourcecode.malls.web.controller.goods;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -171,6 +174,11 @@ public class GoodsItemController extends BaseController {
 			rankRepository.save(rank);
 		}
 		transfer(true, tmpPaths, newPaths);
+		String contentZeroIdDirPath = fileDir + "/content" + "/" + getRelatedCurrentUser().getId() + "/0";
+		List<String> contentImages = fileService.list(true, contentZeroIdDirPath);
+		for (String image : contentImages) {
+			fileService.delete(true, image);
+		}
 		return new ResultBean<>(data.getId());
 	}
 
@@ -215,6 +223,19 @@ public class GoodsItemController extends BaseController {
 			}
 		}
 		return new ResultBean<>();
+	}
+
+	@RequestMapping(value = "/content/image/upload/params/{id}")
+	public Map<String, Object> uploadContentImage(@RequestParam("files") List<MultipartFile> files,
+			@PathVariable Long id) throws IOException {
+		List<String> filePaths = new ArrayList<>();
+		for (MultipartFile file : files) {
+			filePaths.add(upload(file, fileDir + "/content", id, getRelatedCurrentUser().getId(), true).getData());
+		}
+		Map<String, Object> result = new HashMap<>();
+		result.put("errno", 0);
+		result.put("data", filePaths);
+		return result;
 	}
 
 	@RequestMapping(value = "/file/upload/params/{id}")

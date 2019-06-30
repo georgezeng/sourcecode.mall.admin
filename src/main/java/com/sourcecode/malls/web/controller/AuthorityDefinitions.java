@@ -34,6 +34,7 @@ public enum AuthorityDefinitions {
 	GOODS_ITEM_UPDATE_STATUS("商品-更新状态请求", "AUTH_GOODS_ITEM_UPDATE_STATUS", "/goods/item/updateStatus", "POST"),
 	GOODS_ITEM_DELETE("商品-删除请求", "AUTH_GOODS_ITEM_DELETE", "/goods/item/delete", "POST"),
 	GOODS_ITEM_FILE_UPLOAD("商品-文件上传请求", "AUTH_GOODS_ITEM_FILE_UPLOAD", "/goods/item/file/upload", "POST"),
+	GOODS_ITEM_CONTENT_IMAGE_UPLOAD("商品-内容图片上传请求", "AUTH_GOODS_ITEM_CONTENT_IMAGE_UPLOAD", "/goods/item/content/image/upload", "POST"),
 	GOODS_ITEM_FILE_LOAD("商品-文件读取请求", "AUTH_GOODS_ITEM_FILE_LOAD", "/goods/item/file/load", "GET"),
 	
 	GOODS_SPECIFICATION_DEFINITION_INDEX_PAGE("商品规格-索引页面", "AUTH_GOODS_SPECIFICATION_DEFINITION_INDEX_PAGE", "/Goods/Specification/Definition/Index/Page", "GET"),
