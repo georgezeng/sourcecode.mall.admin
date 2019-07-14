@@ -1,6 +1,5 @@
 package com.sourcecode.malls.web.controller.goods;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
