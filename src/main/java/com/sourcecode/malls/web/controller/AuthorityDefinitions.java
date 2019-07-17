@@ -121,6 +121,13 @@ public enum AuthorityDefinitions {
 	INVOICE_SETTING_LOAD("发票设置-加载请求", "AUTH_INVOICE_SETTING_LOAD", "/invoice/setting/load", "GET"),
 	INVOICE_SETTING_SAVE("发票设置-保存请求", "AUTH_INVOICE_SETTING_SAVE", "/invoice/setting/save", "POST"),
 	INVOICE_SETTING_DELETE("发票设置-删除请求", "AUTH_INVOICE_SETTING_DELETE", "/invoice/setting/delete", "GET"),
+	
+	ORDER_LIST_PAGE("订单-列表页面", "AUTH_ORDER_LIST_PAGE", "/Order/List/Page", "GET"),
+	ORDER_EDIT_PAGE("订单-编辑页面", "AUTH_ORDER_EDIT_PAGE", "/Order/Edit/Page", "GET"),
+	ORDER_SHIPPMENT_PAGE("订单-物流页面", "AUTH_ORDER_SHIPPMENT_PAGE", "/Order/Shippment/Page", "GET"),
+	ORDER_LIST("订单-列表请求", "AUTH_ORDER_LIST", "/order/list", "POST"),
+	ORDER_LOAD("订单-加载请求", "AUTH_ORDER_LOAD", "/order/load", "GET"),
+	ORDER_UPDATE_EXPRESS("订单-更新物流", "AUTH_ORDER_UPDATE_EXPRESS", "/order/updateExpress", "POST"),
 	;
 	
 	private String name;

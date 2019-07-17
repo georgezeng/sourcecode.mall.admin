@@ -45,10 +45,12 @@ public class MerchantUserController {
 
 	@RequestMapping(path = "/register/{code}")
 	public ResultBean<Void> register(@RequestBody User merchant, @PathVariable String code) {
-		Optional<CodeStore> codeStoreOp = codeStoreRepository.findByCategoryAndKey(REGISTER_CODE_CATEGORY, merchant.getUsername());
+		Optional<CodeStore> codeStoreOp = codeStoreRepository.findByCategoryAndKey(REGISTER_CODE_CATEGORY,
+				merchant.getUsername());
 		AssertUtil.assertTrue(codeStoreOp.isPresent(), ExceptionMessageConstant.VERIFY_CODE_INVALID);
 		AssertUtil.assertTrue(codeStoreOp.get().getValue().equals(code), ExceptionMessageConstant.VERIFY_CODE_INVALID);
 		userService.register(merchant);
+		codeStoreRepository.delete(codeStoreOp.get());
 		return new ResultBean<>();
 	}
 
@@ -68,10 +70,12 @@ public class MerchantUserController {
 
 	@RequestMapping(path = "/forgetPassword/{code}")
 	public ResultBean<Void> resetPassword(@RequestBody User merchant, @PathVariable String code) {
-		Optional<CodeStore> codeStoreOp = codeStoreRepository.findByCategoryAndKey(FORGET_PASSWORD_CODE_CATEGORY, merchant.getUsername());
+		Optional<CodeStore> codeStoreOp = codeStoreRepository.findByCategoryAndKey(FORGET_PASSWORD_CODE_CATEGORY,
+				merchant.getUsername());
 		AssertUtil.assertTrue(codeStoreOp.isPresent(), ExceptionMessageConstant.VERIFY_CODE_INVALID);
 		AssertUtil.assertTrue(codeStoreOp.get().getValue().equals(code), ExceptionMessageConstant.VERIFY_CODE_INVALID);
 		userService.resetPassword(merchant);
+		codeStoreRepository.delete(codeStoreOp.get());
 		return new ResultBean<>();
 	}
 
