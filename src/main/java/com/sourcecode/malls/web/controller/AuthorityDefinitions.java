@@ -123,9 +123,11 @@ public enum AuthorityDefinitions {
 	INVOICE_SETTING_DELETE("发票设置-删除请求", "AUTH_INVOICE_SETTING_DELETE", "/invoice/setting/delete", "GET"),
 	
 	ORDER_LIST_PAGE("订单-列表页面", "AUTH_ORDER_LIST_PAGE", "/Order/List/Page", "GET"),
+	ORDER_CANCEL_FOR_REFUND_LIST_PAGE("订单-取消列表", "AUTH_ORDER_CANCEL_FOR_REFUND_LIST_PAGE", "/Order/CancelForRefundList/Page", "GET"),
 	ORDER_EDIT_PAGE("订单-编辑页面", "AUTH_ORDER_EDIT_PAGE", "/Order/Edit/Page", "GET"),
 	ORDER_EXPRESS_PAGE("订单-物流页面", "AUTH_ORDER_EXPRESS_PAGE", "/Order/Express/Page", "GET"),
 	ORDER_LIST("订单-列表请求", "AUTH_ORDER_LIST", "/order/list", "POST"),
+	ORDER_CANCEL_FOR_REFUND_LIST("订单-取消列表请求", "AUTH_ORDER_CANCEL_FOR_REFUND_LIST", "/order/cancelForRefundList", "POST"),
 	ORDER_LOAD("订单-加载请求", "AUTH_ORDER_LOAD", "/order/load", "GET"),
 	ORDER_UPDATE_EXPRESS("订单-更新物流", "AUTH_ORDER_UPDATE_EXPRESS", "/order/updateExpress", "POST"),
 	;

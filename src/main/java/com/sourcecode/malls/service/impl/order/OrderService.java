@@ -91,6 +91,10 @@ public class OrderService {
 						predicate.add(criteriaBuilder.lessThanOrEqualTo(root.get("createTime"),
 								queryInfo.getData().getEndTime()));
 					}
+					if (queryInfo.getData().getCancelForRefund() != null) {
+						predicate.add(criteriaBuilder.equal(root.get("cancelForRefund"),
+								queryInfo.getData().getCancelForRefund()));
+					}
 					if (!StringUtils.isEmpty(queryInfo.getData().getSearchText())) {
 						String like = "%" + queryInfo.getData().getSearchText() + "%";
 						predicate
