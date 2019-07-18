@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sourcecode.malls.constants.EnvConstant;
 import com.sourcecode.malls.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.domain.goods.GoodsCategory;
 import com.sourcecode.malls.domain.goods.GoodsSpecificationGroup;
@@ -46,6 +49,9 @@ public class GoodsCategoryController extends BaseController {
 	private GoodsSpecificationGroupRepository groupRepository;
 
 	private String fileDir = "goods/category";
+
+	@Autowired
+	private Environment env;
 
 	@RequestMapping(path = "/list")
 	public ResultBean<GoodsAttributeDTO> list(@RequestBody QueryInfo<GoodsAttributeDTO> queryInfo) {
@@ -133,7 +139,12 @@ public class GoodsCategoryController extends BaseController {
 		List<String> tmpPaths = new ArrayList<>();
 		List<String> newPaths = new ArrayList<>();
 		if (dto.getIcon() != null && dto.getIcon().startsWith("temp")) {
-			String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/icon.png";
+			String newPath = fileDir + "/" + user.getId() + "/" + data.getId();
+			if (env.acceptsProfiles(Profiles.of(EnvConstant.LOCAL))) {
+				newPath += "/icon_" + System.currentTimeMillis() + ".png";
+			} else {
+				newPath += "/icon.png";
+			}
 			String tmpPath = dto.getIcon();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);

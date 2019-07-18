@@ -7,6 +7,8 @@ import java.util.Optional;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sourcecode.malls.constants.EnvConstant;
 import com.sourcecode.malls.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.domain.merchant.Merchant;
 import com.sourcecode.malls.domain.merchant.MerchantVerification;
@@ -39,6 +42,9 @@ public class MerchantVerificationController extends BaseController {
 
 	private String fileDir = "merchant/verification";
 
+	@Autowired
+	private Environment env;
+
 	@RequestMapping(path = "/load")
 	public ResultBean<MerchantVerificationDTO> load() {
 		Long currentUserId = getRelatedCurrentUser().getId();
@@ -54,7 +60,8 @@ public class MerchantVerificationController extends BaseController {
 		User user = getRelatedCurrentUser();
 		Optional<MerchantVerification> oldDataOp = check(user);
 		if (oldDataOp.isPresent()) {
-			BeanUtils.copyProperties(verification, oldDataOp.get(), "id", "createBy", "updateBy", "createTime", "updateTime", "merchant");
+			BeanUtils.copyProperties(verification, oldDataOp.get(), "id", "createBy", "updateBy", "createTime",
+					"updateTime", "merchant");
 			verification = oldDataOp.get();
 		} else {
 			Optional<Merchant> merchant = merchantRepository.findById(user.getId());
@@ -66,7 +73,12 @@ public class MerchantVerificationController extends BaseController {
 		List<String> tmpPaths = new ArrayList<>();
 		List<String> newPaths = new ArrayList<>();
 		if (verification.getPhoto() != null && verification.getPhoto().startsWith("temp")) {
-			String newPath = fileDir + "/" + user.getId() + "/certificate.png";
+			String newPath = fileDir + "/" + user.getId();
+			if (env.acceptsProfiles(Profiles.of(EnvConstant.LOCAL))) {
+				newPath += "/certificate_" + System.currentTimeMillis() + ".png";
+			} else {
+				newPath = "/certificate.png";
+			}
 			newPaths.add(newPath);
 			tmpPaths.add(verification.getPhoto());
 			verification.setPhoto(newPath);
@@ -91,7 +103,8 @@ public class MerchantVerificationController extends BaseController {
 		Long currentUserId = getRelatedCurrentUser().getId();
 		Optional<MerchantVerification> oldDataOp = merchantVerificationRepository.findByMerchantId(currentUserId);
 		AssertUtil.assertNotNull(oldDataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
-		AssertUtil.assertTrue(verification.getId().equals(oldDataOp.get().getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
+		AssertUtil.assertTrue(verification.getId().equals(oldDataOp.get().getId()),
+				ExceptionMessageConstant.NO_SUCH_RECORD);
 		AssertUtil.assertTrue(oldDataOp.get().getStatus().equals(VerificationStatus.Passed), "尚未通过认证，不能修改信息");
 		MerchantVerification oldData = oldDataOp.get();
 		oldData.setAddress(verification.getAddress());
@@ -107,7 +120,8 @@ public class MerchantVerificationController extends BaseController {
 		return upload(file, fileDir, null, getRelatedCurrentUser().getId(), false);
 	}
 
-	@RequestMapping(value = "/file/load", produces = { MediaType.IMAGE_PNG_VALUE, MediaType.APPLICATION_OCTET_STREAM_VALUE })
+	@RequestMapping(value = "/file/load", produces = { MediaType.IMAGE_PNG_VALUE,
+			MediaType.APPLICATION_OCTET_STREAM_VALUE })
 	public Resource load(@RequestParam String filePath) {
 		return load(getRelatedCurrentUser().getId(), filePath, fileDir, false);
 	}

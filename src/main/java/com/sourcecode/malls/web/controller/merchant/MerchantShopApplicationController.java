@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sourcecode.malls.constants.EnvConstant;
 import com.sourcecode.malls.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.domain.merchant.Merchant;
 import com.sourcecode.malls.domain.merchant.MerchantShopApplication;
@@ -45,6 +48,9 @@ public class MerchantShopApplicationController extends BaseController {
 
 	private String fileDir = "merchant/shop";
 
+	@Autowired
+	private Environment env;
+
 	@RequestMapping(path = "/load")
 	public ResultBean<MerchantShopApplicationDTO> load(@RequestParam boolean fromGoods) {
 		User user = getRelatedCurrentUser();
@@ -70,7 +76,8 @@ public class MerchantShopApplicationController extends BaseController {
 		User user = getRelatedCurrentUser();
 		check(user, false);
 		Merchant merchant = merchantRepository.findById(user.getId()).get();
-		MerchantShopApplication data = shopRepository.findByMerchantId(merchant.getId()).orElseGet(MerchantShopApplication::new);
+		MerchantShopApplication data = shopRepository.findByMerchantId(merchant.getId())
+				.orElseGet(MerchantShopApplication::new);
 		if (data.getId() == null) {
 			Optional<MerchantShopApplication> domainOp = shopRepository.findByDomain(dto.getDomain());
 			AssertUtil.assertTrue(!domainOp.isPresent(), "域名已经被占用");
@@ -94,42 +101,72 @@ public class MerchantShopApplicationController extends BaseController {
 		List<String> newPaths = new ArrayList<>();
 		User user = getRelatedCurrentUser();
 		if (dto.getAndroidSmallIcon() != null && dto.getAndroidSmallIcon().startsWith("temp")) {
-			String newPath = fileDir + "/" + user.getId() + "/android_small_icon.png";
+			String newPath = fileDir + "/" + user.getId();
+			if (env.acceptsProfiles(Profiles.of(EnvConstant.LOCAL))) {
+				newPath += "/android_small_icon_" + System.currentTimeMillis() + ".png";
+			} else {
+				newPath += "/android_small_icon.png";
+			}
 			String tmpPath = dto.getAndroidSmallIcon();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
 			data.setAndroidSmallIcon(newPath);
 		}
 		if (dto.getAndroidBigIcon() != null && dto.getAndroidBigIcon().startsWith("temp")) {
-			String newPath = fileDir + "/" + user.getId() + "/android_big_icon.png";
+			String newPath = fileDir + "/" + user.getId();
+			if (env.acceptsProfiles(Profiles.of(EnvConstant.LOCAL))) {
+				newPath += "/android_big_icon_" + System.currentTimeMillis() + ".png";
+			} else {
+				newPath += "/android_big_icon.png";
+			}
 			String tmpPath = dto.getAndroidBigIcon();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
 			data.setAndroidBigIcon(newPath);
 		}
 		if (dto.getIosSmallIcon() != null && dto.getIosSmallIcon().startsWith("temp")) {
-			String newPath = fileDir + "/" + user.getId() + "/ios_small_icon.png";
+			String newPath = fileDir + "/" + user.getId();
+			if (env.acceptsProfiles(Profiles.of(EnvConstant.LOCAL))) {
+				newPath += "/ios_small_icon_" + System.currentTimeMillis() + ".png";
+			} else {
+				newPath += "/ios_small_icon.png";
+			}
 			String tmpPath = dto.getIosSmallIcon();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
 			data.setIosSmallIcon(newPath);
 		}
 		if (dto.getIosBigIcon() != null && dto.getIosBigIcon().startsWith("temp")) {
-			String newPath = fileDir + "/" + user.getId() + "/ios_big_icon.png";
+			String newPath = fileDir + "/" + user.getId();
+			if (env.acceptsProfiles(Profiles.of(EnvConstant.LOCAL))) {
+				newPath += "/ios_big_icon_" + System.currentTimeMillis() + ".png";
+			} else {
+				newPath += "/ios_big_icon.png";
+			}
 			String tmpPath = dto.getIosBigIcon();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
 			data.setIosBigIcon(newPath);
 		}
 		if (dto.getLogo() != null && dto.getLogo().startsWith("temp")) {
-			String newPath = fileDir + "/" + user.getId() + "/logo.png";
+			String newPath = fileDir + "/" + user.getId();
+			if (env.acceptsProfiles(Profiles.of(EnvConstant.LOCAL))) {
+				newPath += "/logo_" + System.currentTimeMillis() + ".png";
+			} else {
+				newPath += "/logo.png";
+			}
 			String tmpPath = dto.getLogo();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
 			data.setLogo(newPath);
 		}
 		if (dto.getLoginBgImg() != null && dto.getLoginBgImg().startsWith("temp")) {
-			String newPath = fileDir + "/" + user.getId() + "/login_bg.png";
+			String newPath = fileDir + "/" + user.getId();
+			if (env.acceptsProfiles(Profiles.of(EnvConstant.LOCAL))) {
+				newPath += "/login_bg_" + System.currentTimeMillis() + ".png";
+			} else {
+				newPath += "/login_bg.png";
+			}
 			String tmpPath = dto.getLoginBgImg();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
@@ -150,7 +187,12 @@ public class MerchantShopApplicationController extends BaseController {
 			if (path == null) {
 				it.remove();
 			} else if (path.startsWith("temp")) {
-				String newPath = fileDir + "/" + user.getId() + "/instruction_" + (order + 1) + ".png";
+				String newPath = fileDir + "/" + user.getId();
+				if (env.acceptsProfiles(Profiles.of(EnvConstant.LOCAL))) {
+					newPath += "/instruction_" + (order + 1) + "_" + System.currentTimeMillis() + ".png";
+				} else {
+					newPath += "/instruction_" + (order + 1) + ".png";
+				}
 				newPaths.add(newPath);
 				tmpPaths.add(path);
 				instruction.setPath(newPath);
@@ -168,7 +210,12 @@ public class MerchantShopApplicationController extends BaseController {
 				instruction.setOrder(i + 1);
 				instruction.setShopApplication(data);
 				String path = dto.getInstructions().get(i);
-				String newPath = fileDir + "/" + user.getId() + "/instruction_" + (order + 1) + ".png";
+				String newPath = fileDir + "/" + user.getId();
+				if (env.acceptsProfiles(Profiles.of(EnvConstant.LOCAL))) {
+					newPath += "/instruction_" + (order + 1) + "_" + System.currentTimeMillis() + ".png";
+				} else {
+					newPath += "/instruction_" + (order + 1) + ".png";
+				}
 				newPaths.add(newPath);
 				tmpPaths.add(path);
 				instruction.setPath(newPath);
@@ -194,7 +241,8 @@ public class MerchantShopApplicationController extends BaseController {
 
 	private void check(User user, boolean isUpdate) {
 		Optional<MerchantVerification> data = verificationRepository.findByMerchantId(user.getId());
-		AssertUtil.assertTrue(data.isPresent() && data.get().getStatus().equals(VerificationStatus.Passed), "还没通过实名认证，请先进行实名认证");
+		AssertUtil.assertTrue(data.isPresent() && data.get().getStatus().equals(VerificationStatus.Passed),
+				"还没通过实名认证，请先进行实名认证");
 		Optional<MerchantShopApplication> appOp = shopRepository.findByMerchantId(user.getId());
 		if (appOp.isPresent()) {
 			if (!isUpdate) {
@@ -215,7 +263,8 @@ public class MerchantShopApplicationController extends BaseController {
 		return upload(file, fileDir, null, user.getId(), false);
 	}
 
-	@RequestMapping(value = "/file/load", produces = { MediaType.IMAGE_PNG_VALUE, MediaType.APPLICATION_OCTET_STREAM_VALUE })
+	@RequestMapping(value = "/file/load", produces = { MediaType.IMAGE_PNG_VALUE,
+			MediaType.APPLICATION_OCTET_STREAM_VALUE })
 	public Resource load(@RequestParam String filePath) {
 		User user = getRelatedCurrentUser();
 		return load(user.getId(), filePath, fileDir, true);

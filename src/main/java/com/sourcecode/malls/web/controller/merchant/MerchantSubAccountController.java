@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sourcecode.malls.constants.EnvConstant;
 import com.sourcecode.malls.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.constants.SystemConstant;
 import com.sourcecode.malls.domain.merchant.Merchant;
@@ -58,12 +61,16 @@ public class MerchantSubAccountController extends BaseController {
 	@Value("${user.type.name}")
 	private String userDir;
 
+	@Autowired
+	private Environment env;
+
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<MerchantDTO>> list(@RequestBody QueryInfo<SimpleQueryDTO> queryInfo) {
 		User parentUser = getRelatedCurrentUser();
 		Optional<Merchant> parent = merchantRepository.findById(parentUser.getId());
 		Page<Merchant> pageResult = userService.findAllSubAccounts(parent.get(), queryInfo);
-		PageResult<MerchantDTO> dtoResult = new PageResult<>(pageResult.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()),
+		PageResult<MerchantDTO> dtoResult = new PageResult<>(
+				pageResult.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()),
 				pageResult.getTotalElements());
 		return new ResultBean<>(dtoResult);
 	}
@@ -76,7 +83,8 @@ public class MerchantSubAccountController extends BaseController {
 		List<AuthorityDTO> authorities = new ArrayList<>();
 		for (Role role : user.get().getRoles()) {
 			if (role.getCode().startsWith(SystemConstant.ROLE_MERCHANT_SUB_ACCOUNT_CODE)) {
-				authorities.addAll(role.getAuthorities().stream().map(auth -> auth.asDTO()).collect(Collectors.toList()));
+				authorities
+						.addAll(role.getAuthorities().stream().map(auth -> auth.asDTO()).collect(Collectors.toList()));
 				break;
 			}
 		}
@@ -98,7 +106,12 @@ public class MerchantSubAccountController extends BaseController {
 		List<String> tmpPaths = new ArrayList<>();
 		List<String> newPaths = new ArrayList<>();
 		if (merchant.getAvatar() != null && merchant.getAvatar().startsWith("temp")) {
-			String newPath = userDir + "/" + data.getId() + "/avatar.png";
+			String newPath = userDir + "/" + data.getId();
+			if (env.acceptsProfiles(Profiles.of(EnvConstant.LOCAL))) {
+				newPath += "/avatar_" + System.currentTimeMillis() + ".png";
+			} else {
+				newPath = "/avatar.png";
+			}
 			newPaths.add(newPath);
 			tmpPaths.add(merchant.getAvatar());
 			data.setAvatar(newPath);
@@ -110,11 +123,13 @@ public class MerchantSubAccountController extends BaseController {
 
 	@RequestMapping(value = "/delete")
 	public ResultBean<Void> delete(@RequestBody KeyDTO<Long> keys) {
-		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
+		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()),
+				ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
 		User parentUser = getRelatedCurrentUser();
 		for (Long id : keys.getIds()) {
 			Optional<Merchant> userOp = merchantRepository.findById(id);
-			if (userOp.isPresent() && userOp.get().getParent() != null && userOp.get().getParent().getId().equals(parentUser.getId())) {
+			if (userOp.isPresent() && userOp.get().getParent() != null
+					&& userOp.get().getParent().getId().equals(parentUser.getId())) {
 				userOp.get().setEnabled(false);
 				merchantRepository.save(userOp.get());
 			}
@@ -130,11 +145,13 @@ public class MerchantSubAccountController extends BaseController {
 
 	@RequestMapping(value = "/updateStatus/params/{status}")
 	public ResultBean<Void> updateStatus(@RequestBody KeyDTO<Long> keys, @PathVariable Boolean status) {
-		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_UPDATE);
+		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()),
+				ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_UPDATE);
 		User parentUser = getRelatedCurrentUser();
 		for (Long id : keys.getIds()) {
 			Optional<Merchant> userOp = userService.findById(id);
-			if (userOp.isPresent() && userOp.get().getParent() != null && userOp.get().getParent().getId().equals(parentUser.getId())) {
+			if (userOp.isPresent() && userOp.get().getParent() != null
+					&& userOp.get().getParent().getId().equals(parentUser.getId())) {
 				Merchant user = userOp.get();
 				user.setEnabled(status);
 				userService.save(user);
@@ -144,11 +161,13 @@ public class MerchantSubAccountController extends BaseController {
 	}
 
 	@RequestMapping(value = "/file/upload/params/{id}")
-	public ResultBean<String> upload(@RequestParam("file") MultipartFile file, @PathVariable Long id) throws IOException {
+	public ResultBean<String> upload(@RequestParam("file") MultipartFile file, @PathVariable Long id)
+			throws IOException {
 		return upload(file, userDir, null, id, false);
 	}
 
-	@RequestMapping(value = "/file/load/params/{id}", produces = { MediaType.IMAGE_PNG_VALUE, MediaType.APPLICATION_OCTET_STREAM_VALUE })
+	@RequestMapping(value = "/file/load/params/{id}", produces = { MediaType.IMAGE_PNG_VALUE,
+			MediaType.APPLICATION_OCTET_STREAM_VALUE })
 	public Resource load(@RequestParam String filePath, @PathVariable Long id) {
 		return load(id, filePath, userDir, false);
 	}
