@@ -124,7 +124,7 @@ public enum AuthorityDefinitions {
 	
 	ORDER_LIST_PAGE("订单-列表页面", "AUTH_ORDER_LIST_PAGE", "/Order/List/Page", "GET"),
 	ORDER_EDIT_PAGE("订单-编辑页面", "AUTH_ORDER_EDIT_PAGE", "/Order/Edit/Page", "GET"),
-	ORDER_SHIPPMENT_PAGE("订单-物流页面", "AUTH_ORDER_SHIPPMENT_PAGE", "/Order/Shippment/Page", "GET"),
+	ORDER_EXPRESS_PAGE("订单-物流页面", "AUTH_ORDER_EXPRESS_PAGE", "/Order/Express/Page", "GET"),
 	ORDER_LIST("订单-列表请求", "AUTH_ORDER_LIST", "/order/list", "POST"),
 	ORDER_LOAD("订单-加载请求", "AUTH_ORDER_LOAD", "/order/load", "GET"),
 	ORDER_UPDATE_EXPRESS("订单-更新物流", "AUTH_ORDER_UPDATE_EXPRESS", "/order/updateExpress", "POST"),
