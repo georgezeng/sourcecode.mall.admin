@@ -42,8 +42,8 @@ public class OrderController extends BaseController {
 						result.getTotalElements()));
 	}
 
-	@RequestMapping(path = "/cancelForRefundList")
-	public ResultBean<PageResult<OrderDTO>> cancelForRefundList(@RequestBody QueryInfo<OrderDTO> queryInfo) {
+	@RequestMapping(path = "/refund/list")
+	public ResultBean<PageResult<OrderDTO>> refundList(@RequestBody QueryInfo<OrderDTO> queryInfo) {
 		queryInfo.getData().setCancelForRefund(true);
 		return list(queryInfo);
 	}

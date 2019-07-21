@@ -122,12 +122,40 @@ public enum AuthorityDefinitions {
 	INVOICE_SETTING_SAVE("发票设置-保存请求", "AUTH_INVOICE_SETTING_SAVE", "/invoice/setting/save", "POST"),
 	INVOICE_SETTING_DELETE("发票设置-删除请求", "AUTH_INVOICE_SETTING_DELETE", "/invoice/setting/delete", "GET"),
 	
+	AFTERSALE_REASON_SETTING_LIST_PAGE("售后原因设置-列表页面", "AUTH_AFTERSALE_REASON_SETTING_LIST_PAGE", "/AfterSale/Reason/Setting/List/Page", "GET"),
+	AFTERSALE_REASON_SETTING_EDIT_PAGE("售后原因设置-编辑页面", "AUTH_AFTERSALE_REASON_SETTING_EDIT_PAGE", "/AfterSale/Reason/Setting/Edit/Page", "GET"),
+	AFTERSALE_REASON_SETTING_LIST("售后原因设置-列表请求", "AUTH_AFTERSALE_REASON_SETTING_LIST", "/afterSale/reason/setting/list", "POST"),
+	AFTERSALE_REASON_SETTING_LOAD("售后原因设置-加载请求", "AUTH_AFTERSALE_REASON_SETTING_LOAD", "/afterSale/reason/setting/load", "GET"),
+	AFTERSALE_REASON_SETTING_SAVE("售后原因设置-保存请求", "AUTH_AFTERSALE_REASON_SETTING_SAVE", "/afterSale/reason/setting/save", "POST"),
+	AFTERSALE_REASON_SETTING_DELETE("售后原因设置-删除请求", "AUTH_AFTERSALE_REASON_SETTING_DELETE", "/afterSale/reason/setting/delete", "GET"),
+	
+	AFTERSALE_REFUND_ONLY_LIST_PAGE("仅退款-列表页面", "AUTH_AFTERSALE_REFUND_ONLY_LIST_PAGE", "/AfterSale/RefundOnly/List/Page", "GET"),
+	AFTERSALE_REFUND_ONLY_DETAIL_PAGE("仅退款-详情页面", "AUTH_AFTERSALE_REFUND_ONLY_DETAIL_PAGE", "/AfterSale/RefundOnly/Detail/Page", "GET"),
+	
+	AFTERSALE_SALES_RETURN_LIST_PAGE("退货退款-列表页面", "AUTH_AFTERSALE_SALES_RETURN_LIST_PAGE", "/AfterSale/SalesReturn/List/Page", "GET"),
+	AFTERSALE_SALES_RETURN_DETAIL_PAGE("退货退款-详情页面", "AUTH_AFTERSALE_SALES_RETURN_DETAIL_PAGE", "/AfterSale/SalesReturn/Detail/Page", "GET"),
+	
+	AFTERSALE_CHANGE_LIST_PAGE("换货-列表页面", "AUTH_AFTERSALE_CHANGE_LIST_PAGE", "/AfterSale/Change/List/Page", "GET"),
+	AFTERSALE_CHANGE_DETAIL_PAGE("换货-详情页面", "AUTH_AFTERSALE_CHANGE_DETAIL_PAGE", "/AfterSale/Change/Detail/Page", "GET"),
+	
+	AFTERSALE_APPLICATION_LIST("申请售后-列表请求", "AUTH_AFTERSALE_APPLICATION_LIST", "/afterSale/application/list", "POST"),
+	AFTERSALE_APPILCATION_LOAD("申请售后-加载请求", "AUTH_AFTERSALE_APPILCATION_LOAD", "/afterSale/application/load", "GET"),
+	AFTERSALE_APPLICATION_AUDIT("申请售后-审核请求", "AUTH_AFTERSALE_APPLICATION_AUDIT", "/afterSale/application/audit", "POST"),
+	AFTERSALE_APPLICATION_REFUND("申请售后-退款请求", "AUTH_AFTERSALE_APPLICATION_REFUND", "/afterSale/application/refund", "POST"),
+	AFTERSALE_APPLICATION_RECEIVE("申请售后-确认收货请求", "AUTH_AFTERSALE_APPLICATION_RECEIVE", "/afterSale/application/receive", "GET"),
+	AFTERSALE_APPLICATION_SENT("申请售后-发货请求", "AUTH_AFTERSALE_APPLICATION_SENT", "/afterSale/application/sent", "POST"),
+	
+	AFTERSALE_RETURN_ADDRESS_PAGE("回寄地址设置-设置页面", "AUTH_AFTERSALE_RETURN_ADDRESS_PAGE", "/AfterSale/ReturnAddress", "GET"),
+	
+	MERCHANT_SETTING_LOAD("商家参数设置-加载请求", "AUTH_MERCHANT_SETTING_LOAD", "/merchant/setting/load", "GET"),
+	MERCHANT_SETTING_SAVE("商家参数设置-保存请求", "AUTH_MERCHANT_SETTING_SAVE", "/merchant/setting/save", "POST"),
+	
 	ORDER_LIST_PAGE("订单-列表页面", "AUTH_ORDER_LIST_PAGE", "/Order/List/Page", "GET"),
-	ORDER_CANCEL_FOR_REFUND_LIST_PAGE("订单-取消列表", "AUTH_ORDER_CANCEL_FOR_REFUND_LIST_PAGE", "/Order/CancelForRefundList/Page", "GET"),
+	ORDER_REFUND_LIST_PAGE("订单-退款列表", "AUTH_ORDER_REFUND_LIST_PAGE", "/Order/Refund/List/Page", "GET"),
 	ORDER_EDIT_PAGE("订单-编辑页面", "AUTH_ORDER_EDIT_PAGE", "/Order/Edit/Page", "GET"),
 	ORDER_EXPRESS_PAGE("订单-物流页面", "AUTH_ORDER_EXPRESS_PAGE", "/Order/Express/Page", "GET"),
 	ORDER_LIST("订单-列表请求", "AUTH_ORDER_LIST", "/order/list", "POST"),
-	ORDER_CANCEL_FOR_REFUND_LIST("订单-取消列表请求", "AUTH_ORDER_CANCEL_FOR_REFUND_LIST", "/order/cancelForRefundList", "POST"),
+	ORDER_REFUND_LIST("订单-退款列表请求", "AUTH_ORDER_REFUND_LIST", "/order/refund/list", "POST"),
 	ORDER_LOAD("订单-加载请求", "AUTH_ORDER_LOAD", "/order/load", "GET"),
 	ORDER_UPDATE_EXPRESS("订单-更新物流", "AUTH_ORDER_UPDATE_EXPRESS", "/order/updateExpress", "POST"),
 	;

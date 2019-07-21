@@ -20,6 +20,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.sourcecode.malls.constants.ExceptionMessageConstant;
+import com.sourcecode.malls.domain.aftersale.AfterSaleApplication;
 import com.sourcecode.malls.domain.order.Express;
 import com.sourcecode.malls.domain.order.Order;
 import com.sourcecode.malls.domain.order.SubOrder;
@@ -27,47 +28,33 @@ import com.sourcecode.malls.dto.order.ExpressDTO;
 import com.sourcecode.malls.dto.order.OrderDTO;
 import com.sourcecode.malls.dto.order.SubOrderDTO;
 import com.sourcecode.malls.dto.query.QueryInfo;
+import com.sourcecode.malls.enums.AfterSaleStatus;
 import com.sourcecode.malls.enums.OrderStatus;
-import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemPropertyRepository;
-import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemValueRepository;
+import com.sourcecode.malls.repository.jpa.impl.aftersale.AfterSaleApplicationRepository;
 import com.sourcecode.malls.repository.jpa.impl.order.ExpressRepository;
-import com.sourcecode.malls.repository.jpa.impl.order.InvoiceRepository;
-import com.sourcecode.malls.repository.jpa.impl.order.OrderAddressRepository;
 import com.sourcecode.malls.repository.jpa.impl.order.OrderRepository;
 import com.sourcecode.malls.repository.jpa.impl.order.SubOrderRepository;
-import com.sourcecode.malls.service.FileOnlineSystemService;
+import com.sourcecode.malls.service.base.BaseService;
 import com.sourcecode.malls.util.AssertUtil;
 
 @Service
 @Transactional
-public class OrderService {
+public class OrderService implements BaseService {
 
 	@Autowired
-	protected GoodsItemPropertyRepository propertyRepository;
+	private OrderRepository orderRepository;
 
 	@Autowired
-	protected GoodsItemValueRepository valueRepository;
+	private SubOrderRepository subOrderRepository;
 
 	@Autowired
-	protected OrderRepository orderRepository;
-
-	@Autowired
-	protected SubOrderRepository subOrderRepository;
-
-	@Autowired
-	protected FileOnlineSystemService fileService;
-
-	@Autowired
-	protected InvoiceRepository invoiceRepository;
-
-	@Autowired
-	protected OrderAddressRepository addressRepository;
-
-	@Autowired
-	protected EntityManager em;
+	private EntityManager em;
 
 	@Autowired
 	private ExpressRepository expressRepository;
+
+	@Autowired
+	private AfterSaleApplicationRepository aftersaleApplicationRepository;
 
 	@Transactional(readOnly = true)
 	public Page<Order> getOrders(QueryInfo<OrderDTO> queryInfo) {
@@ -92,8 +79,7 @@ public class OrderService {
 								queryInfo.getData().getEndTime()));
 					}
 					if (queryInfo.getData().getCancelForRefund() != null) {
-						predicate.add(criteriaBuilder.equal(root.get("cancelForRefund"),
-								queryInfo.getData().getCancelForRefund()));
+						predicate.add(criteriaBuilder.isNotNull(root.get("refundTime")));
 					}
 					if (!StringUtils.isEmpty(queryInfo.getData().getSearchText())) {
 						String like = "%" + queryInfo.getData().getSearchText() + "%";
@@ -121,6 +107,16 @@ public class OrderService {
 			em.lock(order, LockModeType.PESSIMISTIC_WRITE);
 			order.setStatus(OrderStatus.Shipped);
 			orderRepository.save(order);
+			for (SubOrder sub : order.getSubList()) {
+				AfterSaleApplication application = new AfterSaleApplication();
+				application.setClient(order.getClient());
+				application.setMerchant(order.getMerchant());
+				application.setOrder(order);
+				application.setSubOrder(sub);
+				application.setServiceId(generateId());
+				application.setStatus(AfterSaleStatus.NotYet);
+				aftersaleApplicationRepository.save(application);
+			}
 		}
 		if (!CollectionUtils.isEmpty(order.getExpressList())) {
 			expressRepository.deleteAll(order.getExpressList());
