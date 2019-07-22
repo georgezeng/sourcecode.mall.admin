@@ -18,12 +18,13 @@ import org.springframework.util.StringUtils;
 import com.sourcecode.malls.domain.goods.GoodsItem;
 import com.sourcecode.malls.dto.goods.GoodsItemDTO;
 import com.sourcecode.malls.dto.query.QueryInfo;
+import com.sourcecode.malls.service.base.BaseService;
 import com.sourcecode.malls.service.base.JpaService;
 import com.sourcecode.malls.service.impl.BaseGoodsItemService;
 
 @Service
 @Transactional
-public class GoodsItemService extends BaseGoodsItemService implements JpaService<GoodsItem, Long> {
+public class GoodsItemService extends BaseGoodsItemService implements BaseService, JpaService<GoodsItem, Long> {
 
 	@Override
 	public JpaRepository<GoodsItem, Long> getRepository() {
@@ -50,6 +51,7 @@ public class GoodsItemService extends BaseGoodsItemService implements JpaService
 					if (!StringUtils.isEmpty(searchText)) {
 						String like = "%" + searchText + "%";
 						predicate.add(criteriaBuilder.or(criteriaBuilder.like(root.get("name").as(String.class), like),
+								criteriaBuilder.like(root.get("number").as(String.class), like),
 								criteriaBuilder.like(root.get("code").as(String.class), like)));
 					}
 					if (!StringUtils.isEmpty(queryInfo.getData().getStatusText())) {

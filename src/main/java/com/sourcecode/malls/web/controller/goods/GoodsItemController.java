@@ -115,6 +115,7 @@ public class GoodsItemController extends BaseController {
 		}
 		if (data.getId() == null) {
 			data.setPhotos(null);
+			data.setNumber(itemService.generateId());
 			itemRepository.save(data);
 		}
 		List<String> tmpPaths = new ArrayList<>();
