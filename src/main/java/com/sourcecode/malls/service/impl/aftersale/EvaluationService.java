@@ -104,11 +104,11 @@ public class EvaluationService {
 						case "IsAdditional": {
 							predicate.add(criteriaBuilder.equal(root.get("additional"), true));
 						}
-						break;
+							break;
 						case "NotAdditional": {
 							predicate.add(criteriaBuilder.equal(root.get("additional"), false));
 						}
-						break;
+							break;
 						}
 					}
 					if (queryInfo.getData().getStartTime() != null) {
@@ -169,6 +169,11 @@ public class EvaluationService {
 		GoodsItemEvaluation data = load(merchantId, dto.getId());
 		AssertUtil.assertTrue(!data.isHasAudit(), "不能修改审核状态");
 		data.setPassed(dto.isPassed());
+		if (dto.isPassed()) {
+			data.setOpen(true);
+		} else {
+			data.setOpen(false);
+		}
 		data.setHasAudit(true);
 		repository.save(data);
 	}
