@@ -101,6 +101,14 @@ public class EvaluationService {
 							predicate.add(criteriaBuilder.equal(root.get("hasAudit"), true));
 						}
 							break;
+						case "IsAdditional": {
+							predicate.add(criteriaBuilder.equal(root.get("additional"), true));
+						}
+						break;
+						case "NotAdditional": {
+							predicate.add(criteriaBuilder.equal(root.get("additional"), false));
+						}
+						break;
 						}
 					}
 					if (queryInfo.getData().getStartTime() != null) {
