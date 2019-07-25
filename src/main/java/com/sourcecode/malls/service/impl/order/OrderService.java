@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -20,7 +18,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.sourcecode.malls.constants.ExceptionMessageConstant;
-import com.sourcecode.malls.domain.aftersale.AfterSaleApplication;
 import com.sourcecode.malls.domain.order.Express;
 import com.sourcecode.malls.domain.order.Order;
 import com.sourcecode.malls.domain.order.SubOrder;
@@ -28,9 +25,7 @@ import com.sourcecode.malls.dto.order.ExpressDTO;
 import com.sourcecode.malls.dto.order.OrderDTO;
 import com.sourcecode.malls.dto.order.SubOrderDTO;
 import com.sourcecode.malls.dto.query.QueryInfo;
-import com.sourcecode.malls.enums.AfterSaleStatus;
 import com.sourcecode.malls.enums.OrderStatus;
-import com.sourcecode.malls.repository.jpa.impl.aftersale.AfterSaleApplicationRepository;
 import com.sourcecode.malls.repository.jpa.impl.order.ExpressRepository;
 import com.sourcecode.malls.repository.jpa.impl.order.OrderRepository;
 import com.sourcecode.malls.repository.jpa.impl.order.SubOrderRepository;
@@ -48,13 +43,7 @@ public class OrderService implements BaseService {
 	private SubOrderRepository subOrderRepository;
 
 	@Autowired
-	private EntityManager em;
-
-	@Autowired
 	private ExpressRepository expressRepository;
-
-	@Autowired
-	private AfterSaleApplicationRepository aftersaleApplicationRepository;
 
 	@Transactional(readOnly = true)
 	public Page<Order> getOrders(QueryInfo<OrderDTO> queryInfo) {
@@ -103,21 +92,6 @@ public class OrderService implements BaseService {
 		AssertUtil.assertTrue(
 				OrderStatus.Paid.equals(order.getStatus()) || OrderStatus.Shipped.equals(order.getStatus()),
 				"不能修改物流信息");
-		if (OrderStatus.Paid.equals(order.getStatus())) {
-			em.lock(order, LockModeType.PESSIMISTIC_WRITE);
-			order.setStatus(OrderStatus.Shipped);
-			orderRepository.save(order);
-			for (SubOrder sub : order.getSubList()) {
-				AfterSaleApplication application = new AfterSaleApplication();
-				application.setClient(order.getClient());
-				application.setMerchant(order.getMerchant());
-				application.setOrder(order);
-				application.setSubOrder(sub);
-				application.setServiceId(generateId());
-				application.setStatus(AfterSaleStatus.NotYet);
-				aftersaleApplicationRepository.save(application);
-			}
-		}
 		if (!CollectionUtils.isEmpty(order.getExpressList())) {
 			expressRepository.deleteAll(order.getExpressList());
 		}
