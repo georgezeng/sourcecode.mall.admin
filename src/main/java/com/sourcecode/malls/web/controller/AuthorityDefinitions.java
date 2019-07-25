@@ -145,11 +145,11 @@ public enum AuthorityDefinitions {
 	AFTERSALE_APPLICATION_RECEIVE("申请售后-确认收货请求", "AUTH_AFTERSALE_APPLICATION_RECEIVE", "/afterSale/application/receive", "GET"),
 	AFTERSALE_APPLICATION_SENT("申请售后-发货请求", "AUTH_AFTERSALE_APPLICATION_SENT", "/afterSale/application/sent", "POST"),
 	
-	AFTERSALE_RETURN_ADDRESS_PAGE("回寄地址设置-设置页面", "AUTH_AFTERSALE_RETURN_ADDRESS_PAGE", "/AfterSale/ReturnAddress", "GET"),
+	AFTERSALE_RETURN_ADDRESS_PAGE("回寄地址设置-设置页面", "AUTH_AFTERSALE_RETURN_ADDRESS_PAGE", "/AfterSale/ReturnAddress/Page", "GET"),
 	
 	GOODS_ITEM_EVALUATION_LIST_PAGE("商品评价-列表页面", "AUTH_GOODS_ITEM_EVALUATION_LIST_PAGE", "/Evaluation/List/Page", "GET"),
 	GOODS_ITEM_EVALUATION_EDIT_PAGE("商品评价-编辑页面", "AUTH_GOODS_ITEM_EVALUATION_EDIT_PAGE", "/Evaluation/Edit/Page", "GET"),
-	GOODS_ITEM_EVALUATION_LIST("商品评价-列表请求", "AUTH_AFTERSALE_APPLICATION_LIST", "/evaluation/list", "POST"),
+	GOODS_ITEM_EVALUATION_LIST("商品评价-列表请求", "AUTH_GOODS_ITEM_EVALUATION_LIST", "/evaluation/list", "POST"),
 	GOODS_ITEM_EVALUATION_LOAD("商品评价-加载请求", "AUTH_GOODS_ITEM_EVALUATION_LOAD", "/evaluation/load", "GET"),
 	GOODS_ITEM_EVALUATION_AUDIT("商品评价-审核请求", "AUTH_GOODS_ITEM_EVALUATION_AUDIT", "/evaluation/audit", "POST"),
 	GOODS_ITEM_EVALUATION_REPLY("商品评价-回复请求", "AUTH_GOODS_ITEM_EVALUATION_REPLY", "/evaluation/reply", "POST"),

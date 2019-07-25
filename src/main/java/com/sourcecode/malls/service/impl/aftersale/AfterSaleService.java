@@ -119,7 +119,8 @@ public class AfterSaleService implements BaseService {
 		data.setAmount(dto.getAmount());
 		data.setRemark(dto.getRemark());
 		WePayConfig config = wechatService.createWePayConfig(merchantId);
-		wechatService.refund(config, data.getOrder().getTransactionId(), data.getServiceId(), data.getAmount(), 1);
+		wechatService.refund(config, data.getOrder().getTransactionId(), data.getServiceId(),
+				data.getOrder().getTotalPrice(), data.getAmount(), data.getOrder().getSubList().size());
 		applicationRepository.save(data);
 	}
 
