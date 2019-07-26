@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -44,6 +46,9 @@ public class OrderService implements BaseService {
 
 	@Autowired
 	private ExpressRepository expressRepository;
+
+	@Autowired
+	protected EntityManager em;
 
 	@Transactional(readOnly = true)
 	public Page<Order> getOrders(QueryInfo<OrderDTO> queryInfo) {
@@ -92,6 +97,11 @@ public class OrderService implements BaseService {
 		AssertUtil.assertTrue(
 				OrderStatus.Paid.equals(order.getStatus()) || OrderStatus.Shipped.equals(order.getStatus()),
 				"不能修改物流信息");
+		if (OrderStatus.Paid.equals(order.getStatus())) {
+			em.lock(order, LockModeType.PESSIMISTIC_WRITE);
+			order.setStatus(OrderStatus.Shipped);
+			orderRepository.save(order);
+		}
 		if (!CollectionUtils.isEmpty(order.getExpressList())) {
 			expressRepository.deleteAll(order.getExpressList());
 		}
