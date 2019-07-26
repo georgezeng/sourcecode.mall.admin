@@ -131,7 +131,7 @@ public class AfterSaleService implements BaseService {
 		}
 			break;
 		case AliPay: {
-			alipayService.refund(merchantId, data.getOrder().getTransactionId(), data.getOrder().getOrderId(),
+			alipayService.refund(merchantId, data.getOrder().getTransactionId(), data.getServiceId(),
 					data.getOrder().getTotalPrice(), data.getAmount(), data.getOrder().getSubList().size());
 		}
 			break;
