@@ -101,6 +101,10 @@ public enum AuthorityDefinitions {
 	WECHAT_SETTING_SAVE_GZH("微信配置-保存请求", "AUTH_WECHAT_SETTING_SAVE_GZH", "/setting/wechat/gzh/save", "POST"),
 	WECHAT_SETTING_UPLOAD_PAY_CERT("微信配置-上传支付证书", "AUTH_WECHAT_SETTING_UPLOAD_PAY_CERT", "/setting/wechat/pay/cert/upload", "POST"),
 	
+	ALIPAY_SETTING_PAGE("支付宝配置-配置页面", "AUTH_ALIPAY_SETTING_PAGE", "/Setting/Alipay/Page", "GET"),
+	ALIPAY_SETTING_LOAD("支付宝配置-加载请求", "AUTH_ALIPAY_SETTING_LOAD", "/setting/alipay/load", "GET"),
+	ALIPAY_SETTING_SAVE("支付宝配置-保存请求", "AUTH_ALIPAY_SETTING_SAVE", "/setting/alipay/save", "POST"),
+	
 	CLIENT_IDENTITY_LIST_PAGE("会员认证-列表页面", "AUTH_CLIENT_IDENTITY_LIST_PAGE", "/Client/Identity/List/Page", "GET"),
 	CLIENT_IDENTITY_EDIT_PAGE("会员认证-编辑页面", "AUTH_CLIENT_IDENTITY_EDIT_PAGE", "/Client/Identity/Edit/Page", "GET"),
 	CLIENT_IDENTITY_LIST("会员认证-列表请求", "AUTH_CLIENT_IDENTITY_LIST", "/client/identity/list", "POST"),
