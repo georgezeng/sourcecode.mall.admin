@@ -46,11 +46,12 @@ public class AfterSaleApplicationController extends BaseController {
 
 	@RequestMapping(path = "/audit")
 	public ResultBean<Void> audit(@RequestBody AfterSaleApplicationDTO dto) {
+		AssertUtil.assertNotNull(dto.getAgree(), "必须选择审核结果");
 		User user = getRelatedCurrentUser();
 		AfterSaleApplication data = service.load(user.getId(), dto.getId());
 		AssertUtil.assertTrue(AfterSaleStatus.Processing.equals(data.getStatus()), "状态有误，不能审核该申请记录");
 		AfterSaleStatus status = null;
-		if (dto.isAgree()) {
+		if (dto.getAgree()) {
 			switch (data.getType()) {
 			case Change:
 			case SalesReturn:
