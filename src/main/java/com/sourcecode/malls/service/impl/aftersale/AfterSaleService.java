@@ -32,6 +32,7 @@ import com.sourcecode.malls.exception.BusinessException;
 import com.sourcecode.malls.repository.jpa.impl.aftersale.AfterSaleApplicationRepository;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
 import com.sourcecode.malls.service.base.BaseService;
+import com.sourcecode.malls.service.impl.AlipayService;
 import com.sourcecode.malls.service.impl.WechatService;
 import com.sourcecode.malls.util.AssertUtil;
 
@@ -47,6 +48,9 @@ public class AfterSaleService implements BaseService {
 
 	@Autowired
 	private WechatService wechatService;
+
+	@Autowired
+	private AlipayService alipayService;
 
 	@Transactional(readOnly = true)
 	public PageResult<AfterSaleApplicationDTO> getList(Long merchantId, QueryInfo<AfterSaleApplicationDTO> queryInfo) {
@@ -118,10 +122,22 @@ public class AfterSaleService implements BaseService {
 		data.setNums(dto.getNums());
 		data.setAmount(dto.getAmount());
 		data.setRemark(dto.getRemark());
-		WePayConfig config = wechatService.createWePayConfig(merchantId);
-		wechatService.refund(config, data.getOrder().getTransactionId(), data.getServiceId(),
-				data.getOrder().getTotalPrice(), data.getAmount(), data.getOrder().getSubList().size());
 		applicationRepository.save(data);
+		switch (data.getOrder().getPayment()) {
+		case WePay: {
+			WePayConfig config = wechatService.createWePayConfig(merchantId);
+			wechatService.refund(config, data.getOrder().getTransactionId(), data.getServiceId(),
+					data.getOrder().getTotalPrice(), data.getAmount(), data.getOrder().getSubList().size());
+		}
+			break;
+		case AliPay: {
+			alipayService.refund(merchantId, data.getOrder().getTransactionId(), data.getOrder().getOrderId(),
+					data.getOrder().getTotalPrice(), data.getAmount(), data.getOrder().getSubList().size());
+		}
+			break;
+		default:
+			throw new BusinessException("不支持的支付类型");
+		}
 	}
 
 	public void receive(Long merchantId, Long id) throws Exception {
