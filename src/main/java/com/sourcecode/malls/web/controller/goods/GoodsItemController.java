@@ -121,7 +121,8 @@ public class GoodsItemController extends BaseController {
 		List<String> tmpPaths = new ArrayList<>();
 		List<String> newPaths = new ArrayList<>();
 		if (dto.getThumbnail() != null && dto.getThumbnail().startsWith("temp")) {
-			String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/thumb.png";
+			String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/thumb_" + System.currentTimeMillis()
+					+ ".png";
 			String tmpPath = dto.getThumbnail();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
@@ -142,7 +143,7 @@ public class GoodsItemController extends BaseController {
 			if (path == null) {
 				it.remove();
 			} else if (path.startsWith("temp")) {
-				String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/photo/" + (order + 1) + ".png";
+				String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/photo/" + (order + 1) + "_" + System.currentTimeMillis() + ".png";
 				newPaths.add(newPath);
 				tmpPaths.add(path);
 				photo.setPath(newPath);
@@ -174,11 +175,11 @@ public class GoodsItemController extends BaseController {
 			rankRepository.save(rank);
 		}
 		transfer(true, tmpPaths, newPaths);
-		String contentZeroIdDirPath = fileDir + "/content" + "/" + getRelatedCurrentUser().getId() + "/0";
-		List<String> contentImages = fileService.list(true, contentZeroIdDirPath);
-		for (String image : contentImages) {
-			fileService.delete(true, image);
-		}
+//		String contentZeroIdDirPath = fileDir + "/content" + "/" + getRelatedCurrentUser().getId() + "/0";
+//		List<String> contentImages = fileService.list(true, contentZeroIdDirPath);
+//		for (String image : contentImages) {
+//			fileService.delete(true, image);
+//		}
 		return new ResultBean<>(data.getId());
 	}
 
