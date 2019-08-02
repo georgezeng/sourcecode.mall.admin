@@ -100,7 +100,8 @@ public class GoodsItemController extends BaseController {
 		User user = getRelatedCurrentUser();
 		Merchant merchant = merchantRepository.findById(user.getId()).get();
 		GoodsItem data = itemRepository.findById(dto.getId()).orElseGet(GoodsItem::new);
-		BeanUtils.copyProperties(dto, data, "id", "merchant", "category", "brand", "photos", "properties", "enabled");
+		BeanUtils.copyProperties(dto, data, "id", "merchant", "category", "brand", "photos", "properties",
+				"enabled");
 		data.setMerchant(merchant);
 		AssertUtil.assertNotNull(dto.getCategoryId(), "必须选择商品分类");
 		Optional<GoodsCategory> categoryOp = categoryRepository.findById(dto.getCategoryId());
@@ -113,6 +114,7 @@ public class GoodsItemController extends BaseController {
 		if (dto.getMaxPrice() == null || dto.getMaxPrice().compareTo(BigDecimal.ZERO) == 0) {
 			data.setMaxPrice(data.getMinPrice());
 		}
+		String idPath = data.getId() != null ? data.getId().toString() : "0";
 		if (data.getId() == null) {
 			data.setPhotos(null);
 			data.setNumber(itemService.generateId());
@@ -121,8 +123,7 @@ public class GoodsItemController extends BaseController {
 		List<String> tmpPaths = new ArrayList<>();
 		List<String> newPaths = new ArrayList<>();
 		if (dto.getThumbnail() != null && dto.getThumbnail().startsWith("temp")) {
-			String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/thumb_" + System.currentTimeMillis()
-					+ ".png";
+			String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/thumb_" + System.nanoTime() + ".png";
 			String tmpPath = dto.getThumbnail();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
@@ -144,7 +145,7 @@ public class GoodsItemController extends BaseController {
 				it.remove();
 			} else if (path.startsWith("temp")) {
 				String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/photo/" + (order + 1) + "_"
-						+ System.currentTimeMillis() + ".png";
+						+ System.nanoTime() + ".png";
 				newPaths.add(newPath);
 				tmpPaths.add(path);
 				photo.setPath(newPath);
@@ -162,8 +163,8 @@ public class GoodsItemController extends BaseController {
 				photo.setOrder(i + 1);
 				photo.setItem(data);
 				String path = dto.getPhotos().get(i);
-				String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/photo/" + (order + 1) + "_"
-						+ System.currentTimeMillis() + ".png";
+				String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/photo/" + (i + 1) + "_"
+						+ System.nanoTime() + ".png";
 				newPaths.add(newPath);
 				tmpPaths.add(path);
 				photo.setPath(newPath);
@@ -177,11 +178,20 @@ public class GoodsItemController extends BaseController {
 			rankRepository.save(rank);
 		}
 		transfer(true, tmpPaths, newPaths);
-//		String contentZeroIdDirPath = fileDir + "/content" + "/" + getRelatedCurrentUser().getId() + "/0";
-//		List<String> contentImages = fileService.list(true, contentZeroIdDirPath);
-//		for (String image : contentImages) {
-//			fileService.delete(true, image);
-//		}
+		String contentDirPath = "temp/" + fileDir + "/content/" + getRelatedCurrentUser().getId() + "/" + idPath;
+		List<String> contentImages = fileService.list(true, contentDirPath);
+		for (String image : contentImages) {
+			tmpPaths.clear();
+			newPaths.clear();
+			tmpPaths.add(image);
+			String newPath = fileDir + "/" + getRelatedCurrentUser().getId() + "/" + data.getId() + "/content/"
+					+ image.replace(contentDirPath + "/", "");
+			newPaths.add(newPath);
+			transfer(true, true, tmpPaths, newPaths);
+			data.setContent(data.getContent().replace(image, newPath));
+			fileService.delete(true, image);
+		}
+		itemRepository.save(data);
 		return new ResultBean<>(data.getId());
 	}
 
@@ -233,7 +243,8 @@ public class GoodsItemController extends BaseController {
 			@PathVariable Long id) throws IOException {
 		List<String> filePaths = new ArrayList<>();
 		for (MultipartFile file : files) {
-			filePaths.add(upload(file, fileDir + "/content", id, getRelatedCurrentUser().getId(), true).getData());
+			filePaths.add(
+					upload(file, "temp/" + fileDir + "/content", id, getRelatedCurrentUser().getId(), true).getData());
 		}
 		Map<String, Object> result = new HashMap<>();
 		result.put("errno", 0);
