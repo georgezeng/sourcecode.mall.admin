@@ -61,7 +61,8 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 		Page<GoodsSpecificationDefinition> result = definitionService.findAll(queryInfo);
 		PageResult<GoodsAttributeDTO> dtoResult = new PageResult<>(result.getContent().stream().map(data -> {
 			GoodsAttributeDTO dto = data.asDTO();
-			if (!CollectionUtils.isEmpty(data.getGroups()) && queryInfo.getData() != null && queryInfo.getData().getParent() != null) {
+			if (!CollectionUtils.isEmpty(data.getGroups()) && queryInfo.getData() != null
+					&& queryInfo.getData().getParent() != null) {
 				for (GoodsSpecificationGroup group : data.getGroups()) {
 					if (group.getId().equals(queryInfo.getData().getParent().getId())) {
 						dto.setEnabled(true);
@@ -97,7 +98,8 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 		Optional<GoodsCategory> category = categoryRepository.findById(id);
 		AssertUtil.assertTrue(category.isPresent(), "商品分类不存在");
 		Optional<Merchant> merchant = merchantRepository.findById(getRelatedCurrentUser().getId());
-		List<GoodsSpecificationGroup> groups = groupRepository.findByCategoryAndMerchant(category.get(), merchant.get());
+		List<GoodsSpecificationGroup> groups = groupRepository.findByCategoryAndMerchant(category.get(),
+				merchant.get());
 		return new ResultBean<>(groups.stream().map(group -> group.asDTO()).collect(Collectors.toList()));
 	}
 
@@ -107,7 +109,8 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 		User user = getRelatedCurrentUser();
 		Optional<GoodsSpecificationDefinition> dataOp = definitionService.findById(id);
 		AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
-		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
+		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()),
+				ExceptionMessageConstant.NO_SUCH_RECORD);
 		return new ResultBean<>(dataOp.get().asDTO());
 	}
 
@@ -119,24 +122,27 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 		if (dto.getId() != null) {
 			Optional<GoodsSpecificationDefinition> dataOp = definitionService.findById(dto.getId());
 			AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
-			AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
+			AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()),
+					ExceptionMessageConstant.NO_SUCH_RECORD);
 			data = dataOp.get();
 		} else {
 			data.setMerchant(merchantRepository.findById(user.getId()).get());
 			Optional<GoodsSpecificationGroup> groupOp = groupRepository.findById(dto.getParent().getId());
 			if (groupOp.isPresent()) {
-				AssertUtil.assertTrue(groupOp.get().getMerchant().getId().equals(data.getMerchant().getId()), "商品类型不存在");
+				AssertUtil.assertTrue(groupOp.get().getMerchant().getId().equals(data.getMerchant().getId()),
+						"商品类型不存在");
 				data.addGroup(groupOp.get());
 			}
 		}
 		data.setName(dto.getName());
 		data.setOrder(dto.getOrder());
 		definitionService.save(data);
-		AssertUtil.assertTrue(!CollectionUtils.isEmpty(dto.getAttrs()), "至少需要编辑一个值属性");
-		if (!CollectionUtils.isEmpty(data.getValues())) {
-			valueRepository.deleteAll(data.getValues());
-		}
+		AssertUtil.assertTrue(!CollectionUtils.isEmpty(dto.getAttrs()), "至少需要添加一个值");
+//		if (!CollectionUtils.isEmpty(data.getValues())) {
+//			valueRepository.deleteAll(data.getValues());
+//		}
 		List<GoodsSpecificationValue> values = new ArrayList<>();
+		List<GoodsSpecificationValue> oldValues = new ArrayList<>();
 		int order = 1;
 		for (GoodsAttributeDTO attr : dto.getAttrs()) {
 			GoodsSpecificationValue value = new GoodsSpecificationValue();
@@ -144,6 +150,12 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 				Optional<GoodsSpecificationValue> valueOp = valueRepository.findById(attr.getId());
 				if (valueOp.isPresent()) {
 					value = valueOp.get();
+					for (GoodsSpecificationValue oldValue : data.getValues()) {
+						if (value.getId().equals(oldValue.getId())) {
+							oldValues.add(oldValue);
+							break;
+						}
+					}
 				}
 			}
 			value.setName(attr.getName());
@@ -152,6 +164,10 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 			value.setDefinition(data);
 			values.add(value);
 		}
+		if (!oldValues.isEmpty()) {
+			data.getValues().removeAll(oldValues);
+			valueRepository.deleteAll(data.getValues());
+		}
 		valueRepository.saveAll(values);
 		return load(data.getId());
 	}
@@ -159,7 +175,8 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 	@RequestMapping(value = "/delete")
 	public ResultBean<Void> delete(@RequestBody KeyDTO<Long> keys) {
 		User user = getRelatedCurrentUser();
-		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
+		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()),
+				ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
 		for (Long id : keys.getIds()) {
 			Optional<GoodsSpecificationDefinition> dataOp = definitionService.findById(id);
 			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
@@ -170,9 +187,11 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 	}
 
 	@RequestMapping(value = "/relate/params/{groupId}/{status}")
-	public ResultBean<Void> relate(@RequestBody KeyDTO<Long> keys, @PathVariable Long groupId, @PathVariable Boolean status) {
+	public ResultBean<Void> relate(@RequestBody KeyDTO<Long> keys, @PathVariable Long groupId,
+			@PathVariable Boolean status) {
 		User user = getRelatedCurrentUser();
-		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_UPDATE);
+		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()),
+				ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_UPDATE);
 		Optional<GoodsSpecificationGroup> groupOp = groupRepository.findById(groupId);
 		AssertUtil.assertTrue(groupOp.isPresent() && groupOp.get().getMerchant().getId().equals(user.getId()),
 				ExceptionMessageConstant.NO_SUCH_RECORD);
