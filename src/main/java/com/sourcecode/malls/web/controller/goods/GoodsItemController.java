@@ -143,7 +143,8 @@ public class GoodsItemController extends BaseController {
 			if (path == null) {
 				it.remove();
 			} else if (path.startsWith("temp")) {
-				String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/photo/" + (order + 1) + "_" + System.currentTimeMillis() + ".png";
+				String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/photo/" + (order + 1) + "_"
+						+ System.currentTimeMillis() + ".png";
 				newPaths.add(newPath);
 				tmpPaths.add(path);
 				photo.setPath(newPath);
@@ -161,7 +162,8 @@ public class GoodsItemController extends BaseController {
 				photo.setOrder(i + 1);
 				photo.setItem(data);
 				String path = dto.getPhotos().get(i);
-				String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/photo/" + (order + 1) + ".png";
+				String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/photo/" + (order + 1) + "_"
+						+ System.currentTimeMillis() + ".png";
 				newPaths.add(newPath);
 				tmpPaths.add(path);
 				photo.setPath(newPath);
