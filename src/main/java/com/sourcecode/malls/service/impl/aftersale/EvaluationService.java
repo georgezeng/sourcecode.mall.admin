@@ -161,6 +161,7 @@ public class EvaluationService {
 
 	public void open(Long merchantId, GoodsItemEvaluationDTO dto) {
 		GoodsItemEvaluation data = load(merchantId, dto.getId());
+		AssertUtil.assertTrue(data.isHasAudit(), "请先审核再设置是否公开");
 		data.setOpen(dto.isOpen());
 		repository.save(data);
 	}
