@@ -81,6 +81,10 @@ public class OrderService implements BaseService {
 								.add(criteriaBuilder.or(criteriaBuilder.like(root.join("client").get("username"), like),
 										criteriaBuilder.like(root.get("orderId"), like)));
 					}
+					if (!"all".equalsIgnoreCase(queryInfo.getData().getStatusText())) {
+						predicate.add(criteriaBuilder.equal(root.get("status"),
+								OrderStatus.valueOf(queryInfo.getData().getStatusText())));
+					}
 				}
 				return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
 			}
