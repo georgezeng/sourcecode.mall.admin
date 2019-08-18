@@ -30,6 +30,7 @@ import com.sourcecode.malls.domain.goods.GoodsItem;
 import com.sourcecode.malls.domain.merchant.Merchant;
 import com.sourcecode.malls.dto.base.SimpleQueryDTO;
 import com.sourcecode.malls.dto.coupon.cash.CashClientCouponDTO;
+import com.sourcecode.malls.dto.coupon.cash.CashCouponHxDTO;
 import com.sourcecode.malls.dto.coupon.cash.CashCouponSettingDTO;
 import com.sourcecode.malls.dto.query.PageResult;
 import com.sourcecode.malls.dto.query.QueryInfo;
@@ -183,7 +184,12 @@ public class CashCouponService {
 			data.setEnabled(true);
 		}
 		if (CouponSettingStatus.WaitForPut.equals(data.getStatus())) {
-			BeanUtils.copyProperties(dto, data, "id", "status", "eventType", "consumeSetting", "inviteSetting");
+			data.setDescription(dto.getDescription());
+			data.setEndDate(dto.getEndDate());
+			data.setImgPath(dto.getImgPath());
+			data.setName(dto.getName());
+			data.setStartDate(dto.getStartDate());
+			data.setTotalNums(dto.getTotalNums());
 			Calendar c = Calendar.getInstance();
 			c.add(Calendar.DATE, -1);
 			AssertUtil.assertTrue(data.getStartDate().after(c.getTime()), "生效时间必须是今天以后(包括今天)");
@@ -204,7 +210,8 @@ public class CashCouponService {
 				dataOp.isPresent() && dataOp.get().isEnabled() && dataOp.get().getMerchant().getId().equals(merchantId),
 				ExceptionMessageConstant.NO_SUCH_RECORD);
 		CashCouponSetting data = dataOp.get();
-		AssertUtil.assertNotNull(data.getEventType(), "请先编辑业务属性");
+		AssertUtil.assertNotNull(data.getEventType(), "请先编辑赠送条件");
+		AssertUtil.assertNotNull(data.getApplyToAll(), "请先编辑核销条件");
 		if (status) {
 			AssertUtil.assertTrue(!CouponSettingStatus.PutAway.equals(data.getStatus()), "已经上架过");
 			AssertUtil.assertTrue(CouponSettingStatus.WaitForPut.equals(data.getStatus())
@@ -217,7 +224,7 @@ public class CashCouponService {
 		settingRepository.save(data);
 	}
 
-	public void saveBizInfo(Long merchantId, CashCouponSettingDTO dto) {
+	public void saveZsCondition(Long merchantId, CashCouponSettingDTO dto) {
 		AssertUtil.assertNotNull(dto.getId(), ExceptionMessageConstant.NO_SUCH_RECORD);
 		Optional<CashCouponSetting> dataOp = settingRepository.findById(dto.getId());
 		AssertUtil.assertTrue(
@@ -228,7 +235,7 @@ public class CashCouponService {
 		AssertUtil.assertNotNull(dto.getEventType(), "必须选择一种用户行为");
 		switch (dto.getEventType()) {
 		case Consume: {
-			AssertUtil.assertNotNull(dto.getConsumeSetting(), "请编辑业务属性");
+			AssertUtil.assertNotNull(dto.getConsumeSetting(), "请编辑赠送条件");
 			if (data.getInviteSetting() != null) {
 				inviteRepository.delete(data.getInviteSetting());
 			}
@@ -274,7 +281,7 @@ public class CashCouponService {
 		}
 			break;
 		case Invite: {
-			AssertUtil.assertNotNull(dto.getInviteSetting(), "请编辑业务属性");
+			AssertUtil.assertNotNull(dto.getInviteSetting(), "请编辑赠送条件");
 			if (data.getConsumeSetting() != null) {
 				consumeRepository.delete(data.getConsumeSetting());
 			}
@@ -290,6 +297,50 @@ public class CashCouponService {
 		default:
 		}
 		data.setEventType(dto.getEventType());
+		settingRepository.save(data);
+	}
+
+	public void saveHxCondition(Long merchantId, CashCouponHxDTO dto) {
+		AssertUtil.assertNotNull(dto.getId(), ExceptionMessageConstant.NO_SUCH_RECORD);
+		Optional<CashCouponSetting> dataOp = settingRepository.findById(dto.getId());
+		AssertUtil.assertTrue(
+				dataOp.isPresent() && dataOp.get().isEnabled() && dataOp.get().getMerchant().getId().equals(merchantId),
+				ExceptionMessageConstant.NO_SUCH_RECORD);
+		CashCouponSetting data = dataOp.get();
+		AssertUtil.assertTrue(CouponSettingStatus.WaitForPut.equals(data.getStatus()), "已经上架过，不能修改");
+		data.setApplyToAll(dto.isApplyToAll());
+		if (!dto.isApplyToAll()) {
+			boolean hasCategories = !CollectionUtils.isEmpty(dto.getCategoryIds());
+			boolean hasItems = !CollectionUtils.isEmpty(dto.getItemIds());
+			AssertUtil.assertTrue(hasCategories || hasItems, "必须关联分类或商品");
+			AssertUtil.assertTrue(!(hasCategories && hasItems), "要么关联分类，要么关联商品");
+			if (hasCategories) {
+				List<GoodsCategory> list = new ArrayList<>();
+				for (Long id : dto.getCategoryIds()) {
+					Optional<GoodsCategory> categoryOp = categoryRepository.findById(id);
+					if (categoryOp.isPresent()) {
+						GoodsCategory category = categoryOp.get();
+						if (category.getMerchant().getId().equals(merchantId)) {
+							putCategories(list, category);
+						}
+					}
+				}
+				AssertUtil.assertTrue(!CollectionUtils.isEmpty(list), "必须关联分类或商品");
+				data.setCategories(list);
+				data.setItems(null);
+			} else {
+				List<GoodsItem> list = new ArrayList<>();
+				for (Long id : dto.getItemIds()) {
+					Optional<GoodsItem> itemOp = itemRepository.findById(id);
+					if (itemOp.isPresent() && itemOp.get().getMerchant().getId().equals(merchantId)) {
+						list.add(itemOp.get());
+					}
+				}
+				AssertUtil.assertTrue(!CollectionUtils.isEmpty(list), "必须关联分类或商品");
+				data.setItems(list);
+				data.setCategories(null);
+			}
+		}
 		settingRepository.save(data);
 	}
 

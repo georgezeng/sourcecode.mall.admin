@@ -22,6 +22,7 @@ import com.sourcecode.malls.dto.base.KeyDTO;
 import com.sourcecode.malls.dto.base.ResultBean;
 import com.sourcecode.malls.dto.base.SimpleQueryDTO;
 import com.sourcecode.malls.dto.coupon.cash.CashClientCouponDTO;
+import com.sourcecode.malls.dto.coupon.cash.CashCouponHxDTO;
 import com.sourcecode.malls.dto.coupon.cash.CashCouponSettingDTO;
 import com.sourcecode.malls.dto.query.PageResult;
 import com.sourcecode.malls.dto.query.QueryInfo;
@@ -74,9 +75,15 @@ public class CashCouponController extends BaseController {
 		return new ResultBean<>(data.getId());
 	}
 
-	@RequestMapping(path = "/setting/save/bizInfo")
-	public ResultBean<Void> saveBizInfo(@RequestBody CashCouponSettingDTO dto) {
-		service.saveBizInfo(getRelatedCurrentUser().getId(), dto);
+	@RequestMapping(path = "/setting/save/condition/zs")
+	public ResultBean<Void> saveZsCondition(@RequestBody CashCouponSettingDTO dto) {
+		service.saveZsCondition(getRelatedCurrentUser().getId(), dto);
+		return new ResultBean<>();
+	}
+
+	@RequestMapping(path = "/setting/save/condition/hx")
+	public ResultBean<Void> saveHxCondition(@RequestBody CashCouponHxDTO dto) {
+		service.saveHxCondition(getRelatedCurrentUser().getId(), dto);
 		return new ResultBean<>();
 	}
 
