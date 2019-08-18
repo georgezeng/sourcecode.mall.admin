@@ -2,6 +2,7 @@ package com.sourcecode.malls.service.impl.order;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -107,6 +108,7 @@ public class OrderService implements BaseService {
 		if (OrderStatus.Paid.equals(order.getStatus())) {
 			em.lock(order, LockModeType.PESSIMISTIC_WRITE);
 			order.setStatus(OrderStatus.Shipped);
+			order.setSentTime(new Date());
 			orderRepository.save(order);
 		}
 		if (!CollectionUtils.isEmpty(order.getExpressList())) {
