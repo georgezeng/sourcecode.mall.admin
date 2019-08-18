@@ -1,6 +1,7 @@
 package com.sourcecode.malls.service.impl.order;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 
@@ -69,8 +70,10 @@ public class OrderService implements BaseService {
 								queryInfo.getData().getStartTime()));
 					}
 					if (queryInfo.getData().getEndTime() != null) {
-						predicate.add(criteriaBuilder.lessThanOrEqualTo(root.get("createTime"),
-								queryInfo.getData().getEndTime()));
+						Calendar c = Calendar.getInstance();
+						c.setTime(queryInfo.getData().getEndTime());
+						c.add(Calendar.DATE, 1);
+						predicate.add(criteriaBuilder.lessThan(root.get("createTime"), c.getTime()));
 					}
 					if (queryInfo.getData().getCancelForRefund() != null) {
 						predicate.add(criteriaBuilder.isNotNull(root.get("refundTime")));

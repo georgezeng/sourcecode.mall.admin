@@ -2,6 +2,7 @@ package com.sourcecode.malls.service.impl.aftersale;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -87,8 +88,10 @@ public class AfterSaleService implements BaseService {
 								queryInfo.getData().getStartTime()));
 					}
 					if (queryInfo.getData().getEndTime() != null) {
-						predicate.add(criteriaBuilder.lessThanOrEqualTo(root.get("createTime"),
-								queryInfo.getData().getEndTime()));
+						Calendar c = Calendar.getInstance();
+						c.setTime(queryInfo.getData().getEndTime());
+						c.add(Calendar.DATE, 1);
+						predicate.add(criteriaBuilder.lessThan(root.get("createTime"), c.getTime()));
 					}
 				}
 				return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
