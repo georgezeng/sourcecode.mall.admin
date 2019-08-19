@@ -34,7 +34,6 @@ import com.sourcecode.malls.dto.coupon.cash.CashClientCouponDTO;
 import com.sourcecode.malls.dto.coupon.cash.CashCouponHxDTO;
 import com.sourcecode.malls.dto.coupon.cash.CashCouponOrderLimitedSettingDTO;
 import com.sourcecode.malls.dto.coupon.cash.CashCouponSettingDTO;
-import com.sourcecode.malls.dto.query.PageInfo;
 import com.sourcecode.malls.dto.query.PageResult;
 import com.sourcecode.malls.dto.query.QueryInfo;
 import com.sourcecode.malls.enums.ClientCouponStatus;
