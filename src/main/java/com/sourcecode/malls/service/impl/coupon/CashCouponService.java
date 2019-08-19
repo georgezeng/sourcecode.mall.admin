@@ -24,6 +24,7 @@ import com.sourcecode.malls.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.domain.coupon.cash.CashClientCoupon;
 import com.sourcecode.malls.domain.coupon.cash.CashCouponConsumeEventSetting;
 import com.sourcecode.malls.domain.coupon.cash.CashCouponInviteEventSetting;
+import com.sourcecode.malls.domain.coupon.cash.CashCouponOrderLimitedSetting;
 import com.sourcecode.malls.domain.coupon.cash.CashCouponSetting;
 import com.sourcecode.malls.domain.goods.GoodsCategory;
 import com.sourcecode.malls.domain.goods.GoodsItem;
@@ -31,7 +32,9 @@ import com.sourcecode.malls.domain.merchant.Merchant;
 import com.sourcecode.malls.dto.base.SimpleQueryDTO;
 import com.sourcecode.malls.dto.coupon.cash.CashClientCouponDTO;
 import com.sourcecode.malls.dto.coupon.cash.CashCouponHxDTO;
+import com.sourcecode.malls.dto.coupon.cash.CashCouponOrderLimitedSettingDTO;
 import com.sourcecode.malls.dto.coupon.cash.CashCouponSettingDTO;
+import com.sourcecode.malls.dto.query.PageInfo;
 import com.sourcecode.malls.dto.query.PageResult;
 import com.sourcecode.malls.dto.query.QueryInfo;
 import com.sourcecode.malls.enums.ClientCouponStatus;
@@ -40,6 +43,7 @@ import com.sourcecode.malls.exception.BusinessException;
 import com.sourcecode.malls.repository.jpa.impl.coupon.CashClientCouponRepository;
 import com.sourcecode.malls.repository.jpa.impl.coupon.CashCouponConsumeEventSettingRepository;
 import com.sourcecode.malls.repository.jpa.impl.coupon.CashCouponInviteEventSettingRepository;
+import com.sourcecode.malls.repository.jpa.impl.coupon.CashCouponOrderLimitedSettingRepository;
 import com.sourcecode.malls.repository.jpa.impl.coupon.CashCouponSettingRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsCategoryRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemRepository;
@@ -51,6 +55,8 @@ import com.sourcecode.malls.util.AssertUtil;
 public class CashCouponService {
 	@Autowired
 	protected CashCouponSettingRepository settingRepository;
+	@Autowired
+	protected CashCouponOrderLimitedSettingRepository limitedSettingRepository;
 	@Autowired
 	protected CashCouponConsumeEventSettingRepository consumeRepository;
 	@Autowired
@@ -309,6 +315,7 @@ public class CashCouponService {
 		CashCouponSetting data = dataOp.get();
 		AssertUtil.assertTrue(CouponSettingStatus.WaitForPut.equals(data.getStatus()), "已经上架过，不能修改");
 		data.setApplyToAll(dto.isApplyToAll());
+		data.setLimitedNums(dto.getLimitedNums());
 		if (!dto.isApplyToAll()) {
 			boolean hasCategories = !CollectionUtils.isEmpty(dto.getCategoryIds());
 			boolean hasItems = !CollectionUtils.isEmpty(dto.getItemIds());
@@ -381,6 +388,53 @@ public class CashCouponService {
 					throw new BusinessException("不能删除记录[" + dataOp.get().getName() + "]");
 				}
 
+			}
+		}
+	}
+
+	@Transactional(readOnly = true)
+	public PageResult<CashCouponOrderLimitedSettingDTO> getOrderLimitedSettingList(Long merchantId,
+			QueryInfo<Void> queryInfo) {
+		Optional<Merchant> merchant = merchantRepository.findById(merchantId);
+		AssertUtil.assertTrue(merchant.isPresent(), "商家不存在");
+		Page<CashCouponOrderLimitedSetting> result = limitedSettingRepository.findAllByMerchant(merchant.get(),
+				queryInfo.getPage().pageable());
+		return new PageResult<>(result.get().map(it -> it.asDTO()).collect(Collectors.toList()),
+				result.getTotalElements());
+	}
+
+	@Transactional(readOnly = true)
+	public CashCouponOrderLimitedSettingDTO getOrderLimitedSetting(Long id, Long merchantId) {
+		Optional<CashCouponOrderLimitedSetting> data = limitedSettingRepository.findById(id);
+		AssertUtil.assertTrue(data.isPresent() && data.get().getMerchant().getId().equals(merchantId),
+				ExceptionMessageConstant.NO_SUCH_RECORD);
+		return data.get().asDTO();
+	}
+
+	public void saveOrderLimitedSetting(Long merchantId, CashCouponOrderLimitedSettingDTO dto) {
+		Optional<Merchant> merchant = merchantRepository.findById(merchantId);
+		AssertUtil.assertTrue(merchant.isPresent(), "商家不存在");
+		CashCouponOrderLimitedSetting data = null;
+		if (dto.getId() != null) {
+			Optional<CashCouponOrderLimitedSetting> dataOp = limitedSettingRepository.findById(dto.getId());
+			AssertUtil.assertTrue(dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(merchantId),
+					ExceptionMessageConstant.NO_SUCH_RECORD);
+			data = dataOp.get();
+		} else {
+			data = new CashCouponOrderLimitedSetting();
+			data.setMerchant(merchant.get());
+		}
+		BeanUtils.copyProperties(dto, data);
+		limitedSettingRepository.save(data);
+	}
+
+	public void deleteOrderLimitedSetting(Long merchantId, List<Long> ids) {
+		Optional<Merchant> merchant = merchantRepository.findById(merchantId);
+		AssertUtil.assertTrue(merchant.isPresent(), "商家不存在");
+		for (Long id : ids) {
+			Optional<CashCouponOrderLimitedSetting> data = limitedSettingRepository.findById(id);
+			if (data.isPresent() && data.get().getMerchant().getId().equals(merchantId)) {
+				limitedSettingRepository.delete(data.get());
 			}
 		}
 	}

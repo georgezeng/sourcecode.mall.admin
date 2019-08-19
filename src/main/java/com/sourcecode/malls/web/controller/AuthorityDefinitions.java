@@ -171,10 +171,6 @@ public enum AuthorityDefinitions {
 	ORDER_LOAD("订单-加载请求", "AUTH_ORDER_LOAD", "/order/load", "GET"),
 	ORDER_UPDATE_EXPRESS("订单-更新物流", "AUTH_ORDER_UPDATE_EXPRESS", "/order/updateExpress", "POST"),
 	
-	COUPON_SETTING_PAGE("优惠券-系统配置页面", "AUTH_COUPON_SETTING_PAGE", "/Setting/Coupon/Page", "GET"),
-	COUPON_SETTING_LOAD("优惠券-系统配置加载请求", "AUTH_COUPON_SETTING_LOAD", "/setting/coupon/load", "GET"),
-	COUPON_SETTING_SAVE("优惠券-系统配置保存请求", "AUTH_COUPON_SETTING_SAVE", "/setting/coupon/save", "POST"),
-	
 	CASH_COUPON_CLIENT_LIST_PAGE("现金券-用户领券列表页面", "AUTH_CASH_COUPON_CLIENT_LIST_PAGE", "/Coupon/Cash/Client/List/Page", "GET"),
 	CASH_COUPON_SETTING_LIST_PAGE("现金券-列表页面", "AUTH_CASH_COUPON_SETTING_LIST_PAGE", "/Coupon/Cash/Setting/List/Page", "GET"),
 	CASH_COUPON_SETTING_EDIT_PAGE("现金券-编辑页面", "AUTH_CASH_COUPON_SETTING_EDIT_PAGE", "/Coupon/Cash/Setting/Edit/Page", "GET"),
@@ -188,6 +184,13 @@ public enum AuthorityDefinitions {
 	CASH_COUPON_SETTING_UPDATE_STATUS("现金券-更新状态请求", "AUTH_CASH_COUPON_SETTING_UPDATE_STATUS", "/coupon/cash/setting/updateStatus", "POST"),
 	CASH_COUPON_SETTING_DELETE("现金券-删除请求", "AUTH_CASH_COUPON_SETTING_DELETE", "/coupon/cash/setting/delete", "POST"),
 	CASH_COUPON_SETTING_FILE_LOAD("现金券-文件请求", "AUTH_CASH_COUPON_SETTING_FILE_LOAD", "/coupon/cash/setting/file/load", "GET"),
+	
+	CASH_COUPON_ORDER_LIMITED_SETTING_LIST_PAGE("现金券限额配置-列表页面", "AUTH_CASH_COUPON_ORDER_LIMITED_SETTING_LIST_PAGE", "/Coupon/Cash/OrderLimited/Setting/List/Page", "GET"),
+	CASH_COUPON_ORDER_LIMITED_SETTING_EDIT_PAGE("现金券限额配置-编辑页面", "AUTH_CASH_COUPON_ORDER_LIMITED_SETTING_EDIT_PAGE", "/Coupon/Cash/OrderLimited/Setting/Edit/Page", "GET"),
+	CASH_COUPON_ORDER_LIMITED_SETTING_LIST("现金券限额配置-列表请求", "AUTH_CASH_COUPON_ORDER_LIMITED_SETTING_LIST", "/coupon/cash/orderLimited/setting/list", "POST"),
+	CASH_COUPON_ORDER_LIMITED_SETTING_LOAD("现金券限额配置-加载请求", "AUTH_CASH_COUPON_ORDER_LIMITED_SETTING_LOAD", "/coupon/cash/orderLimited/setting/load", "GET"),
+	CASH_COUPON_ORDER_LIMITED_SETTING_SAVE("现金券限额配置-保存请求", "AUTH_CASH_COUPON_ORDER_LIMITED_SETTING_SAVE", "/coupon/cash/orderLimited/setting/save", "POST"),
+	CASH_COUPON_ORDER_LIMITED_SETTING_DELETE("现金券限额配置-删除请求", "AUTH_CASH_COUPON_ORDER_LIMITED_SETTING_DELETE", "/coupon/cash/orderLimited/setting/delete", "POST"),
 	;
 	
 	private String name;

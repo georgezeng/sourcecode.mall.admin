@@ -100,9 +100,13 @@ public class GoodsItemController extends BaseController {
 		User user = getRelatedCurrentUser();
 		Merchant merchant = merchantRepository.findById(user.getId()).get();
 		GoodsItem data = itemRepository.findById(dto.getId()).orElseGet(GoodsItem::new);
-		BeanUtils.copyProperties(dto, data, "id", "merchant", "category", "brand", "photos", "properties",
-				"enabled");
-		data.setMerchant(merchant);
+		BeanUtils.copyProperties(dto, data, "id", "merchant", "category", "brand", "photos", "properties", "enabled");
+		if (data.getId() == null) {
+			data.setMerchant(merchant);
+		} else {
+			AssertUtil.assertTrue(data.getMerchant().getId().equals(user.getId()),
+					ExceptionMessageConstant.NO_SUCH_RECORD);
+		}
 		AssertUtil.assertNotNull(dto.getCategoryId(), "必须选择商品分类");
 		Optional<GoodsCategory> categoryOp = categoryRepository.findById(dto.getCategoryId());
 		AssertUtil.assertTrue(categoryOp.isPresent(), "商品分类不存在");
