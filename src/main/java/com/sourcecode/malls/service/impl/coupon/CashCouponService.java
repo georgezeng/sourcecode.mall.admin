@@ -216,7 +216,7 @@ public class CashCouponService {
 				ExceptionMessageConstant.NO_SUCH_RECORD);
 		CashCouponSetting data = dataOp.get();
 		AssertUtil.assertNotNull(data.getEventType(), "请先编辑赠送条件");
-		AssertUtil.assertNotNull(data.getApplyToAll(), "请先编辑核销条件");
+		AssertUtil.assertNotNull(data.getHxType(), "请先编辑核销条件");
 		if (status) {
 			AssertUtil.assertTrue(!CouponSettingStatus.PutAway.equals(data.getStatus()), "已经上架过");
 			AssertUtil.assertTrue(CouponSettingStatus.WaitForPut.equals(data.getStatus())
@@ -229,6 +229,7 @@ public class CashCouponService {
 		settingRepository.save(data);
 	}
 
+	@SuppressWarnings("incomplete-switch")
 	public void saveZsCondition(Long merchantId, CashCouponSettingDTO dto) {
 		AssertUtil.assertNotNull(dto.getId(), ExceptionMessageConstant.NO_SUCH_RECORD);
 		Optional<CashCouponSetting> dataOp = settingRepository.findById(dto.getId());
@@ -241,6 +242,7 @@ public class CashCouponService {
 		switch (dto.getEventType()) {
 		case Consume: {
 			AssertUtil.assertNotNull(dto.getConsumeSetting(), "请编辑赠送条件");
+			AssertUtil.assertNotNull(dto.getConsumeSetting().getType(), "必须选择关联属性");
 			if (data.getInviteSetting() != null) {
 				inviteRepository.delete(data.getInviteSetting());
 			}
@@ -250,37 +252,43 @@ public class CashCouponService {
 				setting.setSetting(data);
 			}
 			BeanUtils.copyProperties(dto.getConsumeSetting(), setting, "id", "categories", "items");
-			if (!dto.getConsumeSetting().isApplyToAll()) {
-				boolean hasCategories = !CollectionUtils.isEmpty(dto.getConsumeSetting().getCategoryIds());
-				boolean hasItems = !CollectionUtils.isEmpty(dto.getConsumeSetting().getItemIds());
-				AssertUtil.assertTrue(hasCategories || hasItems, "必须关联分类或商品");
-				AssertUtil.assertTrue(!(hasCategories && hasItems), "要么关联分类，要么关联商品");
-				if (hasCategories) {
-					List<GoodsCategory> list = new ArrayList<>();
-					for (Long id : dto.getConsumeSetting().getCategoryIds()) {
-						Optional<GoodsCategory> categoryOp = categoryRepository.findById(id);
-						if (categoryOp.isPresent()) {
-							GoodsCategory category = categoryOp.get();
-							if (category.getMerchant().getId().equals(merchantId)) {
-								putCategories(list, category);
-							}
+			switch (dto.getConsumeSetting().getType()) {
+			case Category: {
+				AssertUtil.assertTrue(!CollectionUtils.isEmpty(dto.getConsumeSetting().getCategoryIds()), "必须关联分类");
+				List<GoodsCategory> list = new ArrayList<>();
+				List<GoodsCategory> displayList = new ArrayList<>();
+				for (Long id : dto.getConsumeSetting().getCategoryIds()) {
+					Optional<GoodsCategory> categoryOp = categoryRepository.findById(id);
+					if (categoryOp.isPresent()) {
+						GoodsCategory category = categoryOp.get();
+						if (category.getMerchant().getId().equals(merchantId)) {
+							putCategories(list, category);
+							displayList.add(category);
 						}
 					}
-					AssertUtil.assertTrue(!CollectionUtils.isEmpty(list), "必须关联分类或商品");
-					setting.setCategories(list);
-					setting.setItems(null);
-				} else {
-					List<GoodsItem> list = new ArrayList<>();
-					for (Long id : dto.getConsumeSetting().getItemIds()) {
-						Optional<GoodsItem> itemOp = itemRepository.findById(id);
-						if (itemOp.isPresent() && itemOp.get().getMerchant().getId().equals(merchantId)) {
-							list.add(itemOp.get());
-						}
-					}
-					AssertUtil.assertTrue(!CollectionUtils.isEmpty(list), "必须关联分类或商品");
-					setting.setItems(list);
-					setting.setCategories(null);
 				}
+				AssertUtil.assertTrue(!CollectionUtils.isEmpty(list), "必须关联分类或商品");
+				AssertUtil.assertTrue(!CollectionUtils.isEmpty(displayList), "必须关联分类或商品");
+				setting.setCategories(displayList);
+				setting.setRealCategories(list);
+				setting.setItems(null);
+			}
+				break;
+			case Item: {
+				AssertUtil.assertTrue(!CollectionUtils.isEmpty(dto.getConsumeSetting().getItemIds()), "必须关联商品");
+				List<GoodsItem> list = new ArrayList<>();
+				for (Long id : dto.getConsumeSetting().getItemIds()) {
+					Optional<GoodsItem> itemOp = itemRepository.findById(id);
+					if (itemOp.isPresent() && itemOp.get().getMerchant().getId().equals(merchantId)) {
+						list.add(itemOp.get());
+					}
+				}
+				AssertUtil.assertTrue(!CollectionUtils.isEmpty(list), "必须关联分类或商品");
+				setting.setItems(list);
+				setting.setCategories(null);
+				setting.setRealCategories(null);
+			}
+				break;
 			}
 			consumeRepository.save(setting);
 		}
@@ -305,47 +313,55 @@ public class CashCouponService {
 		settingRepository.save(data);
 	}
 
+	@SuppressWarnings("incomplete-switch")
 	public void saveHxCondition(Long merchantId, CashCouponHxDTO dto) {
 		AssertUtil.assertNotNull(dto.getId(), ExceptionMessageConstant.NO_SUCH_RECORD);
+		AssertUtil.assertNotNull(dto.getType(), "必须选择关联属性");
 		Optional<CashCouponSetting> dataOp = settingRepository.findById(dto.getId());
 		AssertUtil.assertTrue(
 				dataOp.isPresent() && dataOp.get().isEnabled() && dataOp.get().getMerchant().getId().equals(merchantId),
 				ExceptionMessageConstant.NO_SUCH_RECORD);
 		CashCouponSetting data = dataOp.get();
 		AssertUtil.assertTrue(CouponSettingStatus.WaitForPut.equals(data.getStatus()), "已经上架过，不能修改");
-		data.setApplyToAll(dto.isApplyToAll());
 		data.setLimitedNums(dto.getLimitedNums());
-		if (!dto.isApplyToAll()) {
-			boolean hasCategories = !CollectionUtils.isEmpty(dto.getCategoryIds());
-			boolean hasItems = !CollectionUtils.isEmpty(dto.getItemIds());
-			AssertUtil.assertTrue(hasCategories || hasItems, "必须关联分类或商品");
-			AssertUtil.assertTrue(!(hasCategories && hasItems), "要么关联分类，要么关联商品");
-			if (hasCategories) {
-				List<GoodsCategory> list = new ArrayList<>();
-				for (Long id : dto.getCategoryIds()) {
-					Optional<GoodsCategory> categoryOp = categoryRepository.findById(id);
-					if (categoryOp.isPresent()) {
-						GoodsCategory category = categoryOp.get();
-						if (category.getMerchant().getId().equals(merchantId)) {
-							putCategories(list, category);
-						}
+		data.setHxType(dto.getType());
+		switch (dto.getType()) {
+		case Category: {
+			AssertUtil.assertTrue(!CollectionUtils.isEmpty(dto.getCategoryIds()), "必须关联分类");
+			List<GoodsCategory> list = new ArrayList<>();
+			List<GoodsCategory> displayList = new ArrayList<>();
+			for (Long id : dto.getCategoryIds()) {
+				Optional<GoodsCategory> categoryOp = categoryRepository.findById(id);
+				if (categoryOp.isPresent()) {
+					GoodsCategory category = categoryOp.get();
+					if (category.getMerchant().getId().equals(merchantId)) {
+						putCategories(list, category);
+						displayList.add(category);
 					}
 				}
-				AssertUtil.assertTrue(!CollectionUtils.isEmpty(list), "必须关联分类或商品");
-				data.setCategories(list);
-				data.setItems(null);
-			} else {
-				List<GoodsItem> list = new ArrayList<>();
-				for (Long id : dto.getItemIds()) {
-					Optional<GoodsItem> itemOp = itemRepository.findById(id);
-					if (itemOp.isPresent() && itemOp.get().getMerchant().getId().equals(merchantId)) {
-						list.add(itemOp.get());
-					}
-				}
-				AssertUtil.assertTrue(!CollectionUtils.isEmpty(list), "必须关联分类或商品");
-				data.setItems(list);
-				data.setCategories(null);
 			}
+			AssertUtil.assertTrue(!CollectionUtils.isEmpty(list), "必须关联分类或商品");
+			AssertUtil.assertTrue(!CollectionUtils.isEmpty(displayList), "必须关联分类或商品");
+			data.setCategories(displayList);
+			data.setRealCategories(list);
+			data.setItems(null);
+		}
+			break;
+		case Item: {
+			AssertUtil.assertTrue(!CollectionUtils.isEmpty(dto.getItemIds()), "必须关联商品");
+			List<GoodsItem> list = new ArrayList<>();
+			for (Long id : dto.getItemIds()) {
+				Optional<GoodsItem> itemOp = itemRepository.findById(id);
+				if (itemOp.isPresent() && itemOp.get().getMerchant().getId().equals(merchantId)) {
+					list.add(itemOp.get());
+				}
+			}
+			AssertUtil.assertTrue(!CollectionUtils.isEmpty(list), "必须关联分类或商品");
+			data.setItems(list);
+			data.setCategories(null);
+			data.setRealCategories(null);
+		}
+			break;
 		}
 		settingRepository.save(data);
 	}
