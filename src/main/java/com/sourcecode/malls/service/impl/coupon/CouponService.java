@@ -196,6 +196,8 @@ public class CouponService {
 			data.setName(dto.getName());
 			data.setStartDate(dto.getStartDate());
 			data.setTotalNums(dto.getTotalNums());
+			data.setAmount(dto.getAmount());
+			data.setTitle(dto.getTitle());
 			Calendar c = Calendar.getInstance();
 			c.add(Calendar.DATE, -1);
 			AssertUtil.assertTrue(data.getStartDate().after(c.getTime()), "生效时间必须是今天以后(包括今天)");
