@@ -35,7 +35,7 @@ public class GoodsBrandService implements JpaService<GoodsBrand, Long> {
 
 	@Transactional(readOnly = true)
 	public Page<GoodsBrand> findAll(QueryInfo<GoodsBrandDTO> queryInfo) {
-		Page<GoodsBrand> pageReulst = null;
+		Page<GoodsBrand> pageResult = null;
 		Specification<GoodsBrand> spec = new Specification<GoodsBrand>() {
 
 			/**
@@ -62,8 +62,8 @@ public class GoodsBrandService implements JpaService<GoodsBrand, Long> {
 				}
 			}
 		};
-		pageReulst = brandRepository.findAll(spec, queryInfo.getPage().pageable());
-		return pageReulst;
+		pageResult = brandRepository.findAll(spec, queryInfo.getPage().pageable());
+		return pageResult;
 	}
 
 }

@@ -2,7 +2,6 @@ package com.sourcecode.malls.web.controller.coupon;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -16,56 +15,54 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sourcecode.malls.constants.ExceptionMessageConstant;
-import com.sourcecode.malls.domain.coupon.cash.CashCouponSetting;
+import com.sourcecode.malls.domain.coupon.CouponSetting;
 import com.sourcecode.malls.domain.system.User;
 import com.sourcecode.malls.dto.base.KeyDTO;
 import com.sourcecode.malls.dto.base.ResultBean;
-import com.sourcecode.malls.dto.base.SimpleQueryDTO;
-import com.sourcecode.malls.dto.coupon.cash.CashClientCouponDTO;
-import com.sourcecode.malls.dto.coupon.cash.CashCouponHxDTO;
-import com.sourcecode.malls.dto.coupon.cash.CashCouponSettingDTO;
+import com.sourcecode.malls.dto.coupon.ClientCouponDTO;
+import com.sourcecode.malls.dto.coupon.CouponHxDTO;
+import com.sourcecode.malls.dto.coupon.CouponSettingDTO;
 import com.sourcecode.malls.dto.query.PageResult;
 import com.sourcecode.malls.dto.query.QueryInfo;
-import com.sourcecode.malls.repository.jpa.impl.coupon.CashCouponSettingRepository;
-import com.sourcecode.malls.service.impl.coupon.CashCouponService;
+import com.sourcecode.malls.repository.jpa.impl.coupon.CouponSettingRepository;
+import com.sourcecode.malls.service.impl.coupon.CouponService;
 import com.sourcecode.malls.util.AssertUtil;
 import com.sourcecode.malls.web.controller.base.BaseController;
 
 @RestController
-@RequestMapping(path = "/coupon/cash")
-public class CashCouponController extends BaseController {
+@RequestMapping(path = "/coupon")
+public class CouponController extends BaseController {
 
 	@Autowired
-	private CashCouponService service;
+	private CouponService service;
 
 	@Autowired
-	protected CashCouponSettingRepository settingRepository;
+	protected CouponSettingRepository settingRepository;
 
 	private String fileDir = "coupon";
 
 	@RequestMapping(path = "/setting/list")
-	public ResultBean<PageResult<CashCouponSettingDTO>> settingList(@RequestBody QueryInfo<SimpleQueryDTO> queryInfo) {
+	public ResultBean<PageResult<CouponSettingDTO>> settingList(@RequestBody QueryInfo<CouponSettingDTO> queryInfo) {
 		User user = getRelatedCurrentUser();
 		return new ResultBean<>(service.getSettingList(user.getId(), queryInfo));
 	}
 
 	@RequestMapping(path = "/setting/load/params/{id}")
-	public ResultBean<CashCouponSettingDTO> getSetting(@PathVariable Long id) {
+	public ResultBean<CouponSettingDTO> getSetting(@PathVariable Long id) {
 		User user = getRelatedCurrentUser();
 		return new ResultBean<>(service.get(user.getId(), id));
 	}
 
 	@RequestMapping(path = "/client/list")
-	public ResultBean<PageResult<CashClientCouponDTO>> clientList(
-			@RequestBody QueryInfo<CashClientCouponDTO> queryInfo) {
+	public ResultBean<PageResult<ClientCouponDTO>> clientList(@RequestBody QueryInfo<ClientCouponDTO> queryInfo) {
 		User user = getRelatedCurrentUser();
 		return new ResultBean<>(service.getClientList(user.getId(), queryInfo));
 	}
 
 	@RequestMapping(path = "/setting/save/baseInfo")
-	public ResultBean<Long> saveBaseInfo(@RequestBody CashCouponSettingDTO dto) {
+	public ResultBean<Long> saveBaseInfo(@RequestBody CouponSettingDTO dto) {
 		Long userId = getRelatedCurrentUser().getId();
-		CashCouponSetting data = service.saveBaseInfo(userId, dto);
+		CouponSetting data = service.saveBaseInfo(userId, dto);
 		if (data.getImgPath().startsWith("temp")) {
 			String newPath = fileDir + "/" + userId + "/" + data.getId() + "/" + System.nanoTime() + ".png";
 			transfer(true, Arrays.asList(data.getImgPath()), Arrays.asList(newPath));
@@ -76,13 +73,13 @@ public class CashCouponController extends BaseController {
 	}
 
 	@RequestMapping(path = "/setting/save/condition/zs")
-	public ResultBean<Void> saveZsCondition(@RequestBody CashCouponSettingDTO dto) {
+	public ResultBean<Void> saveZsCondition(@RequestBody CouponSettingDTO dto) {
 		service.saveZsCondition(getRelatedCurrentUser().getId(), dto);
 		return new ResultBean<>();
 	}
 
 	@RequestMapping(path = "/setting/save/condition/hx")
-	public ResultBean<Void> saveHxCondition(@RequestBody CashCouponHxDTO dto) {
+	public ResultBean<Void> saveHxCondition(@RequestBody CouponHxDTO dto) {
 		service.saveHxCondition(getRelatedCurrentUser().getId(), dto);
 		return new ResultBean<>();
 	}
@@ -112,12 +109,7 @@ public class CashCouponController extends BaseController {
 		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()),
 				ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
 		User user = getRelatedCurrentUser();
-		for (Long id : keys.getIds()) {
-			Optional<CashCouponSetting> dataOp = settingRepository.findById(id);
-			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
-				settingRepository.delete(dataOp.get());
-			}
-		}
+		service.delete(user.getId(), keys.getIds());
 		return new ResultBean<>();
 	}
 }

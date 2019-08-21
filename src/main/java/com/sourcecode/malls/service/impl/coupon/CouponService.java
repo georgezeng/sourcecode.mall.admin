@@ -21,29 +21,28 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.sourcecode.malls.constants.ExceptionMessageConstant;
-import com.sourcecode.malls.domain.coupon.cash.CashClientCoupon;
-import com.sourcecode.malls.domain.coupon.cash.CashCouponConsumeEventSetting;
-import com.sourcecode.malls.domain.coupon.cash.CashCouponInviteEventSetting;
+import com.sourcecode.malls.domain.coupon.ClientCoupon;
+import com.sourcecode.malls.domain.coupon.CouponConsumeEventSetting;
+import com.sourcecode.malls.domain.coupon.CouponInviteEventSetting;
+import com.sourcecode.malls.domain.coupon.CouponSetting;
 import com.sourcecode.malls.domain.coupon.cash.CashCouponOrderLimitedSetting;
-import com.sourcecode.malls.domain.coupon.cash.CashCouponSetting;
 import com.sourcecode.malls.domain.goods.GoodsCategory;
 import com.sourcecode.malls.domain.goods.GoodsItem;
 import com.sourcecode.malls.domain.merchant.Merchant;
-import com.sourcecode.malls.dto.base.SimpleQueryDTO;
-import com.sourcecode.malls.dto.coupon.cash.CashClientCouponDTO;
-import com.sourcecode.malls.dto.coupon.cash.CashCouponHxDTO;
+import com.sourcecode.malls.dto.coupon.ClientCouponDTO;
+import com.sourcecode.malls.dto.coupon.CouponHxDTO;
+import com.sourcecode.malls.dto.coupon.CouponSettingDTO;
 import com.sourcecode.malls.dto.coupon.cash.CashCouponOrderLimitedSettingDTO;
-import com.sourcecode.malls.dto.coupon.cash.CashCouponSettingDTO;
 import com.sourcecode.malls.dto.query.PageResult;
 import com.sourcecode.malls.dto.query.QueryInfo;
 import com.sourcecode.malls.enums.ClientCouponStatus;
 import com.sourcecode.malls.enums.CouponSettingStatus;
 import com.sourcecode.malls.exception.BusinessException;
-import com.sourcecode.malls.repository.jpa.impl.coupon.CashClientCouponRepository;
-import com.sourcecode.malls.repository.jpa.impl.coupon.CashCouponConsumeEventSettingRepository;
-import com.sourcecode.malls.repository.jpa.impl.coupon.CashCouponInviteEventSettingRepository;
 import com.sourcecode.malls.repository.jpa.impl.coupon.CashCouponOrderLimitedSettingRepository;
-import com.sourcecode.malls.repository.jpa.impl.coupon.CashCouponSettingRepository;
+import com.sourcecode.malls.repository.jpa.impl.coupon.ClientCouponRepository;
+import com.sourcecode.malls.repository.jpa.impl.coupon.CouponConsumeEventSettingRepository;
+import com.sourcecode.malls.repository.jpa.impl.coupon.CouponInviteEventSettingRepository;
+import com.sourcecode.malls.repository.jpa.impl.coupon.CouponSettingRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsCategoryRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemRepository;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
@@ -51,17 +50,17 @@ import com.sourcecode.malls.util.AssertUtil;
 
 @Service
 @Transactional
-public class CashCouponService {
+public class CouponService {
 	@Autowired
-	protected CashCouponSettingRepository settingRepository;
+	protected CouponSettingRepository settingRepository;
 	@Autowired
 	protected CashCouponOrderLimitedSettingRepository limitedSettingRepository;
 	@Autowired
-	protected CashCouponConsumeEventSettingRepository consumeRepository;
+	protected CouponConsumeEventSettingRepository consumeRepository;
 	@Autowired
-	protected CashCouponInviteEventSettingRepository inviteRepository;
+	protected CouponInviteEventSettingRepository inviteRepository;
 	@Autowired
-	protected CashClientCouponRepository clientRepository;
+	protected ClientCouponRepository clientRepository;
 	@Autowired
 	protected GoodsCategoryRepository categoryRepository;
 	@Autowired
@@ -70,9 +69,9 @@ public class CashCouponService {
 	protected MerchantRepository merchantRepository;
 
 	@Transactional(readOnly = true)
-	public PageResult<CashCouponSettingDTO> getSettingList(Long merchantId, QueryInfo<SimpleQueryDTO> queryInfo) {
-		Page<CashCouponSetting> page = null;
-		Specification<CashCouponSetting> spec = new Specification<CashCouponSetting>() {
+	public PageResult<CouponSettingDTO> getSettingList(Long merchantId, QueryInfo<CouponSettingDTO> queryInfo) {
+		Page<CouponSetting> page = null;
+		Specification<CouponSetting> spec = new Specification<CouponSetting>() {
 
 			/**
 			 * 
@@ -80,12 +79,13 @@ public class CashCouponService {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public Predicate toPredicate(Root<CashCouponSetting> root, CriteriaQuery<?> query,
+			public Predicate toPredicate(Root<CouponSetting> root, CriteriaQuery<?> query,
 					CriteriaBuilder criteriaBuilder) {
-				List<Predicate> predicate = new ArrayList<>();
-				predicate.add(criteriaBuilder.equal(root.get("merchant"), merchantId));
-				predicate.add(criteriaBuilder.equal(root.get("enabled"), true));
 				if (queryInfo.getData() != null) {
+					List<Predicate> predicate = new ArrayList<>();
+					predicate.add(criteriaBuilder.equal(root.get("merchant"), merchantId));
+					predicate.add(criteriaBuilder.equal(root.get("enabled"), true));
+					predicate.add(criteriaBuilder.equal(root.get("type"), queryInfo.getData().getType()));
 					if (!StringUtils.isEmpty(queryInfo.getData().getSearchText())) {
 						String like = "%" + queryInfo.getData().getSearchText() + "%";
 						predicate.add(criteriaBuilder.like(root.get("name"), like));
@@ -116,8 +116,8 @@ public class CashCouponService {
 				page.getTotalElements());
 	}
 
-	public CashCouponSettingDTO get(Long merchantId, Long id) {
-		Optional<CashCouponSetting> data = settingRepository.findById(id);
+	public CouponSettingDTO get(Long merchantId, Long id) {
+		Optional<CouponSetting> data = settingRepository.findById(id);
 		AssertUtil.assertTrue(
 				data.isPresent() && data.get().isEnabled() && data.get().getMerchant().getId().equals(merchantId),
 				ExceptionMessageConstant.NO_SUCH_RECORD);
@@ -125,9 +125,9 @@ public class CashCouponService {
 	}
 
 	@Transactional(readOnly = true)
-	public PageResult<CashClientCouponDTO> getClientList(Long merchantId, QueryInfo<CashClientCouponDTO> queryInfo) {
-		Page<CashClientCoupon> page = null;
-		Specification<CashClientCoupon> spec = new Specification<CashClientCoupon>() {
+	public PageResult<ClientCouponDTO> getClientList(Long merchantId, QueryInfo<ClientCouponDTO> queryInfo) {
+		Page<ClientCoupon> page = null;
+		Specification<ClientCoupon> spec = new Specification<ClientCoupon>() {
 
 			/**
 			 * 
@@ -135,7 +135,7 @@ public class CashCouponService {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public Predicate toPredicate(Root<CashClientCoupon> root, CriteriaQuery<?> query,
+			public Predicate toPredicate(Root<ClientCoupon> root, CriteriaQuery<?> query,
 					CriteriaBuilder criteriaBuilder) {
 				if (queryInfo.getData() != null) {
 					List<Predicate> predicate = new ArrayList<>();
@@ -171,10 +171,10 @@ public class CashCouponService {
 		return new PageResult<>(page.get().map(it -> it.asDTO()).collect(Collectors.toList()), page.getTotalElements());
 	}
 
-	public CashCouponSetting saveBaseInfo(Long merchantId, CashCouponSettingDTO dto) {
-		CashCouponSetting data = null;
+	public CouponSetting saveBaseInfo(Long merchantId, CouponSettingDTO dto) {
+		CouponSetting data = null;
 		if (dto.getId() != null && dto.getId() > 0) {
-			Optional<CashCouponSetting> dataOp = settingRepository.findById(dto.getId());
+			Optional<CouponSetting> dataOp = settingRepository.findById(dto.getId());
 			AssertUtil.assertTrue(
 					dataOp.isPresent() && dataOp.get().isEnabled()
 							&& dataOp.get().getMerchant().getId().equals(merchantId),
@@ -183,10 +183,11 @@ public class CashCouponService {
 		} else {
 			Optional<Merchant> merchant = merchantRepository.findById(merchantId);
 			AssertUtil.assertTrue(merchant.isPresent(), "商家不存在");
-			data = new CashCouponSetting();
+			data = new CouponSetting();
 			data.setStatus(CouponSettingStatus.WaitForPut);
 			data.setMerchant(merchant.get());
 			data.setEnabled(true);
+			data.setType(dto.getType());
 		}
 		if (CouponSettingStatus.WaitForPut.equals(data.getStatus())) {
 			data.setDescription(dto.getDescription());
@@ -210,17 +211,19 @@ public class CashCouponService {
 	}
 
 	public void updateStatus(Long merchantId, Long id, Boolean status) {
-		Optional<CashCouponSetting> dataOp = settingRepository.findById(id);
+		Optional<CouponSetting> dataOp = settingRepository.findById(id);
 		AssertUtil.assertTrue(
 				dataOp.isPresent() && dataOp.get().isEnabled() && dataOp.get().getMerchant().getId().equals(merchantId),
 				ExceptionMessageConstant.NO_SUCH_RECORD);
-		CashCouponSetting data = dataOp.get();
+		CouponSetting data = dataOp.get();
 		AssertUtil.assertNotNull(data.getEventType(), "请先编辑赠送条件");
 		AssertUtil.assertNotNull(data.getHxType(), "请先编辑核销条件");
 		if (status) {
 			AssertUtil.assertTrue(!CouponSettingStatus.PutAway.equals(data.getStatus()), "已经上架过");
 			AssertUtil.assertTrue(CouponSettingStatus.WaitForPut.equals(data.getStatus())
 					|| CouponSettingStatus.SoldOut.equals(data.getStatus()), "状态有误，上架失败");
+			long count = limitedSettingRepository.countByMerchant(data.getMerchant());
+			AssertUtil.assertTrue(count > 0, "请先设置限额配置");
 			data.setStatus(CouponSettingStatus.PutAway);
 		} else {
 			AssertUtil.assertTrue(CouponSettingStatus.PutAway.equals(data.getStatus()), "状态有误，下架失败");
@@ -230,13 +233,13 @@ public class CashCouponService {
 	}
 
 	@SuppressWarnings("incomplete-switch")
-	public void saveZsCondition(Long merchantId, CashCouponSettingDTO dto) {
+	public void saveZsCondition(Long merchantId, CouponSettingDTO dto) {
 		AssertUtil.assertNotNull(dto.getId(), ExceptionMessageConstant.NO_SUCH_RECORD);
-		Optional<CashCouponSetting> dataOp = settingRepository.findById(dto.getId());
+		Optional<CouponSetting> dataOp = settingRepository.findById(dto.getId());
 		AssertUtil.assertTrue(
 				dataOp.isPresent() && dataOp.get().isEnabled() && dataOp.get().getMerchant().getId().equals(merchantId),
 				ExceptionMessageConstant.NO_SUCH_RECORD);
-		CashCouponSetting data = dataOp.get();
+		CouponSetting data = dataOp.get();
 		AssertUtil.assertTrue(CouponSettingStatus.WaitForPut.equals(data.getStatus()), "已经上架过，不能修改");
 		AssertUtil.assertNotNull(dto.getEventType(), "必须选择一种用户行为");
 		switch (dto.getEventType()) {
@@ -246,9 +249,9 @@ public class CashCouponService {
 			if (data.getInviteSetting() != null) {
 				inviteRepository.delete(data.getInviteSetting());
 			}
-			CashCouponConsumeEventSetting setting = data.getConsumeSetting();
+			CouponConsumeEventSetting setting = data.getConsumeSetting();
 			if (setting == null) {
-				setting = new CashCouponConsumeEventSetting();
+				setting = new CouponConsumeEventSetting();
 				setting.setSetting(data);
 			}
 			BeanUtils.copyProperties(dto.getConsumeSetting(), setting, "id", "categories", "items");
@@ -298,9 +301,9 @@ public class CashCouponService {
 			if (data.getConsumeSetting() != null) {
 				consumeRepository.delete(data.getConsumeSetting());
 			}
-			CashCouponInviteEventSetting setting = data.getInviteSetting();
+			CouponInviteEventSetting setting = data.getInviteSetting();
 			if (setting == null) {
-				setting = new CashCouponInviteEventSetting();
+				setting = new CouponInviteEventSetting();
 				setting.setSetting(data);
 			}
 			BeanUtils.copyProperties(dto.getInviteSetting(), setting, "id");
@@ -314,14 +317,14 @@ public class CashCouponService {
 	}
 
 	@SuppressWarnings("incomplete-switch")
-	public void saveHxCondition(Long merchantId, CashCouponHxDTO dto) {
+	public void saveHxCondition(Long merchantId, CouponHxDTO dto) {
 		AssertUtil.assertNotNull(dto.getId(), ExceptionMessageConstant.NO_SUCH_RECORD);
 		AssertUtil.assertNotNull(dto.getType(), "必须选择关联属性");
-		Optional<CashCouponSetting> dataOp = settingRepository.findById(dto.getId());
+		Optional<CouponSetting> dataOp = settingRepository.findById(dto.getId());
 		AssertUtil.assertTrue(
 				dataOp.isPresent() && dataOp.get().isEnabled() && dataOp.get().getMerchant().getId().equals(merchantId),
 				ExceptionMessageConstant.NO_SUCH_RECORD);
-		CashCouponSetting data = dataOp.get();
+		CouponSetting data = dataOp.get();
 		AssertUtil.assertTrue(CouponSettingStatus.WaitForPut.equals(data.getStatus()), "已经上架过，不能修改");
 		data.setLimitedNums(dto.getLimitedNums());
 		data.setHxType(dto.getType());
@@ -387,7 +390,7 @@ public class CashCouponService {
 
 	public void delete(Long merchantId, List<Long> ids) {
 		for (Long id : ids) {
-			Optional<CashCouponSetting> dataOp = settingRepository.findById(id);
+			Optional<CouponSetting> dataOp = settingRepository.findById(id);
 			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(merchantId)) {
 				switch (dataOp.get().getStatus()) {
 				case WaitForPut:

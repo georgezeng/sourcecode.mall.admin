@@ -168,7 +168,7 @@ public class MerchantUserService implements JpaService<Merchant, Long> {
 	@Transactional(readOnly = true)
 	public Page<Merchant> findAllSubAccounts(Merchant parent, QueryInfo<SimpleQueryDTO> queryInfo) {
 		SimpleQueryDTO data = queryInfo.getData();
-		Page<Merchant> pageReulst = null;
+		Page<Merchant> pageResult = null;
 		Specification<Merchant> spec = new Specification<Merchant>() {
 
 			/**
@@ -193,8 +193,8 @@ public class MerchantUserService implements JpaService<Merchant, Long> {
 				return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
 			}
 		};
-		pageReulst = merchantRepository.findAll(spec, queryInfo.getPage().pageable());
-		return pageReulst;
+		pageResult = merchantRepository.findAll(spec, queryInfo.getPage().pageable());
+		return pageResult;
 	}
 
 	public void resetPassword(User merchant) {

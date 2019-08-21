@@ -26,7 +26,7 @@ public abstract class BaseGoodsAttributeService<T extends BaseGoodsAttribute> im
 	@SuppressWarnings("unchecked")
 	@Transactional(readOnly = true)
 	public Page<T> findAll(QueryInfo<GoodsAttributeDTO> queryInfo) {
-		Page<T> pageReulst = null;
+		Page<T> pageResult = null;
 		Specification<T> spec = new Specification<T>() {
 
 			/**
@@ -68,8 +68,8 @@ public abstract class BaseGoodsAttributeService<T extends BaseGoodsAttribute> im
 				return null;
 			}
 		};
-		pageReulst = ((JpaSpecificationExecutor<T>) getRepository()).findAll(spec, queryInfo.getPage().pageable());
-		return pageReulst;
+		pageResult = ((JpaSpecificationExecutor<T>) getRepository()).findAll(spec, queryInfo.getPage().pageable());
+		return pageResult;
 	}
 
 	protected abstract String getParentName();

@@ -14,7 +14,7 @@ import com.sourcecode.malls.dto.base.ResultBean;
 import com.sourcecode.malls.dto.coupon.cash.CashCouponOrderLimitedSettingDTO;
 import com.sourcecode.malls.dto.query.PageResult;
 import com.sourcecode.malls.dto.query.QueryInfo;
-import com.sourcecode.malls.service.impl.coupon.CashCouponService;
+import com.sourcecode.malls.service.impl.coupon.CouponService;
 import com.sourcecode.malls.util.AssertUtil;
 import com.sourcecode.malls.web.controller.base.BaseController;
 
@@ -23,7 +23,7 @@ import com.sourcecode.malls.web.controller.base.BaseController;
 public class CashCouponOrderLimitedSettingController extends BaseController {
 
 	@Autowired
-	private CashCouponService service;
+	private CouponService service;
 
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<CashCouponOrderLimitedSettingDTO>> getList(@RequestBody QueryInfo<Void> queryInfo) {

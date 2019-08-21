@@ -33,7 +33,7 @@ public class GoodsItemService extends BaseGoodsItemService implements BaseServic
 
 	@Transactional(readOnly = true)
 	public Page<GoodsItem> findAll(QueryInfo<GoodsItemDTO> queryInfo) {
-		Page<GoodsItem> pageReulst = null;
+		Page<GoodsItem> pageResult = null;
 		Specification<GoodsItem> spec = new Specification<GoodsItem>() {
 
 			/**
@@ -66,8 +66,8 @@ public class GoodsItemService extends BaseGoodsItemService implements BaseServic
 				}
 			}
 		};
-		pageReulst = itemRepository.findAll(spec, queryInfo.getPage().pageable());
-		return pageReulst;
+		pageResult = itemRepository.findAll(spec, queryInfo.getPage().pageable());
+		return pageResult;
 	}
 
 }

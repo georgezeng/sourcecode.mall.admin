@@ -41,7 +41,7 @@ public class ClientIdentityService implements JpaService<ClientIdentity, Long> {
 	@SuppressWarnings("unchecked")
 	@Transactional(readOnly = true)
 	public Page<ClientIdentity> findAll(QueryInfo<ClientIdentityDTO> queryInfo) {
-		Page<ClientIdentity> pageReulst = null;
+		Page<ClientIdentity> pageResult = null;
 		Specification<ClientIdentity> spec = new Specification<ClientIdentity>() {
 
 			/**
@@ -72,8 +72,8 @@ public class ClientIdentityService implements JpaService<ClientIdentity, Long> {
 				}
 			}
 		};
-		pageReulst = ((JpaSpecificationExecutor<ClientIdentity>) getRepository()).findAll(spec, queryInfo.getPage().pageable());
-		return pageReulst;
+		pageResult = ((JpaSpecificationExecutor<ClientIdentity>) getRepository()).findAll(spec, queryInfo.getPage().pageable());
+		return pageResult;
 	}
 
 }
