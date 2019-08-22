@@ -2,6 +2,7 @@ package com.sourcecode.malls.service.impl.coupon;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -60,7 +61,7 @@ public class CouponService {
 	@Autowired
 	protected CouponInviteEventSettingRepository inviteRepository;
 	@Autowired
-	protected ClientCouponRepository clientRepository;
+	protected ClientCouponRepository clientCouponRepository;
 	@Autowired
 	protected GoodsCategoryRepository categoryRepository;
 	@Autowired
@@ -167,7 +168,7 @@ public class CouponService {
 				return null;
 			}
 		};
-		page = clientRepository.findAll(spec, queryInfo.getPage().pageable());
+		page = clientCouponRepository.findAll(spec, queryInfo.getPage().pageable());
 		return new PageResult<>(page.get().map(it -> it.asDTO()).collect(Collectors.toList()), page.getTotalElements());
 	}
 
@@ -224,12 +225,20 @@ public class CouponService {
 			AssertUtil.assertTrue(!CouponSettingStatus.PutAway.equals(data.getStatus()), "已经上架过");
 			AssertUtil.assertTrue(CouponSettingStatus.WaitForPut.equals(data.getStatus())
 					|| CouponSettingStatus.SoldOut.equals(data.getStatus()), "状态有误，上架失败");
+			if (data.getEndDate() != null) {
+				Calendar endDate = Calendar.getInstance();
+				endDate.setTime(data.getEndDate());
+				endDate.add(Calendar.DATE, 1);
+				AssertUtil.assertTrue(endDate.getTime().after(new Date()), "过期时间必须在今天之后才能上架");
+			}
+			clientCouponRepository.updateStatus(ClientCouponStatus.UnUse, id, ClientCouponStatus.Out);
 			long count = limitedSettingRepository.countByMerchant(data.getMerchant());
 			AssertUtil.assertTrue(count > 0, "请先设置限额配置");
 			data.setStatus(CouponSettingStatus.PutAway);
 		} else {
 			AssertUtil.assertTrue(CouponSettingStatus.PutAway.equals(data.getStatus()), "状态有误，下架失败");
 			data.setStatus(CouponSettingStatus.SoldOut);
+			clientCouponRepository.updateStatus(ClientCouponStatus.Out, id, ClientCouponStatus.UnUse);
 		}
 		settingRepository.save(data);
 	}
