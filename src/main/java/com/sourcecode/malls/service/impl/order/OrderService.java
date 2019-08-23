@@ -34,6 +34,7 @@ import com.sourcecode.malls.repository.jpa.impl.order.ExpressRepository;
 import com.sourcecode.malls.repository.jpa.impl.order.OrderRepository;
 import com.sourcecode.malls.repository.jpa.impl.order.SubOrderRepository;
 import com.sourcecode.malls.service.base.BaseService;
+import com.sourcecode.malls.service.impl.CacheEvictService;
 import com.sourcecode.malls.util.AssertUtil;
 
 @Service
@@ -51,6 +52,9 @@ public class OrderService implements BaseService {
 
 	@Autowired
 	protected EntityManager em;
+	
+	@Autowired
+	private CacheEvictService cacheEvictService;
 
 	@Transactional(readOnly = true)
 	public Page<Order> getOrders(QueryInfo<OrderDTO> queryInfo) {
@@ -110,6 +114,7 @@ public class OrderService implements BaseService {
 			order.setStatus(OrderStatus.Shipped);
 			order.setSentTime(new Date());
 			orderRepository.save(order);
+			cacheEvictService.clearClientOrders(order.getClient().getId());
 		}
 		if (!CollectionUtils.isEmpty(order.getExpressList())) {
 			expressRepository.deleteAll(order.getExpressList());
