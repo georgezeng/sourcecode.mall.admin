@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import com.github.wxpay.sdk.WePayConfig;
 import com.sourcecode.malls.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.domain.order.Express;
 import com.sourcecode.malls.domain.order.Order;
@@ -30,11 +31,14 @@ import com.sourcecode.malls.dto.order.OrderDTO;
 import com.sourcecode.malls.dto.order.SubOrderDTO;
 import com.sourcecode.malls.dto.query.QueryInfo;
 import com.sourcecode.malls.enums.OrderStatus;
+import com.sourcecode.malls.exception.BusinessException;
 import com.sourcecode.malls.repository.jpa.impl.order.ExpressRepository;
 import com.sourcecode.malls.repository.jpa.impl.order.OrderRepository;
 import com.sourcecode.malls.repository.jpa.impl.order.SubOrderRepository;
 import com.sourcecode.malls.service.base.BaseService;
+import com.sourcecode.malls.service.impl.AlipayService;
 import com.sourcecode.malls.service.impl.CacheEvictService;
+import com.sourcecode.malls.service.impl.WechatService;
 import com.sourcecode.malls.util.AssertUtil;
 
 @Service
@@ -52,9 +56,15 @@ public class OrderService implements BaseService {
 
 	@Autowired
 	protected EntityManager em;
-	
+
 	@Autowired
 	private CacheEvictService cacheEvictService;
+
+	@Autowired
+	private WechatService wechatService;
+
+	@Autowired
+	private AlipayService alipayService;
 
 	@Transactional(readOnly = true)
 	public Page<Order> getOrders(QueryInfo<OrderDTO> queryInfo) {
@@ -69,6 +79,7 @@ public class OrderService implements BaseService {
 			public Predicate toPredicate(Root<Order> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
 				List<Predicate> predicate = new ArrayList<>();
 				predicate.add(criteriaBuilder.equal(root.get("merchant"), queryInfo.getData().getMerchantId()));
+//				predicate.add(criteriaBuilder.equal(root.get("deleted"), false));
 				if (queryInfo.getData() != null) {
 					if (queryInfo.getData().getStartTime() != null) {
 						predicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createTime"),
@@ -80,8 +91,12 @@ public class OrderService implements BaseService {
 						c.add(Calendar.DATE, 1);
 						predicate.add(criteriaBuilder.lessThan(root.get("createTime"), c.getTime()));
 					}
-					if (queryInfo.getData().getCancelForRefund() != null) {
-						predicate.add(criteriaBuilder.isNotNull(root.get("refundTime")));
+					if (Boolean.TRUE.equals(queryInfo.getData().getCancelForRefund())) {
+//						predicate.add(criteriaBuilder.isNotNull(root.get("refundTime")));
+						predicate
+								.add(criteriaBuilder.or(criteriaBuilder.equal(root.get("status"), OrderStatus.CanceledForRefund),
+										criteriaBuilder.equal(root.get("status"), OrderStatus.RefundApplied),
+										criteriaBuilder.equal(root.get("status"), OrderStatus.Refunded)));
 					}
 					if (!StringUtils.isEmpty(queryInfo.getData().getSearchText())) {
 						String like = "%" + queryInfo.getData().getSearchText() + "%";
@@ -106,6 +121,7 @@ public class OrderService implements BaseService {
 		AssertUtil.assertTrue(orderOp.isPresent() && orderOp.get().getMerchant().getId().equals(merchantId),
 				ExceptionMessageConstant.NO_SUCH_RECORD);
 		Order order = orderOp.get();
+		AssertUtil.assertTrue(!order.isDeleted(), "订单已被用户废弃，不能修改");
 		AssertUtil.assertTrue(
 				OrderStatus.Paid.equals(order.getStatus()) || OrderStatus.Shipped.equals(order.getStatus()),
 				"不能修改物流信息");
@@ -135,6 +151,36 @@ public class OrderService implements BaseService {
 			express.setOrder(order);
 			expressRepository.save(express);
 		}
+	}
+
+	public void approveRefund(Long merchantId, Long orderId) throws Exception {
+		Optional<Order> orderOp = orderRepository.findById(orderId);
+		AssertUtil.assertTrue(orderOp.isPresent() && orderOp.get().getMerchant().getId().equals(merchantId),
+				ExceptionMessageConstant.NO_SUCH_RECORD);
+		Order order = orderOp.get();
+		AssertUtil.assertTrue(!order.isDeleted(), "订单已被用户废弃，不能修改");
+		AssertUtil.assertTrue(OrderStatus.RefundApplied.equals(order.getStatus()), "状态有误，不能进行退款操作");
+		// 自动退款
+		switch (order.getPayment()) {
+		case WePay: {
+			WePayConfig config = wechatService.createWePayConfig(merchantId);
+			wechatService.refund(config, order.getTransactionId(), order.getOrderId(), order.getRealPrice(),
+					order.getRealPrice(), order.getSubList().size());
+		}
+			break;
+		case AliPay: {
+			alipayService.refund(merchantId, order.getTransactionId(), order.getOrderId(), order.getRealPrice(),
+					order.getRealPrice(), order.getSubList().size());
+		}
+			break;
+		default:
+			throw new BusinessException("不支持的支付类型");
+		}
+		em.lock(order, LockModeType.PESSIMISTIC_WRITE);
+		order.setStatus(OrderStatus.Refunded);
+		order.setRefundTime(new Date());
+		orderRepository.save(order);
+		cacheEvictService.clearClientOrders(order.getClient().getId());
 	}
 
 }

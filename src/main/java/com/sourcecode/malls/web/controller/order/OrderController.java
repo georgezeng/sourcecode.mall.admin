@@ -64,4 +64,11 @@ public class OrderController extends BaseController {
 		return new ResultBean<>();
 	}
 
+	@RequestMapping(path = "/refund/approve/params/{id}")
+	public ResultBean<Void> approveRefund(@PathVariable Long id) throws Exception {
+		User user = getRelatedCurrentUser();
+		orderService.approveRefund(user.getId(), id);
+		return new ResultBean<>();
+	}
+
 }
