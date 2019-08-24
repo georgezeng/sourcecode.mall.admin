@@ -170,6 +170,7 @@ public enum AuthorityDefinitions {
 	ORDER_REFUND_LIST("订单-退款列表请求", "AUTH_ORDER_REFUND_LIST", "/order/refund/list", "POST"),
 	ORDER_LOAD("订单-加载请求", "AUTH_ORDER_LOAD", "/order/load", "GET"),
 	ORDER_UPDATE_EXPRESS("订单-更新物流", "AUTH_ORDER_UPDATE_EXPRESS", "/order/updateExpress", "POST"),
+	ORDER_APPROVE_REFUND("订单-同意退款", "AUTH_ORDER_APPROVE_REFUND", "/order/refund/approve", "GET"),
 	
 	CASH_COUPON_SETTING_LIST_PAGE("现金券-列表页面", "AUTH_CASH_COUPON_SETTING_LIST_PAGE", "/Coupon/Cash/Setting/List/Page", "GET"),
 	CASH_COUPON_SETTING_EDIT_PAGE("现金券-编辑页面", "AUTH_CASH_COUPON_SETTING_EDIT_PAGE", "/Coupon/Cash/Setting/Edit/Page", "GET"),
