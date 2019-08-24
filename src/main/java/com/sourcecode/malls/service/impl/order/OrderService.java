@@ -126,8 +126,8 @@ public class OrderService implements BaseService {
 		AssertUtil.assertTrue(
 				OrderStatus.Paid.equals(order.getStatus()) || OrderStatus.Shipped.equals(order.getStatus()),
 				"不能修改物流信息");
+		em.lock(order, LockModeType.PESSIMISTIC_WRITE);
 		if (OrderStatus.Paid.equals(order.getStatus())) {
-			em.lock(order, LockModeType.PESSIMISTIC_WRITE);
 			order.setStatus(OrderStatus.Shipped);
 			order.setSentTime(new Date());
 			orderRepository.save(order);
@@ -161,6 +161,7 @@ public class OrderService implements BaseService {
 		Order order = orderOp.get();
 		AssertUtil.assertTrue(!order.isDeleted(), "订单已被用户废弃，不能修改");
 		AssertUtil.assertTrue(OrderStatus.RefundApplied.equals(order.getStatus()), "状态有误，不能进行退款操作");
+		em.lock(order, LockModeType.PESSIMISTIC_WRITE);
 		// 自动退款
 		switch (order.getPayment()) {
 		case WePay: {
@@ -177,7 +178,6 @@ public class OrderService implements BaseService {
 		default:
 			throw new BusinessException("不支持的支付类型");
 		}
-		em.lock(order, LockModeType.PESSIMISTIC_WRITE);
 		order.setStatus(OrderStatus.Refunded);
 		order.setRefundTime(new Date());
 		orderRepository.save(order);
