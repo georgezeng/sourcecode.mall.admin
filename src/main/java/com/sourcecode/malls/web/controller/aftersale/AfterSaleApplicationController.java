@@ -2,6 +2,7 @@ package com.sourcecode.malls.web.controller.aftersale;
 
 import java.util.Date;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sourcecode.malls.domain.aftersale.AfterSaleApplication;
+import com.sourcecode.malls.domain.aftersale.AfterSaleReturnAddress;
 import com.sourcecode.malls.domain.system.User;
 import com.sourcecode.malls.dto.aftersale.AfterSaleApplicationDTO;
 import com.sourcecode.malls.dto.base.ResultBean;
@@ -17,6 +19,7 @@ import com.sourcecode.malls.dto.query.QueryInfo;
 import com.sourcecode.malls.enums.AfterSaleStatus;
 import com.sourcecode.malls.exception.BusinessException;
 import com.sourcecode.malls.repository.jpa.impl.aftersale.AfterSaleApplicationRepository;
+import com.sourcecode.malls.repository.jpa.impl.aftersale.AfterSaleReturnAddressRepository;
 import com.sourcecode.malls.service.impl.aftersale.AfterSaleService;
 import com.sourcecode.malls.util.AssertUtil;
 import com.sourcecode.malls.web.controller.base.BaseController;
@@ -30,6 +33,9 @@ public class AfterSaleApplicationController extends BaseController {
 
 	@Autowired
 	private AfterSaleApplicationRepository repository;
+	
+	@Autowired
+	private AfterSaleReturnAddressRepository addressRepository;
 
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<AfterSaleApplicationDTO>> list(
@@ -54,8 +60,14 @@ public class AfterSaleApplicationController extends BaseController {
 		if (dto.getAgree()) {
 			switch (data.getType()) {
 			case Change:
-			case SalesReturn:
+			case SalesReturn: {
 				status = AfterSaleStatus.WaitForReturn;
+				AssertUtil.assertNotNull(dto.getReturnAddress(), "必须填写回寄地址");
+				AfterSaleReturnAddress address = new AfterSaleReturnAddress();
+				BeanUtils.copyProperties(dto.getReturnAddress(), address, "id");
+				address.setApplication(data);
+				addressRepository.save(address);
+			}
 				break;
 			case RefundOnly:
 				status = AfterSaleStatus.WaitForRefund;
