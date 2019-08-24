@@ -93,10 +93,11 @@ public class OrderService implements BaseService {
 					}
 					if (Boolean.TRUE.equals(queryInfo.getData().getCancelForRefund())) {
 //						predicate.add(criteriaBuilder.isNotNull(root.get("refundTime")));
-						predicate
-								.add(criteriaBuilder.or(criteriaBuilder.equal(root.get("status"), OrderStatus.CanceledForRefund),
-										criteriaBuilder.equal(root.get("status"), OrderStatus.RefundApplied),
-										criteriaBuilder.equal(root.get("status"), OrderStatus.Refunded)));
+//						predicate
+//						.add(criteriaBuilder.or(criteriaBuilder.equal(root.get("status"), OrderStatus.CanceledForRefund),
+//								criteriaBuilder.equal(root.get("status"), OrderStatus.RefundApplied),
+//								criteriaBuilder.equal(root.get("status"), OrderStatus.Refunded)));
+						predicate.add(criteriaBuilder.equal(root.get("status"), OrderStatus.CanceledForRefund));
 					}
 					if (!StringUtils.isEmpty(queryInfo.getData().getSearchText())) {
 						String like = "%" + queryInfo.getData().getSearchText() + "%";
