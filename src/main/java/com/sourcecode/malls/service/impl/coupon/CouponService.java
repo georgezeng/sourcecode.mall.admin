@@ -337,7 +337,15 @@ public class CouponService {
 				dataOp.isPresent() && dataOp.get().isEnabled() && dataOp.get().getMerchant().getId().equals(merchantId),
 				ExceptionMessageConstant.NO_SUCH_RECORD);
 		CouponSetting data = dataOp.get();
-		AssertUtil.assertTrue(CouponSettingStatus.WaitForPut.equals(data.getStatus()), "已经上架过，不能修改");
+		AssertUtil.assertNotEmpty(dto.getTitle(), "必须填写标题");
+		if (CouponSettingStatus.WaitForPut.equals(data.getStatus())) {
+			if (!dto.getTitle().equals(data.getTitle())) {
+				data.setTitle(dto.getTitle());
+				settingRepository.save(data);
+				return;
+			}
+			AssertUtil.assertTrue(CouponSettingStatus.WaitForPut.equals(data.getStatus()), "已经上架过，不能修改");
+		}
 		data.setLimitedNums(dto.getLimitedNums());
 		data.setHxType(dto.getType());
 		switch (dto.getType()) {
