@@ -206,6 +206,7 @@ public class CouponService {
 				AssertUtil.assertTrue(!data.getEndDate().before(data.getStartDate()), "过期时间必须是生效日期以后(包括生效日期当天)");
 			}
 		} else {
+			data.setName(dto.getName());
 			data.setImgPath(dto.getImgPath());
 			data.setDescription(dto.getDescription());
 		}
