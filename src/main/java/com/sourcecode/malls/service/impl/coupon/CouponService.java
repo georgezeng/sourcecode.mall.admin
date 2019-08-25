@@ -337,7 +337,7 @@ public class CouponService {
 				ExceptionMessageConstant.NO_SUCH_RECORD);
 		CouponSetting data = dataOp.get();
 		AssertUtil.assertNotEmpty(dto.getTitle(), "必须填写标题");
-		if (CouponSettingStatus.WaitForPut.equals(data.getStatus())) {
+		if (CouponSettingStatus.PutAway.equals(data.getStatus())) {
 			if (!dto.getTitle().equals(data.getTitle())) {
 				data.setTitle(dto.getTitle());
 				settingRepository.save(data);
