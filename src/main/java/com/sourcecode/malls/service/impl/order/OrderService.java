@@ -97,7 +97,7 @@ public class OrderService implements BaseService {
 //						.add(criteriaBuilder.or(criteriaBuilder.equal(root.get("status"), OrderStatus.CanceledForRefund),
 //								criteriaBuilder.equal(root.get("status"), OrderStatus.RefundApplied),
 //								criteriaBuilder.equal(root.get("status"), OrderStatus.Refunded)));
-						predicate.add(criteriaBuilder.equal(root.get("status"), OrderStatus.CanceledForRefund));
+						predicate.add(criteriaBuilder.equal(root.get("status"), OrderStatus.RefundApplied));
 					}
 					if (!StringUtils.isEmpty(queryInfo.getData().getSearchText())) {
 						String like = "%" + queryInfo.getData().getSearchText() + "%";
