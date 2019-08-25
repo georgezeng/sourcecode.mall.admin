@@ -346,6 +346,7 @@ public class CouponService {
 			}
 			AssertUtil.assertTrue(CouponSettingStatus.WaitForPut.equals(data.getStatus()), "已经上架过，不能修改");
 		}
+		data.setTitle(dto.getTitle());
 		data.setLimitedNums(dto.getLimitedNums());
 		data.setHxType(dto.getType());
 		switch (dto.getType()) {
