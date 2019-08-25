@@ -231,14 +231,12 @@ public class CouponService {
 				endDate.add(Calendar.DATE, 1);
 				AssertUtil.assertTrue(endDate.getTime().after(new Date()), "过期时间必须在今天之后才能上架");
 			}
-			clientCouponRepository.updateStatus(ClientCouponStatus.UnUse, id, ClientCouponStatus.Out);
 			long count = limitedSettingRepository.countByMerchant(data.getMerchant());
 			AssertUtil.assertTrue(count > 0, "请先设置限额配置");
 			data.setStatus(CouponSettingStatus.PutAway);
 		} else {
 			AssertUtil.assertTrue(CouponSettingStatus.PutAway.equals(data.getStatus()), "状态有误，下架失败");
 			data.setStatus(CouponSettingStatus.SoldOut);
-			clientCouponRepository.updateStatus(ClientCouponStatus.Out, id, ClientCouponStatus.UnUse);
 		}
 		settingRepository.save(data);
 	}
