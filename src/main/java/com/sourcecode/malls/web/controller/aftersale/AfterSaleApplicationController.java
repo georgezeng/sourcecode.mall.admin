@@ -1,6 +1,8 @@
 package com.sourcecode.malls.web.controller.aftersale;
 
 import java.util.Date;
+import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,17 +11,24 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sourcecode.malls.constants.MerchantSettingConstant;
 import com.sourcecode.malls.domain.aftersale.AfterSaleApplication;
 import com.sourcecode.malls.domain.aftersale.AfterSaleReturnAddress;
+import com.sourcecode.malls.domain.merchant.Merchant;
+import com.sourcecode.malls.domain.merchant.MerchantSetting;
 import com.sourcecode.malls.domain.system.User;
 import com.sourcecode.malls.dto.aftersale.AfterSaleApplicationDTO;
 import com.sourcecode.malls.dto.base.ResultBean;
+import com.sourcecode.malls.dto.client.ClientAddressDTO;
 import com.sourcecode.malls.dto.query.PageResult;
 import com.sourcecode.malls.dto.query.QueryInfo;
 import com.sourcecode.malls.enums.AfterSaleStatus;
 import com.sourcecode.malls.exception.BusinessException;
 import com.sourcecode.malls.repository.jpa.impl.aftersale.AfterSaleApplicationRepository;
 import com.sourcecode.malls.repository.jpa.impl.aftersale.AfterSaleReturnAddressRepository;
+import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
+import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantSettingRepository;
 import com.sourcecode.malls.service.impl.aftersale.AfterSaleService;
 import com.sourcecode.malls.util.AssertUtil;
 import com.sourcecode.malls.web.controller.base.BaseController;
@@ -33,9 +42,18 @@ public class AfterSaleApplicationController extends BaseController {
 
 	@Autowired
 	private AfterSaleApplicationRepository repository;
-	
+
 	@Autowired
 	private AfterSaleReturnAddressRepository addressRepository;
+
+	@Autowired
+	private MerchantRepository merchantRepository;
+
+	@Autowired
+	private MerchantSettingRepository merchantSettingRepository;
+
+	@Autowired
+	private ObjectMapper mapper;
 
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<AfterSaleApplicationDTO>> list(
@@ -44,10 +62,26 @@ public class AfterSaleApplicationController extends BaseController {
 		return new ResultBean<>(service.getList(user.getId(), queryInfo));
 	}
 
+	@SuppressWarnings("unchecked")
 	@RequestMapping(path = "/load/params/{id}")
-	public ResultBean<AfterSaleApplicationDTO> load(@PathVariable Long id) {
+	public ResultBean<AfterSaleApplicationDTO> load(@PathVariable Long id) throws Exception {
 		User user = getRelatedCurrentUser();
-		return new ResultBean<>(service.load(user.getId(), id).asDTO());
+		AfterSaleApplicationDTO dto = service.load(user.getId(), id).asDTO();
+		if (dto.getAgree() == null && dto.getReturnAddress() == null) {
+			Optional<Merchant> merchant = merchantRepository.findById(user.getId());
+			Optional<MerchantSetting> setting = merchantSettingRepository.findByMerchantAndCode(merchant.get(),
+					MerchantSettingConstant.RETURN_ADDRESS);
+			if (setting.isPresent()) {
+				MerchantSetting data = setting.get();
+				Map<String, String> returnAddress = mapper.readValue(data.getValue(), Map.class);
+				ClientAddressDTO address = new ClientAddressDTO();
+				address.setName(returnAddress.get("name"));
+				address.setPhone(returnAddress.get("phone"));
+				address.setLocation(returnAddress.get("location"));
+				dto.setReturnAddress(address);
+			}
+		}
+		return new ResultBean<>(dto);
 	}
 
 	@RequestMapping(path = "/audit")
