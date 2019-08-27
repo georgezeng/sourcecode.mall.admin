@@ -193,6 +193,8 @@ public enum AuthorityDefinitions {
 	CASH_COUPON_ORDER_LIMITED_SETTING_LOAD("现金券限额配置-加载请求", "AUTH_CASH_COUPON_ORDER_LIMITED_SETTING_LOAD", "/coupon/cash/orderLimited/setting/load", "GET"),
 	CASH_COUPON_ORDER_LIMITED_SETTING_SAVE("现金券限额配置-保存请求", "AUTH_CASH_COUPON_ORDER_LIMITED_SETTING_SAVE", "/coupon/cash/orderLimited/setting/save", "POST"),
 	CASH_COUPON_ORDER_LIMITED_SETTING_DELETE("现金券限额配置-删除请求", "AUTH_CASH_COUPON_ORDER_LIMITED_SETTING_DELETE", "/coupon/cash/orderLimited/setting/delete", "POST"),
+	
+	CLIENT_USER_SUBLIST_PAGE("下级会员-列表页面", "AUTH_CLIENT_USER_SUBLIST_PAGE", "/Client/User/SubList/Page", "GET"),
 	;
 	
 	private String name;

@@ -1,6 +1,7 @@
 package com.sourcecode.malls.service.impl.client;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -52,14 +53,29 @@ public class ClientService implements JpaService<Client, Long> {
 				ClientDTO data = queryInfo.getData();
 				if (data != null) {
 					predicate.add(criteriaBuilder.equal(root.get("merchant"), data.getMerchantId()));
+					if (data.getId() != null) {
+						predicate.add(criteriaBuilder.equal(root.get("parent"), data.getId()));
+					}
 					String searchText = queryInfo.getData().getSearchText();
 					if (!StringUtils.isEmpty(searchText)) {
 						String like = "%" + searchText + "%";
-						predicate.add(criteriaBuilder.or(criteriaBuilder.like(root.get("username").as(String.class), like),
-								criteriaBuilder.like(root.get("nickname").as(String.class), like)));
+						predicate.add(
+								criteriaBuilder.or(criteriaBuilder.like(root.get("username").as(String.class), like),
+										criteriaBuilder.like(root.get("nickname").as(String.class), like)));
 					}
 					if (!"all".equals(data.getStatusText())) {
-						predicate.add(criteriaBuilder.equal(root.get("enabled"), Boolean.valueOf(data.getStatusText())));
+						predicate
+								.add(criteriaBuilder.equal(root.get("enabled"), Boolean.valueOf(data.getStatusText())));
+					}
+					if (queryInfo.getData().getStartTime() != null) {
+						predicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createTime"),
+								queryInfo.getData().getStartTime()));
+					}
+					if (queryInfo.getData().getEndTime() != null) {
+						Calendar c = Calendar.getInstance();
+						c.setTime(queryInfo.getData().getEndTime());
+						c.add(Calendar.DATE, 1);
+						predicate.add(criteriaBuilder.lessThan(root.get("createTime"), c.getTime()));
 					}
 					return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
 				} else {

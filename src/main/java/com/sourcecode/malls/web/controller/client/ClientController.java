@@ -43,7 +43,7 @@ public class ClientController extends BaseController {
 				result.getTotalElements());
 		return new ResultBean<>(dtoResult);
 	}
-
+	
 	@RequestMapping(path = "/load/params/{id}")
 	public ResultBean<ClientDTO> load(@PathVariable Long id) {
 		return new ResultBean<>(check(id).asDTO());
