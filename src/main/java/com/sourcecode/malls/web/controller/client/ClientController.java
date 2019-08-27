@@ -39,14 +39,14 @@ public class ClientController extends BaseController {
 		User user = getRelatedCurrentUser();
 		queryInfo.getData().setMerchantId(user.getId());
 		Page<Client> result = clientService.findAll(queryInfo);
-		PageResult<ClientDTO> dtoResult = new PageResult<>(result.getContent().stream().map(data -> data.asDTO()).collect(Collectors.toList()),
+		PageResult<ClientDTO> dtoResult = new PageResult<>(result.getContent().stream().map(data -> data.asDTO(true)).collect(Collectors.toList()),
 				result.getTotalElements());
 		return new ResultBean<>(dtoResult);
 	}
 	
 	@RequestMapping(path = "/load/params/{id}")
 	public ResultBean<ClientDTO> load(@PathVariable Long id) {
-		return new ResultBean<>(check(id).asDTO());
+		return new ResultBean<>(check(id).asDTO(false));
 	}
 
 	@RequestMapping(path = "/updateStatus/params/{enabled}")
