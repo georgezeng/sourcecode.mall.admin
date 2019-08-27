@@ -133,6 +133,13 @@ public class GoodsItemController extends BaseController {
 			tmpPaths.add(tmpPath);
 			data.setThumbnail(newPath);
 		}
+		if (dto.getVedioPath() != null && dto.getVedioPath().startsWith("temp")) {
+			String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/vedio_" + System.nanoTime() + ".mp4";
+			String tmpPath = dto.getVedioPath();
+			newPaths.add(newPath);
+			tmpPaths.add(tmpPath);
+			data.setVedioPath(newPath);
+		}
 		List<GoodsItemPhoto> photos = data.getPhotos();
 		if (photos == null) {
 			photos = new ArrayList<>();
