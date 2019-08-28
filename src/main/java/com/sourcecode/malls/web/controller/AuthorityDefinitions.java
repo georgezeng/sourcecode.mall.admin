@@ -195,6 +195,12 @@ public enum AuthorityDefinitions {
 	CASH_COUPON_ORDER_LIMITED_SETTING_DELETE("现金券限额配置-删除请求", "AUTH_CASH_COUPON_ORDER_LIMITED_SETTING_DELETE", "/coupon/cash/orderLimited/setting/delete", "POST"),
 	
 	CLIENT_USER_SUBLIST_PAGE("下级会员-列表页面", "AUTH_CLIENT_USER_SUBLIST_PAGE", "/Client/User/SubList/Page", "GET"),
+	
+	CLIENT_POINTS_LIST_PAGE("会员积分-列表页面", "AUTH_CLIENT_POINTS_LIST_PAGE", "/Client/Points/List/Page", "GET"),
+	CLIENT_POINTS_LIST("会员积分-列表请求", "AUTH_CLIENT_POINTS_LIST", "/client/points/list", "POST"),
+	CLIENT_POINTS_JOURNAL_LIST_PAGE("积分明细-列表页面", "AUTH_CLIENT_POINTS_JOURNAL_LIST_PAGE", "/Client/Points/JOURNAL/List/Page", "GET"),
+	CLIENT_POINTS_JOURNAL_LIST("积分明细-列表请求", "AUTH_CLIENT_POINTS_JOURNAL_LIST", "/client/points/journals/list", "POST"),
+	CLIENT_POINTS_JOURNAL_CREATE("积分明细-新增请求", "AUTH_CLIENT_POINTS_JOURNAL_CREATE", "/client/points/journals/create", "POST"),
 	;
 	
 	private String name;
