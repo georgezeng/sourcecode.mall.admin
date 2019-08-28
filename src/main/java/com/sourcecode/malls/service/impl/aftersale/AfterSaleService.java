@@ -14,6 +14,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,7 @@ import com.sourcecode.malls.repository.jpa.impl.aftersale.AfterSaleApplicationRe
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
 import com.sourcecode.malls.service.base.BaseService;
 import com.sourcecode.malls.service.impl.AlipayService;
+import com.sourcecode.malls.service.impl.ClientBonusService;
 import com.sourcecode.malls.service.impl.WechatService;
 import com.sourcecode.malls.util.AssertUtil;
 
@@ -52,6 +54,12 @@ public class AfterSaleService implements BaseService {
 
 	@Autowired
 	private AlipayService alipayService;
+
+	@Autowired
+	private ClientBonusService bonusService;
+
+	@Value("${client.points.ratio}")
+	private String clientPointsRatio;
 
 	@Transactional(readOnly = true)
 	public PageResult<AfterSaleApplicationDTO> getList(Long merchantId, QueryInfo<AfterSaleApplicationDTO> queryInfo) {
@@ -126,6 +134,7 @@ public class AfterSaleService implements BaseService {
 		data.setAmount(dto.getAmount());
 		data.setRemark(dto.getRemark());
 		applicationRepository.save(data);
+		bonusService.removeConsumeBonus(data.getOrder());
 		switch (data.getOrder().getPayment()) {
 		case WePay: {
 			WePayConfig config = wechatService.createWePayConfig(merchantId);
