@@ -42,6 +42,7 @@ import com.sourcecode.malls.repository.jpa.impl.goods.GoodsCategoryRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemRankRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemRepository;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
+import com.sourcecode.malls.service.impl.CacheEvictService;
 import com.sourcecode.malls.service.impl.goods.GoodsItemPropertyService;
 import com.sourcecode.malls.service.impl.goods.GoodsItemService;
 import com.sourcecode.malls.util.AssertUtil;
@@ -71,6 +72,9 @@ public class GoodsItemController extends BaseController {
 
 	@Autowired
 	private GoodsItemService itemService;
+
+	@Autowired
+	private CacheEvictService cacheEvictService;
 
 	private String fileDir = "goods/item";
 
@@ -203,6 +207,7 @@ public class GoodsItemController extends BaseController {
 			fileService.delete(true, image);
 		}
 		itemRepository.save(data);
+		cacheEvictService.clearGoodsItemLoadOne(data.getId());
 		return new ResultBean<>(data.getId());
 	}
 
@@ -214,6 +219,7 @@ public class GoodsItemController extends BaseController {
 		Optional<GoodsItem> item = itemRepository.findById(dto.getId());
 		AssertUtil.assertTrue(item.isPresent() && item.get().getMerchant().getId().equals(user.getId()), "商品不存在");
 		propertyService.save(item.get(), dto.getProperties());
+		cacheEvictService.clearGoodsItemLoadDefinitions(dto.getId());
 		return new ResultBean<>();
 	}
 
