@@ -59,8 +59,9 @@ public class GoodsItemPropertyService implements JpaService<GoodsItemProperty, L
 				List<GoodsSpecificationValue> values = new ArrayList<>();
 				for (GoodsAttributeDTO valueDto : dto.getValues()) {
 					Optional<GoodsSpecificationValue> valueOp = specValueRepository.findById(valueDto.getId());
-					AssertUtil.assertTrue(valueOp.isPresent(), "规格值不存在");
-					values.add(valueOp.get());
+					if (valueOp.isPresent()) {
+						values.add(valueOp.get());
+					}
 				}
 				data.setValues(values);
 				repository.save(data);
