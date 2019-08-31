@@ -12,12 +12,10 @@ import org.springframework.util.CollectionUtils;
 
 import com.sourcecode.malls.domain.goods.GoodsItem;
 import com.sourcecode.malls.domain.goods.GoodsItemProperty;
-import com.sourcecode.malls.domain.goods.GoodsItemValue;
 import com.sourcecode.malls.domain.goods.GoodsSpecificationValue;
 import com.sourcecode.malls.dto.goods.GoodsAttributeDTO;
 import com.sourcecode.malls.dto.goods.GoodsItemPropertyDTO;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemPropertyRepository;
-import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemValueRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsSpecificationValueRepository;
 import com.sourcecode.malls.service.base.JpaService;
 import com.sourcecode.malls.util.AssertUtil;
@@ -27,8 +25,6 @@ import com.sourcecode.malls.util.AssertUtil;
 public class GoodsItemPropertyService implements JpaService<GoodsItemProperty, Long> {
 	@Autowired
 	private GoodsItemPropertyRepository repository;
-	@Autowired
-	private GoodsItemValueRepository valueRepository;
 	@Autowired
 	private GoodsSpecificationValueRepository specValueRepository;
 
@@ -60,25 +56,18 @@ public class GoodsItemPropertyService implements JpaService<GoodsItemProperty, L
 					data.setInventory(dto.getInventory());
 					data.setPrice(dto.getPrice());
 				}
-				repository.save(data);
+				List<GoodsSpecificationValue> values = new ArrayList<>();
 				for (GoodsAttributeDTO valueDto : dto.getValues()) {
 					Optional<GoodsSpecificationValue> valueOp = specValueRepository.findById(valueDto.getId());
 					AssertUtil.assertTrue(valueOp.isPresent(), "规格值不存在");
-					GoodsItemValue value = new GoodsItemValue();
-					value.setValue(valueOp.get());
-					value.setUid(data.getUid());
-					valueRepository.save(value);
+					values.add(valueOp.get());
 				}
+				data.setValues(values);
+				repository.save(data);
 			}
 			if (!CollectionUtils.isEmpty(oldProperties)) {
 				oldProperties.removeAll(used);
 				repository.deleteAll(oldProperties);
-				if (!CollectionUtils.isEmpty(oldProperties)) {
-					for (GoodsItemProperty property : oldProperties) {
-						valueRepository.deleteAll(valueRepository.findAllByUid(property.getUid()));
-						repository.delete(property);
-					}
-				}
 			}
 		}
 	}

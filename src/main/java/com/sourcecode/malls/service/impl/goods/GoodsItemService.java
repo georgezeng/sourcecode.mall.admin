@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.sourcecode.malls.domain.goods.GoodsItem;
-import com.sourcecode.malls.domain.goods.GoodsItemProperty;
 import com.sourcecode.malls.dto.base.SimpleQueryDTO;
 import com.sourcecode.malls.dto.query.QueryInfo;
 import com.sourcecode.malls.repository.jpa.impl.order.SubOrderRepository;
@@ -89,10 +88,6 @@ public class GoodsItemService extends BaseGoodsItemService implements BaseServic
 	public void delete(GoodsItem item) {
 		AssertUtil.assertTrue(!item.isEnabled(), "商品上架中，不能删除");
 		AssertUtil.assertTrue(subOrderRepository.countByItem(item) == 0, "已有订单关联，不能删除商品");
-		for (GoodsItemProperty property : item.getProperties()) {
-			valueRepository.deleteAll(valueRepository.findAllByUid(property.getUid()));
-			propertyRepository.delete(property);
-		}
 		itemRepository.delete(item);
 	}
 
