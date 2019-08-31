@@ -207,8 +207,8 @@ public class GoodsItemController extends BaseController {
 			fileService.delete(true, image);
 		}
 		itemRepository.save(data);
-		cacheEvictService.clearGoodsItemLoadOne(data);
-		cacheEvictService.clearGoodsItemSharePosters(data);
+		cacheEvictService.clearGoodsItemLoadOne(data.getId());
+		cacheEvictService.clearGoodsItemSharePosters();
 		return new ResultBean<>(data.getId());
 	}
 
@@ -220,7 +220,7 @@ public class GoodsItemController extends BaseController {
 		Optional<GoodsItem> item = itemRepository.findById(dto.getId());
 		AssertUtil.assertTrue(item.isPresent() && item.get().getMerchant().getId().equals(user.getId()), "商品不存在");
 		propertyService.save(item.get(), dto.getProperties());
-		cacheEvictService.clearGoodsItemLoadOne(item.get());
+		cacheEvictService.clearGoodsItemLoadOne(dto.getId());
 		return new ResultBean<>();
 	}
 
@@ -233,8 +233,7 @@ public class GoodsItemController extends BaseController {
 			Optional<GoodsItem> dataOp = itemService.findById(id);
 			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
 				itemService.delete(dataOp.get());
-				cacheEvictService.clearGoodsItemLoadOne(dataOp.get());
-				cacheEvictService.clearGoodsItemSharePosters(dataOp.get());
+				cacheEvictService.clearGoodsItemLoadOne(id);
 			}
 		}
 		return new ResultBean<>();
