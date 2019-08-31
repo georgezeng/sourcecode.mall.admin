@@ -2,8 +2,10 @@ package com.sourcecode.malls.service.impl.client;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -20,21 +22,34 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import com.sourcecode.malls.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.domain.client.Client;
+import com.sourcecode.malls.domain.client.ClientActivityEvent;
+import com.sourcecode.malls.domain.client.ClientLevelSetting;
 import com.sourcecode.malls.domain.client.ClientPoints;
 import com.sourcecode.malls.domain.client.ClientPointsJournal;
+import com.sourcecode.malls.domain.merchant.Merchant;
 import com.sourcecode.malls.dto.base.SimpleQueryDTO;
+import com.sourcecode.malls.dto.client.ClientActivityEventDTO;
 import com.sourcecode.malls.dto.client.ClientDTO;
+import com.sourcecode.malls.dto.client.ClientLevelSettingDTO;
 import com.sourcecode.malls.dto.client.ClientPointsJournalDTO;
+import com.sourcecode.malls.dto.query.PageResult;
 import com.sourcecode.malls.dto.query.QueryInfo;
 import com.sourcecode.malls.enums.BalanceType;
 import com.sourcecode.malls.enums.ClientPointsType;
+import com.sourcecode.malls.exception.BusinessException;
+import com.sourcecode.malls.repository.jpa.impl.client.ClientActivityEventRepository;
+import com.sourcecode.malls.repository.jpa.impl.client.ClientLevelSettingRepository;
 import com.sourcecode.malls.repository.jpa.impl.client.ClientRepository;
 import com.sourcecode.malls.repository.jpa.impl.coupon.ClientPointsJournalRepository;
 import com.sourcecode.malls.repository.jpa.impl.coupon.ClientPointsRepository;
+import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
 import com.sourcecode.malls.service.base.JpaService;
+import com.sourcecode.malls.service.impl.CacheEvictService;
 import com.sourcecode.malls.util.AssertUtil;
 
 @Service
@@ -49,6 +64,18 @@ public class ClientService implements JpaService<Client, Long> {
 
 	@Autowired
 	private ClientPointsJournalRepository journalRepository;
+
+	@Autowired
+	private ClientLevelSettingRepository settingRepository;
+
+	@Autowired
+	private ClientActivityEventRepository activityRepository;
+
+	@Autowired
+	private MerchantRepository merchantRepository;
+	
+	@Autowired
+	private CacheEvictService cacheEvictService;
 
 	@Autowired
 	private EntityManager em;
@@ -204,6 +231,211 @@ public class ClientService implements JpaService<Client, Long> {
 		}
 		pointsRepository.save(points);
 		journalRepository.save(journal);
+	}
+
+	public PageResult<ClientLevelSettingDTO> findAllLevelSetting(Long merchantId) {
+		Optional<Merchant> merchant = merchantRepository.findById(merchantId);
+		AssertUtil.assertTrue(merchant.isPresent(), "商家不存在");
+		List<ClientLevelSettingDTO> list = settingRepository.findAllByMerchantOrderByLevelAsc(merchant.get()).stream()
+				.map(it -> it.asDTO()).collect(Collectors.toList());
+		if (!CollectionUtils.isEmpty(list)) {
+			for (int i = list.size() - 1; i > -1; i--) {
+				ClientLevelSettingDTO dto = list.get(i);
+				if (StringUtils.isEmpty(dto.getName())) {
+					continue;
+				}
+				if (dto.getLevel() > 0) {
+					dto.setTop(true);
+					break;
+				}
+			}
+		}
+		return new PageResult<>(list, list.size());
+	}
+
+	public ClientLevelSettingDTO loadLevelSetting(Long merchantId, Long id) {
+		Optional<ClientLevelSetting> dataOp = settingRepository.findById(id);
+		if (dataOp.isPresent()) {
+			AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(merchantId),
+					ExceptionMessageConstant.NO_SUCH_RECORD);
+			;
+			return dataOp.get().asDTO();
+		}
+		return null;
+	}
+
+	public void save(Long merchantId, ClientLevelSettingDTO dto) {
+		ClientLevelSetting data = null;
+		if (dto.getId() == null) {
+			data = new ClientLevelSetting();
+			Optional<Merchant> merchant = merchantRepository.findById(merchantId);
+			AssertUtil.assertTrue(merchant.isPresent(), "商家不存在");
+			data.setMerchant(merchant.get());
+			Optional<ClientLevelSetting> sameLevel = settingRepository.findByMerchantAndLevel(merchant.get(), dto.getLevel());
+			AssertUtil.assertTrue(!sameLevel.isPresent(), "已经存在该级别，请重新定义级别");
+		} else {
+			data = settingRepository.findById(dto.getId()).orElse(null);
+			AssertUtil.assertNotNull(data, ExceptionMessageConstant.NO_SUCH_RECORD);
+		}
+		AssertUtil.assertNotEmpty(dto.getName(), "等级名称不能为空");
+		AssertUtil.assertNotNull(dto.getUpToAmount(), "消费累计不能为空");
+		AssertUtil.assertNotNull(dto.getDiscount(), "折扣不能为空");
+		AssertUtil.assertNotNull(dto.getDiscountInActivity(), "活动日折扣不能为空");
+		BeanUtils.copyProperties(dto, data, "id", "merchant");
+		settingRepository.save(data);
+	}
+
+	public void clearLevelSetting(Long merchantId, Long id) {
+		Optional<ClientLevelSetting> settingOp = settingRepository.findById(id);
+		AssertUtil.assertTrue(settingOp.isPresent() && settingOp.get().getMerchant().getId().equals(merchantId),
+				ExceptionMessageConstant.NO_SUCH_RECORD);
+		ClientLevelSetting setting = settingOp.get();
+		Optional<ClientLevelSetting> topSetting = settingRepository
+				.findFirstByMerchantAndNameNotNullOrderByLevelDesc(setting.getMerchant());
+		AssertUtil.assertTrue(topSetting.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
+		AssertUtil.assertTrue(topSetting.get().getId().equals(setting.getId()), "只能清除最高级");
+		AssertUtil.assertTrue(setting.getLevel() > 0, "不能清除最低级");
+		setting.setDiscount(null);
+		setting.setDiscountInActivity(null);
+		setting.setName(null);
+		setting.setUpToAmount(null);
+		settingRepository.save(setting);
+	}
+
+	public PageResult<ClientActivityEventDTO> findAllActivityEvents(Long merchantId, QueryInfo<SimpleQueryDTO> queryInfo) {
+		Page<ClientActivityEvent> pageResult = null;
+		Specification<ClientActivityEvent> spec = new Specification<ClientActivityEvent>() {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public Predicate toPredicate(Root<ClientActivityEvent> root, CriteriaQuery<?> query,
+					CriteriaBuilder criteriaBuilder) {
+				List<Predicate> predicate = new ArrayList<>();
+				predicate.add(criteriaBuilder.equal(root.get("merchant"), merchantId));
+				if (queryInfo.getData() != null) {
+					if (!StringUtils.isEmpty(queryInfo.getData().getSearchText())) {
+						String like = "%" + queryInfo.getData().getSearchText() + "%";
+						predicate.add(criteriaBuilder.like(root.get("name"), like));
+					}
+					if (queryInfo.getData().getStartTime() != null) {
+						predicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createTime"),
+								queryInfo.getData().getStartTime()));
+					}
+					if (queryInfo.getData().getEndTime() != null) {
+						Calendar c = Calendar.getInstance();
+						c.setTime(queryInfo.getData().getEndTime());
+						c.add(Calendar.DATE, 1);
+						predicate.add(criteriaBuilder.lessThan(root.get("createTime"), c.getTime()));
+					}
+					if (!StringUtils.isEmpty(queryInfo.getData().getStatusText())) {
+						Date now = new Date();
+						switch (queryInfo.getData().getStatusText()) {
+						case "paused": {
+							predicate.add(criteriaBuilder.equal(root.get("paused"), true));
+						}
+							break;
+						case "in": {
+							predicate.add(
+									criteriaBuilder.or(criteriaBuilder.greaterThanOrEqualTo(root.get("startTime"), now),
+											criteriaBuilder.lessThanOrEqualTo(root.get("endTime"), now)));
+						}
+							break;
+						case "unstarted": {
+							predicate.add(criteriaBuilder.lessThan(root.get("startTime"), now));
+						}
+							break;
+						case "stopped": {
+							predicate.add(criteriaBuilder.greaterThan(root.get("endTime"), now));
+						}
+							break;
+						}
+					}
+					return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
+				}
+				return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
+			}
+		};
+		pageResult = activityRepository.findAll(spec, queryInfo.getPage().pageable());
+		return new PageResult<>(pageResult.get().map(it -> it.asDTO()).collect(Collectors.toList()),
+				pageResult.getTotalElements());
+	}
+
+	public ClientActivityEventDTO loadActivityEvent(Long merchantId, Long id) {
+		Optional<ClientActivityEvent> data = activityRepository.findById(id);
+		AssertUtil.assertTrue(
+				data.isPresent() && !data.get().isDeleted() && data.get().getMerchant().getId().equals(merchantId),
+				ExceptionMessageConstant.NO_SUCH_RECORD);
+		return data.get().asDTO();
+	}
+
+	public void deleteActivityEvents(Long merchantId, List<Long> ids) {
+		if (!CollectionUtils.isEmpty(ids)) {
+			Date now = new Date();
+			for (Long id : ids) {
+				Optional<ClientActivityEvent> dataOp = activityRepository.findById(id);
+				if (dataOp.isPresent() && !dataOp.get().isDeleted()
+						&& dataOp.get().getMerchant().getId().equals(merchantId)) {
+					ClientActivityEvent data = dataOp.get();
+					if (data.getStartTime().after(now)) {
+						activityRepository.delete(data);
+					} else if (!now.after(data.getEndTime())) {
+						data.setDeleted(true);
+						activityRepository.save(data);
+					} else {
+						throw new BusinessException("活动进行中，不能删除");
+					}
+				}
+			}
+			cacheEvictService.clearClientActivityEventTime(merchantId);
+		}
+	}
+
+	public void triggerPauseActivityEvent(Long merchantId, Long id, boolean paused) {
+		Optional<ClientActivityEvent> dataOp = activityRepository.findById(id);
+		AssertUtil.assertTrue(
+				dataOp.isPresent() && !dataOp.get().isDeleted()
+						&& dataOp.get().getMerchant().getId().equals(merchantId),
+				ExceptionMessageConstant.NO_SUCH_RECORD);
+		ClientActivityEvent data = dataOp.get();
+		Date now = new Date();
+		AssertUtil.assertTrue(!data.getStartTime().after(now), "活动还未开始");
+		AssertUtil.assertTrue(!now.after(data.getEndTime()), "活动已经结束");
+		data.setPaused(paused);
+		activityRepository.save(data);
+		cacheEvictService.clearClientActivityEventTime(merchantId);
+	}
+
+	public void save(Long merchantId, ClientActivityEventDTO dto) {
+		Date now = new Date();
+		AssertUtil.assertTrue(dto.getStartTime() != null && dto.getStartTime().after(now), "开始时间必须大于当前时间");
+		AssertUtil.assertTrue(dto.getEndTime() != null && dto.getEndTime().after(now), "结束时间必须大于当前时间");
+		AssertUtil.assertTrue(
+				dto.getStartTime() != null && dto.getEndTime() != null && dto.getEndTime().after(dto.getStartTime()),
+				"结束时间必须大于开始时间");
+		ClientActivityEvent data = null;
+		if (dto.getId() != null) {
+			Optional<ClientActivityEvent> dataOp = activityRepository.findById(dto.getId());
+			AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
+			data = dataOp.get();
+			if (data.getStartTime().before(now) && !now.after(data.getEndTime())) {
+				AssertUtil.assertTrue(data.isPaused(), "请先中止活动才能编辑");
+			} else if (data.getEndTime().before(now)) {
+				throw new BusinessException("活动已结束，不能编辑");
+			}
+		} else {
+			Optional<Merchant> merchant = merchantRepository.findById(merchantId);
+			AssertUtil.assertTrue(merchant.isPresent(), "商家不存在");
+			data = dto.asEntity();
+			data.setMerchant(merchant.get());
+			data.setPaused(false);
+			data.setDeleted(false);
+		}
+		activityRepository.save(data);
+		cacheEvictService.clearClientActivityEventTime(merchantId);
 	}
 
 }

@@ -207,7 +207,7 @@ public class GoodsItemController extends BaseController {
 			fileService.delete(true, image);
 		}
 		itemRepository.save(data);
-		cacheEvictService.clearGoodsItemLoadOne(data.getId());
+		cacheEvictService.clearGoodsItemLoadOne(data);
 		return new ResultBean<>(data.getId());
 	}
 

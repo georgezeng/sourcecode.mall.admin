@@ -201,6 +201,21 @@ public enum AuthorityDefinitions {
 	CLIENT_POINTS_JOURNAL_LIST_PAGE("积分明细-列表页面", "AUTH_CLIENT_POINTS_JOURNAL_LIST_PAGE", "/Client/Points/JOURNAL/List/Page", "GET"),
 	CLIENT_POINTS_JOURNAL_LIST("积分明细-列表请求", "AUTH_CLIENT_POINTS_JOURNAL_LIST", "/client/points/journals/list", "POST"),
 	CLIENT_POINTS_JOURNAL_CREATE("积分明细-新增请求", "AUTH_CLIENT_POINTS_JOURNAL_CREATE", "/client/points/journals/create", "POST"),
+	
+	CLIENT_LEVEL_SETTING_LIST_PAGE("会员等级-列表页面", "AUTH_CLIENT_LEVEL_SETTING_LIST_PAGE", "/Client/Level/Setting/List/Page", "GET"),
+	CLIENT_LEVEL_SETTING_EDIT_PAGE("会员等级-编辑页面", "AUTH_CLIENT_LEVEL_SETTING_EDIT_PAGE", "/Client/Level/Setting/Edit/Page", "GET"),
+	CLIENT_LEVEL_SETTING_LIST("会员等级-列表请求", "AUTH_CLIENT_LEVEL_SETTING_LIST", "/client/level/setting/list", "POST"),
+	CLIENT_LEVEL_SETTING_LOAD("会员等级-加载请求", "AUTH_CLIENT_LEVEL_SETTING_LOAD", "/client/level/setting/load", "GET"),
+	CLIENT_LEVEL_SETTING_SAVE("会员等级-保存请求", "AUTH_CLIENT_LEVEL_SETTING_SAVE", "/client/level/setting/save", "POST"),
+	CLIENT_LEVEL_SETTING_CLEAR("会员等级-清除请求", "AUTH_CLIENT_LEVEL_SETTING_CLEAR", "/client/level/setting/clear", "GET"),
+	
+	CLIENT_ACTIVITY_EVENT_LIST_PAGE("活动日配置-列表页面", "AUTH_CLIENT_ACTIVITY_EVENT_LIST_PAGE", "/Client/ActivityEvent/List/Page", "GET"),
+	CLIENT_ACTIVITY_EVENT_EDIT_PAGE("活动日配置-编辑页面", "AUTH_CLIENT_ACTIVITY_EVENT_EDIT_PAGE", "/Client/ActivityEvent/Edit/Page", "GET"),
+	CLIENT_ACTIVITY_EVENT_LIST("活动日配置-列表请求", "AUTH_CLIENT_ACTIVITY_EVENT_LIST", "/client/activityEvent/list", "POST"),
+	CLIENT_ACTIVITY_EVENT_LOAD("活动日配置-加载请求", "AUTH_CLIENT_ACTIVITY_EVENT_LOAD", "/client/activityEvent/load", "GET"),
+	CLIENT_ACTIVITY_EVENT_SAVE("活动日配置-保存请求", "AUTH_CLIENT_ACTIVITY_EVENT_SAVE", "/client/activityEvent/save", "POST"),
+	CLIENT_ACTIVITY_EVENT_TRIGGER("活动日配置-中止/重启请求", "AUTH_CLIENT_ACTIVITY_EVENT_TRIGGER", "/client/activityEvent/trigger", "GET"),
+	CLIENT_ACTIVITY_EVENT_DELETE("活动日配置-删除请求", "AUTH_CLIENT_ACTIVITY_EVENT_CLEAR", "/client/activityEvent/clear", "POST"),
 	;
 	
 	private String name;

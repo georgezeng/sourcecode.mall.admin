@@ -45,7 +45,7 @@ public class ClientPointsController extends BaseController {
 	}
 
 	@RequestMapping(path = "/journals/create")
-	public ResultBean<Void> journalList(@RequestBody ClientPointsJournalDTO dto) {
+	public ResultBean<Void> create(@RequestBody ClientPointsJournalDTO dto) {
 		User user = getRelatedCurrentUser();
 		clientService.createPointsJournal(user.getId(), dto);
 		return new ResultBean<>();
