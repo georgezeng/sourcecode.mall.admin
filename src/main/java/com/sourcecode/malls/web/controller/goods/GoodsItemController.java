@@ -34,6 +34,7 @@ import com.sourcecode.malls.domain.merchant.Merchant;
 import com.sourcecode.malls.domain.system.User;
 import com.sourcecode.malls.dto.base.KeyDTO;
 import com.sourcecode.malls.dto.base.ResultBean;
+import com.sourcecode.malls.dto.base.SimpleQueryDTO;
 import com.sourcecode.malls.dto.goods.GoodsItemDTO;
 import com.sourcecode.malls.dto.query.PageResult;
 import com.sourcecode.malls.dto.query.QueryInfo;
@@ -79,10 +80,9 @@ public class GoodsItemController extends BaseController {
 	private String fileDir = "goods/item";
 
 	@RequestMapping(path = "/list")
-	public ResultBean<PageResult<GoodsItemDTO>> list(@RequestBody QueryInfo<GoodsItemDTO> queryInfo) {
+	public ResultBean<PageResult<GoodsItemDTO>> list(@RequestBody QueryInfo<SimpleQueryDTO> queryInfo) {
 		User user = getRelatedCurrentUser();
-		queryInfo.getData().setMerchantId(user.getId());
-		Page<GoodsItem> result = itemService.findAll(queryInfo);
+		Page<GoodsItem> result = itemService.findAll(user.getId(), queryInfo);
 		PageResult<GoodsItemDTO> dtoResult = new PageResult<>(
 				result.getContent().stream().map(data -> data.asDTO(false, false, false)).collect(Collectors.toList()),
 				result.getTotalElements());
@@ -208,6 +208,7 @@ public class GoodsItemController extends BaseController {
 		}
 		itemRepository.save(data);
 		cacheEvictService.clearGoodsItemLoadOne(data);
+		cacheEvictService.clearGoodsItemSharePosters(data);
 		return new ResultBean<>(data.getId());
 	}
 
@@ -219,7 +220,7 @@ public class GoodsItemController extends BaseController {
 		Optional<GoodsItem> item = itemRepository.findById(dto.getId());
 		AssertUtil.assertTrue(item.isPresent() && item.get().getMerchant().getId().equals(user.getId()), "商品不存在");
 		propertyService.save(item.get(), dto.getProperties());
-		cacheEvictService.clearGoodsItemLoadDefinitions(dto.getId());
+		cacheEvictService.clearGoodsItemLoadOne(item.get());
 		return new ResultBean<>();
 	}
 
@@ -232,6 +233,8 @@ public class GoodsItemController extends BaseController {
 			Optional<GoodsItem> dataOp = itemService.findById(id);
 			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
 				itemService.delete(dataOp.get());
+				cacheEvictService.clearGoodsItemLoadOne(dataOp.get());
+				cacheEvictService.clearGoodsItemSharePosters(dataOp.get());
 			}
 		}
 		return new ResultBean<>();

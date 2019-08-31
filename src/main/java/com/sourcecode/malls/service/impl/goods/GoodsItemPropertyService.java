@@ -1,5 +1,6 @@
 package com.sourcecode.malls.service.impl.goods;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,18 +38,28 @@ public class GoodsItemPropertyService implements JpaService<GoodsItemProperty, L
 	}
 
 	public void save(GoodsItem item, List<GoodsItemPropertyDTO> list) {
+		AssertUtil.assertTrue(!CollectionUtils.isEmpty(list), "请至少选择一种规格");
 		List<GoodsItemProperty> oldProperties = repository.findAllByItem(item);
-		if (!CollectionUtils.isEmpty(oldProperties)) {
-			for (GoodsItemProperty property : oldProperties) {
-				valueRepository.deleteAll(valueRepository.findAllByUid(property.getUid()));
-				repository.delete(property);
-			}
-		}
 		if (!CollectionUtils.isEmpty(list)) {
+			List<GoodsItemProperty> used = new ArrayList<>();
 			for (GoodsItemPropertyDTO dto : list) {
-				AssertUtil.assertTrue(!CollectionUtils.isEmpty(dto.getValues()), "必须选择一个规格值");
-				GoodsItemProperty data = dto.asEntity();
-				data.setItem(item);
+				GoodsItemProperty data = null;
+				if (!CollectionUtils.isEmpty(oldProperties)) {
+					for (GoodsItemProperty oldProperty : oldProperties) {
+						if (oldProperty.getId().equals(dto.getId())) {
+							data = oldProperty;
+							used.add(oldProperty);
+							break;
+						}
+					}
+				}
+				if (data == null) {
+					data = dto.asEntity();
+					data.setItem(item);
+				} else {
+					data.setInventory(dto.getInventory());
+					data.setPrice(dto.getPrice());
+				}
 				repository.save(data);
 				for (GoodsAttributeDTO valueDto : dto.getValues()) {
 					Optional<GoodsSpecificationValue> valueOp = specValueRepository.findById(valueDto.getId());
@@ -57,6 +68,16 @@ public class GoodsItemPropertyService implements JpaService<GoodsItemProperty, L
 					value.setValue(valueOp.get());
 					value.setUid(data.getUid());
 					valueRepository.save(value);
+				}
+			}
+			if (!CollectionUtils.isEmpty(oldProperties)) {
+				oldProperties.removeAll(used);
+				repository.deleteAll(oldProperties);
+				if (!CollectionUtils.isEmpty(oldProperties)) {
+					for (GoodsItemProperty property : oldProperties) {
+						valueRepository.deleteAll(valueRepository.findAllByUid(property.getUid()));
+						repository.delete(property);
+					}
 				}
 			}
 		}

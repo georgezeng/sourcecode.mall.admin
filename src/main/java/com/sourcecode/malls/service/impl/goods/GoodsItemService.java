@@ -1,6 +1,7 @@
 package com.sourcecode.malls.service.impl.goods;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -8,6 +9,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,15 +18,21 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.sourcecode.malls.domain.goods.GoodsItem;
-import com.sourcecode.malls.dto.goods.GoodsItemDTO;
+import com.sourcecode.malls.domain.goods.GoodsItemProperty;
+import com.sourcecode.malls.dto.base.SimpleQueryDTO;
 import com.sourcecode.malls.dto.query.QueryInfo;
+import com.sourcecode.malls.repository.jpa.impl.order.SubOrderRepository;
 import com.sourcecode.malls.service.base.BaseService;
 import com.sourcecode.malls.service.base.JpaService;
 import com.sourcecode.malls.service.impl.BaseGoodsItemService;
+import com.sourcecode.malls.util.AssertUtil;
 
 @Service
 @Transactional
 public class GoodsItemService extends BaseGoodsItemService implements BaseService, JpaService<GoodsItem, Long> {
+
+	@Autowired
+	private SubOrderRepository subOrderRepository;
 
 	@Override
 	public JpaRepository<GoodsItem, Long> getRepository() {
@@ -32,7 +40,7 @@ public class GoodsItemService extends BaseGoodsItemService implements BaseServic
 	}
 
 	@Transactional(readOnly = true)
-	public Page<GoodsItem> findAll(QueryInfo<GoodsItemDTO> queryInfo) {
+	public Page<GoodsItem> findAll(Long merchantId, QueryInfo<SimpleQueryDTO> queryInfo) {
 		Page<GoodsItem> pageResult = null;
 		Specification<GoodsItem> spec = new Specification<GoodsItem>() {
 
@@ -45,8 +53,8 @@ public class GoodsItemService extends BaseGoodsItemService implements BaseServic
 			public Predicate toPredicate(Root<GoodsItem> root, CriteriaQuery<?> query,
 					CriteriaBuilder criteriaBuilder) {
 				List<Predicate> predicate = new ArrayList<>();
+				predicate.add(criteriaBuilder.equal(root.get("merchant"), merchantId));
 				if (queryInfo.getData() != null) {
-					predicate.add(criteriaBuilder.equal(root.get("merchant"), queryInfo.getData().getMerchantId()));
 					String searchText = queryInfo.getData().getSearchText();
 					if (!StringUtils.isEmpty(searchText)) {
 						String like = "%" + searchText + "%";
@@ -60,14 +68,32 @@ public class GoodsItemService extends BaseGoodsItemService implements BaseServic
 									Boolean.valueOf(queryInfo.getData().getStatusText())));
 						}
 					}
-					return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
-				} else {
-					return null;
+					if (queryInfo.getData().getStartTime() != null) {
+						predicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("putTime"),
+								queryInfo.getData().getStartTime()));
+					}
+					if (queryInfo.getData().getEndTime() != null) {
+						Calendar c = Calendar.getInstance();
+						c.setTime(queryInfo.getData().getEndTime());
+						c.add(Calendar.DATE, 1);
+						predicate.add(criteriaBuilder.lessThan(root.get("putTime"), c.getTime()));
+					}
 				}
+				return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
 			}
 		};
 		pageResult = itemRepository.findAll(spec, queryInfo.getPage().pageable());
 		return pageResult;
+	}
+
+	public void delete(GoodsItem item) {
+		AssertUtil.assertTrue(!item.isEnabled(), "商品上架中，不能删除");
+		AssertUtil.assertTrue(subOrderRepository.countByItem(item) == 0, "已有订单关联，不能删除商品");
+		for (GoodsItemProperty property : item.getProperties()) {
+			valueRepository.deleteAll(valueRepository.findAllByUid(property.getUid()));
+			propertyRepository.delete(property);
+		}
+		itemRepository.delete(item);
 	}
 
 }
