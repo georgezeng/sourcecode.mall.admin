@@ -29,6 +29,7 @@ import com.sourcecode.malls.repository.jpa.impl.aftersale.AfterSaleApplicationRe
 import com.sourcecode.malls.repository.jpa.impl.aftersale.AfterSaleReturnAddressRepository;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantSettingRepository;
+import com.sourcecode.malls.service.impl.CacheEvictService;
 import com.sourcecode.malls.service.impl.aftersale.AfterSaleService;
 import com.sourcecode.malls.util.AssertUtil;
 import com.sourcecode.malls.web.controller.base.BaseController;
@@ -54,6 +55,9 @@ public class AfterSaleApplicationController extends BaseController {
 
 	@Autowired
 	private ObjectMapper mapper;
+	
+	@Autowired
+	private CacheEvictService cacheEvictService;
 
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<AfterSaleApplicationDTO>> list(
@@ -113,6 +117,7 @@ public class AfterSaleApplicationController extends BaseController {
 			AssertUtil.assertNotEmpty(dto.getRejectReason(), "拒绝原因不能为空");
 			status = AfterSaleStatus.Rejected;
 			data.setRejectReason(dto.getRejectReason());
+			cacheEvictService.clearClientAfterSaleUnFinishedtNums(data.getClient().getId());
 		}
 		data.setStatus(status);
 		data.setProcessedTime(new Date());

@@ -209,6 +209,7 @@ public class GoodsItemController extends BaseController {
 		itemRepository.save(data);
 		cacheEvictService.clearGoodsItemLoadOne(data.getId());
 		cacheEvictService.clearGoodsItemSharePosters();
+		cacheEvictService.clearAllGoodsItemList();
 		return new ResultBean<>(data.getId());
 	}
 
@@ -221,6 +222,7 @@ public class GoodsItemController extends BaseController {
 		AssertUtil.assertTrue(item.isPresent() && item.get().getMerchant().getId().equals(user.getId()), "商品不存在");
 		propertyService.save(item.get(), dto.getProperties());
 		cacheEvictService.clearGoodsItemLoadOne(dto.getId());
+		cacheEvictService.clearAllGoodsItemList();
 		return new ResultBean<>();
 	}
 
@@ -236,6 +238,7 @@ public class GoodsItemController extends BaseController {
 				cacheEvictService.clearGoodsItemLoadOne(id);
 			}
 		}
+		cacheEvictService.clearAllGoodsItemList();
 		return new ResultBean<>();
 	}
 
@@ -252,8 +255,10 @@ public class GoodsItemController extends BaseController {
 					dataOp.get().setPutTime(new Date());
 				}
 				itemService.save(dataOp.get());
+				cacheEvictService.clearGoodsItemLoadOne(id);
 			}
 		}
+		cacheEvictService.clearAllGoodsItemList();
 		return new ResultBean<>();
 	}
 

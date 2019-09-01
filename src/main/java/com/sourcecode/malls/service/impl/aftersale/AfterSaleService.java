@@ -24,6 +24,7 @@ import org.springframework.util.StringUtils;
 import com.github.wxpay.sdk.WePayConfig;
 import com.sourcecode.malls.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.domain.aftersale.AfterSaleApplication;
+import com.sourcecode.malls.domain.goods.GoodsItemRank;
 import com.sourcecode.malls.domain.merchant.Merchant;
 import com.sourcecode.malls.dto.aftersale.AfterSaleApplicationDTO;
 import com.sourcecode.malls.dto.query.PageResult;
@@ -32,9 +33,11 @@ import com.sourcecode.malls.enums.AfterSaleStatus;
 import com.sourcecode.malls.enums.AfterSaleType;
 import com.sourcecode.malls.exception.BusinessException;
 import com.sourcecode.malls.repository.jpa.impl.aftersale.AfterSaleApplicationRepository;
+import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemRankRepository;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
 import com.sourcecode.malls.service.base.BaseService;
 import com.sourcecode.malls.service.impl.AlipayService;
+import com.sourcecode.malls.service.impl.CacheEvictService;
 import com.sourcecode.malls.service.impl.ClientBonusService;
 import com.sourcecode.malls.service.impl.WechatService;
 import com.sourcecode.malls.util.AssertUtil;
@@ -57,6 +60,12 @@ public class AfterSaleService implements BaseService {
 
 	@Autowired
 	private ClientBonusService bonusService;
+	
+	@Autowired
+	private CacheEvictService cacheEvictService;
+	
+	@Autowired
+	private GoodsItemRankRepository rankRepository;
 
 	@Value("${client.points.ratio}")
 	private String clientPointsRatio;
@@ -150,6 +159,11 @@ public class AfterSaleService implements BaseService {
 		default:
 			throw new BusinessException("不支持的支付类型");
 		}
+		GoodsItemRank rank = data.getSubOrder().getItem().getRank();
+		rank.setOrderNums(rank.getOrderNums() - 1);
+		rankRepository.save(rank);
+		cacheEvictService.clearAllGoodsItemList();
+		cacheEvictService.clearClientAfterSaleUnFinishedtNums(data.getClient().getId());
 	}
 
 	public void receive(Long merchantId, Long id) throws Exception {
