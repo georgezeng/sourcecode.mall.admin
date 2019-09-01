@@ -30,6 +30,7 @@ import com.sourcecode.malls.dto.order.ExpressDTO;
 import com.sourcecode.malls.dto.order.OrderDTO;
 import com.sourcecode.malls.dto.order.SubOrderDTO;
 import com.sourcecode.malls.dto.query.QueryInfo;
+import com.sourcecode.malls.enums.ExpressType;
 import com.sourcecode.malls.enums.OrderStatus;
 import com.sourcecode.malls.exception.BusinessException;
 import com.sourcecode.malls.repository.jpa.impl.order.ExpressRepository;
@@ -97,7 +98,8 @@ public class OrderService implements BaseService {
 //						.add(criteriaBuilder.or(criteriaBuilder.equal(root.get("status"), OrderStatus.CanceledForRefund),
 //								criteriaBuilder.equal(root.get("status"), OrderStatus.RefundApplied),
 //								criteriaBuilder.equal(root.get("status"), OrderStatus.Refunded)));
-						predicate.add(criteriaBuilder.equal(root.get("status"), OrderStatus.RefundApplied));
+						predicate.add(criteriaBuilder.equal(root.get("status"),
+								OrderStatus.valueOf(queryInfo.getData().getStatusText())));
 					}
 					if (!StringUtils.isEmpty(queryInfo.getData().getSearchText())) {
 						String like = "%" + queryInfo.getData().getSearchText() + "%";
@@ -138,6 +140,11 @@ public class OrderService implements BaseService {
 		}
 		for (ExpressDTO expressDTO : dto.getExpressList()) {
 			Express express = expressDTO.asEntity();
+			AssertUtil.assertNotNull(express.getType(), "必须选择快递类型");
+			if (ExpressType.Delivery.equals(express.getType())) {
+				AssertUtil.assertNotEmpty(express.getCompany(), "快递公司不能为空");
+				AssertUtil.assertNotEmpty(express.getNumber(), "快递单号不能为空");
+			}
 			AssertUtil.assertTrue(!CollectionUtils.isEmpty(expressDTO.getSubList()), "物流信息没有包含商品");
 			List<SubOrder> subList = new ArrayList<>();
 			for (SubOrderDTO subDTO : expressDTO.getSubList()) {
