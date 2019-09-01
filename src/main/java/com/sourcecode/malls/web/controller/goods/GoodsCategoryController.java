@@ -31,6 +31,7 @@ import com.sourcecode.malls.dto.query.PageInfo;
 import com.sourcecode.malls.dto.query.QueryInfo;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsSpecificationGroupRepository;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
+import com.sourcecode.malls.service.impl.CacheEvictService;
 import com.sourcecode.malls.service.impl.goods.GoodsCategoryService;
 import com.sourcecode.malls.util.AssertUtil;
 import com.sourcecode.malls.web.controller.base.BaseController;
@@ -47,6 +48,9 @@ public class GoodsCategoryController extends BaseController {
 
 	@Autowired
 	private GoodsSpecificationGroupRepository groupRepository;
+
+	@Autowired
+	private CacheEvictService cacheEvictService;
 
 	private String fileDir = "goods/category";
 
@@ -151,6 +155,11 @@ public class GoodsCategoryController extends BaseController {
 			data.setIcon(newPath);
 		}
 		categoryService.save(data);
+		if (data.getLevel() == 1) {
+			cacheEvictService.clearGoodsCategoryLevel1(user.getId());
+		} else if (data.getLevel() == 2) {
+			cacheEvictService.clearGoodsCategoryLevel2(data.getParent().getId());
+		}
 		transfer(true, tmpPaths, newPaths);
 		return new ResultBean<>();
 	}

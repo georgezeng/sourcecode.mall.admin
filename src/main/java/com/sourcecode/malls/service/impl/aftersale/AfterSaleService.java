@@ -24,7 +24,6 @@ import org.springframework.util.StringUtils;
 import com.github.wxpay.sdk.WePayConfig;
 import com.sourcecode.malls.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.domain.aftersale.AfterSaleApplication;
-import com.sourcecode.malls.domain.goods.GoodsItemRank;
 import com.sourcecode.malls.domain.merchant.Merchant;
 import com.sourcecode.malls.dto.aftersale.AfterSaleApplicationDTO;
 import com.sourcecode.malls.dto.query.PageResult;
@@ -33,7 +32,6 @@ import com.sourcecode.malls.enums.AfterSaleStatus;
 import com.sourcecode.malls.enums.AfterSaleType;
 import com.sourcecode.malls.exception.BusinessException;
 import com.sourcecode.malls.repository.jpa.impl.aftersale.AfterSaleApplicationRepository;
-import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemRankRepository;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
 import com.sourcecode.malls.service.base.BaseService;
 import com.sourcecode.malls.service.impl.AlipayService;
@@ -64,8 +62,8 @@ public class AfterSaleService implements BaseService {
 	@Autowired
 	private CacheEvictService cacheEvictService;
 	
-	@Autowired
-	private GoodsItemRankRepository rankRepository;
+//	@Autowired
+//	private GoodsItemRankRepository rankRepository;
 
 	@Value("${client.points.ratio}")
 	private String clientPointsRatio;
