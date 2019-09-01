@@ -162,7 +162,7 @@ public class AfterSaleService implements BaseService {
 		GoodsItemRank rank = data.getSubOrder().getItem().getRank();
 		rank.setOrderNums(rank.getOrderNums() - 1);
 		rankRepository.save(rank);
-		cacheEvictService.clearAllGoodsItemList();
+//		cacheEvictService.clearAllGoodsItemList();
 		cacheEvictService.clearClientAfterSaleUnFinishedtNums(data.getClient().getId());
 	}
 
