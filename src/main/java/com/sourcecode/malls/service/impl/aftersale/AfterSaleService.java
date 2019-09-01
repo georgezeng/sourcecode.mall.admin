@@ -159,9 +159,9 @@ public class AfterSaleService implements BaseService {
 		default:
 			throw new BusinessException("不支持的支付类型");
 		}
-		GoodsItemRank rank = data.getSubOrder().getItem().getRank();
-		rank.setOrderNums(rank.getOrderNums() - 1);
-		rankRepository.save(rank);
+//		GoodsItemRank rank = data.getSubOrder().getItem().getRank();
+//		rank.setOrderNums(rank.getOrderNums() - 1);
+//		rankRepository.save(rank);
 //		cacheEvictService.clearAllGoodsItemList();
 		cacheEvictService.clearClientAfterSaleUnFinishedtNums(data.getClient().getId());
 	}
