@@ -82,10 +82,10 @@ public class CouponService {
 			@Override
 			public Predicate toPredicate(Root<CouponSetting> root, CriteriaQuery<?> query,
 					CriteriaBuilder criteriaBuilder) {
+				List<Predicate> predicate = new ArrayList<>();
+				predicate.add(criteriaBuilder.equal(root.get("merchant"), merchantId));
+				predicate.add(criteriaBuilder.equal(root.get("enabled"), true));
 				if (queryInfo.getData() != null) {
-					List<Predicate> predicate = new ArrayList<>();
-					predicate.add(criteriaBuilder.equal(root.get("merchant"), merchantId));
-					predicate.add(criteriaBuilder.equal(root.get("enabled"), true));
 					predicate.add(criteriaBuilder.equal(root.get("type"), queryInfo.getData().getType()));
 					if (!StringUtils.isEmpty(queryInfo.getData().getSearchText())) {
 						String like = "%" + queryInfo.getData().getSearchText() + "%";
@@ -107,9 +107,8 @@ public class CouponService {
 									CouponSettingStatus.valueOf(queryInfo.getData().getStatusText())));
 						}
 					}
-					return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
 				}
-				return null;
+				return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
 			}
 		};
 		page = settingRepository.findAll(spec, queryInfo.getPage().pageable());
@@ -117,6 +116,7 @@ public class CouponService {
 				page.getTotalElements());
 	}
 
+	@Transactional(readOnly = true)
 	public CouponSettingDTO get(Long merchantId, Long id) {
 		Optional<CouponSetting> data = settingRepository.findById(id);
 		AssertUtil.assertTrue(

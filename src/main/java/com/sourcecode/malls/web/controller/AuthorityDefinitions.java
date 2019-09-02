@@ -221,6 +221,15 @@ public enum AuthorityDefinitions {
 	SITE_SETTING_LOAD("站点配置-加载请求", "AUTH_SITE_SETTING_LOAD", "/setting/site/load", "GET"),
 	SITE_SETTING_SAVE("站点配置-保存请求", "AUTH_SITE_SETTING_SAVE", "/setting/site/save", "POST"),
 	SITE_SETTING_UPLOAD("站点配置-上传请求", "AUTH_SITE_SETTING_UPLOAD", "/setting/site/upload", "POST"),
+	
+	ADVERTISEMENT_SETTING_LIST_PAGE("广告位配置-列表页面", "AUTH_ADVERTISEMENT_SETTING_LIST_PAGE", "/Advertisement/Setting/List/Page", "GET"),
+	ADVERTISEMENT_SETTING_EDIT_PAGE("广告位配置-编辑页面", "AUTH_ADVERTISEMENT_SETTING_EDIT_PAGE", "/Advertisement/Setting/Edit/Page", "GET"),
+	ADVERTISEMENT_SETTING_LIST("广告位配置-列表请求", "AUTH_ADVERTISEMENT_SETTING_LIST", "/advertisement/list", "POST"),
+	ADVERTISEMENT_SETTING_LOAD("广告位配置-加载请求", "AUTH_ADVERTISEMENT_SETTING_LOAD", "/advertisement/load", "GET"),
+	ADVERTISEMENT_SETTING_FILE_UPLOAD("广告位配置-上传请求", "AUTH_ADVERTISEMENT_SETTING_FILE_UPLOAD", "/advertisement/file/upload", "POST"),
+	ADVERTISEMENT_SETTING_SAVE("广告位配置-保存请求", "AUTH_ADVERTISEMENT_SETTING_SAVE", "/advertisement/save", "POST"),
+	ADVERTISEMENT_SETTING_DELETE("广告位配置-删除请求", "AUTH_ADVERTISEMENT_SETTING_DELETE", "/advertisement/delete", "POST"),
+	ADVERTISEMENT_SETTING_FILE_LOAD("广告位配置-文件请求", "AUTH_ADVERTISEMENT_SETTING_FILE_LOAD", "/advertisement/file/load", "GET"),
 	;
 	
 	private String name;
