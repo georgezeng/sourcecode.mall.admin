@@ -220,6 +220,7 @@ public enum AuthorityDefinitions {
 	SITE_SETTING_PAGE("站点配置-配置页面", "AUTH_SITE_SETTING_PAGE", "/Setting/Site/Page", "GET"),
 	SITE_SETTING_LOAD("站点配置-加载请求", "AUTH_SITE_SETTING_LOAD", "/setting/site/load", "GET"),
 	SITE_SETTING_SAVE("站点配置-保存请求", "AUTH_SITE_SETTING_SAVE", "/setting/site/save", "POST"),
+	SITE_SETTING_UPLOAD("站点配置-上传请求", "AUTH_SITE_SETTING_UPLOAD", "/setting/site/upload", "POST"),
 	;
 	
 	private String name;

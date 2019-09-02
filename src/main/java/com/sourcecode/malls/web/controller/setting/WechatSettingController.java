@@ -10,8 +10,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.sourcecode.malls.WechatInfo;
 import com.sourcecode.malls.dto.base.ResultBean;
 import com.sourcecode.malls.dto.setting.DeveloperSettingDTO;
+import com.sourcecode.malls.service.impl.CacheEvictService;
 import com.sourcecode.malls.service.impl.MerchantSettingService;
-import com.sourcecode.malls.service.impl.WechatService;
 import com.sourcecode.malls.web.controller.base.BaseController;
 
 @RestController
@@ -22,19 +22,19 @@ public class WechatSettingController extends BaseController {
 	private MerchantSettingService settingService;
 	
 	@Autowired
-	private WechatService wechatService;
+	private CacheEvictService cacheEvictService;
 
 	@RequestMapping(path = "/gzh/save")
 	public ResultBean<Void> save(@RequestBody DeveloperSettingDTO setting) {
 		settingService.saveWechatGzh(setting, getRelatedCurrentUser().getId());
-		wechatService.clearWePayConfig(getRelatedCurrentUser().getId());
+		cacheEvictService.clearWePayConfig(getRelatedCurrentUser().getId());
 		return new ResultBean<>();
 	}
 
 	@RequestMapping(path = "/pay/cert/upload")
 	public ResultBean<Void> uploadPayCert(@RequestParam("file") MultipartFile file) throws Exception {
 		settingService.uploadWepayCert(file, getRelatedCurrentUser().getId());
-		wechatService.clearWePayConfig(getRelatedCurrentUser().getId());
+		cacheEvictService.clearWePayConfig(getRelatedCurrentUser().getId());
 		return new ResultBean<>();
 	}
 
