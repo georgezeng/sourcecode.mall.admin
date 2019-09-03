@@ -7,8 +7,6 @@ import java.util.Optional;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.Profiles;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.sourcecode.malls.constants.EnvConstant;
 import com.sourcecode.malls.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.domain.merchant.Merchant;
 import com.sourcecode.malls.domain.merchant.MerchantVerification;
@@ -41,9 +38,6 @@ public class MerchantVerificationController extends BaseController {
 	private MerchantVerificationRepository merchantVerificationRepository;
 
 	private String fileDir = "merchant/verification";
-
-	@Autowired
-	private Environment env;
 
 	@RequestMapping(path = "/load")
 	public ResultBean<MerchantVerificationDTO> load() {
@@ -73,12 +67,7 @@ public class MerchantVerificationController extends BaseController {
 		List<String> tmpPaths = new ArrayList<>();
 		List<String> newPaths = new ArrayList<>();
 		if (verification.getPhoto() != null && verification.getPhoto().startsWith("temp")) {
-			String newPath = fileDir + "/" + user.getId();
-			if (env.acceptsProfiles(Profiles.of(EnvConstant.LOCAL))) {
-				newPath += "/certificate_" + System.currentTimeMillis() + ".png";
-			} else {
-				newPath = "/certificate.png";
-			}
+			String newPath = fileDir + "/" + user.getId() + "/certificate_" + System.currentTimeMillis() + ".png";
 			newPaths.add(newPath);
 			tmpPaths.add(verification.getPhoto());
 			verification.setPhoto(newPath);
