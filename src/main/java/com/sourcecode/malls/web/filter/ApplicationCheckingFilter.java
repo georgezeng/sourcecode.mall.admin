@@ -64,6 +64,7 @@ public class ApplicationCheckingFilter extends GenericFilterBean {
 		}
 		if (!matched) {
 			checkIfApplicationPassed();
+			logger.info(((HttpServletRequest) request).getRequestURI() + ": passed......");
 		}
 		chain.doFilter(request, response);
 	}
