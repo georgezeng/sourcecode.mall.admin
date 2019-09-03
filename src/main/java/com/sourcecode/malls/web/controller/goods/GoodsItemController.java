@@ -101,7 +101,6 @@ public class GoodsItemController extends BaseController {
 
 	@RequestMapping(path = "/save")
 	public ResultBean<Long> save(@RequestBody GoodsItemDTO dto) {
-		checkIfApplicationPassed("信息");
 		if (dto.getId() == null) {
 			dto.setId(0l);
 		}
@@ -223,7 +222,6 @@ public class GoodsItemController extends BaseController {
 	@RequestMapping(path = "/properties/save")
 	public ResultBean<Void> saveProperties(@RequestBody GoodsItemDTO dto) {
 		AssertUtil.assertNotNull(dto.getId(), "商品ID不存在");
-		checkIfApplicationPassed("信息");
 		User user = getRelatedCurrentUser();
 		Optional<GoodsItem> item = itemRepository.findById(dto.getId());
 		AssertUtil.assertTrue(item.isPresent() && item.get().getMerchant().getId().equals(user.getId()), "商品不存在");

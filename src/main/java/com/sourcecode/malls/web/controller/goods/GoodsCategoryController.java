@@ -115,7 +115,6 @@ public class GoodsCategoryController extends BaseController {
 
 	@RequestMapping(path = "/save")
 	public ResultBean<Void> save(@RequestBody GoodsAttributeDTO dto) {
-		checkIfApplicationPassed("分类");
 		GoodsCategory data = new GoodsCategory();
 		User user = getRelatedCurrentUser();
 		if (dto.getId() != null) {

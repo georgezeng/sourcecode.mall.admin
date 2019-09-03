@@ -87,7 +87,6 @@ public class GoodsBrandController extends BaseController {
 
 	@RequestMapping(path = "/save")
 	public ResultBean<Void> save(@RequestBody GoodsBrandDTO dto) {
-		checkIfApplicationPassed("品牌");
 		GoodsBrand data = null;
 		User user = getRelatedCurrentUser();
 		if (dto.getId() != null) {

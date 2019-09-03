@@ -116,7 +116,6 @@ public class GoodsSpecificationDefinitionController extends BaseController {
 
 	@RequestMapping(path = "/save")
 	public ResultBean<GoodsAttributeDTO> save(@RequestBody GoodsAttributeDTO dto) {
-		checkIfApplicationPassed("规格");
 		User user = getRelatedCurrentUser();
 		GoodsSpecificationDefinition data = new GoodsSpecificationDefinition();
 		if (dto.getId() != null) {

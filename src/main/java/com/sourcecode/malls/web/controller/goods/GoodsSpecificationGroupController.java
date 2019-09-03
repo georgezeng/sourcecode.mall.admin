@@ -84,7 +84,6 @@ public class GoodsSpecificationGroupController extends BaseController {
 
 	@RequestMapping(path = "/save")
 	public ResultBean<Void> save(@RequestBody GoodsAttributeDTO dto) {
-		checkIfApplicationPassed("类型");
 		User user = getRelatedCurrentUser();
 		GoodsSpecificationGroup data = new GoodsSpecificationGroup();
 		if (dto.getId() != null) {
