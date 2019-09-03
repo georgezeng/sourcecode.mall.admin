@@ -43,6 +43,7 @@ import com.sourcecode.malls.repository.jpa.impl.goods.GoodsCategoryRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemRankRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemRepository;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
+import com.sourcecode.malls.service.impl.CacheClearer;
 import com.sourcecode.malls.service.impl.CacheEvictService;
 import com.sourcecode.malls.service.impl.goods.GoodsItemPropertyService;
 import com.sourcecode.malls.service.impl.goods.GoodsItemService;
@@ -73,6 +74,9 @@ public class GoodsItemController extends BaseController {
 
 	@Autowired
 	private GoodsItemService itemService;
+
+	@Autowired
+	private CacheClearer clearer;
 
 	@Autowired
 	private CacheEvictService cacheEvictService;
@@ -208,10 +212,10 @@ public class GoodsItemController extends BaseController {
 		}
 		itemRepository.save(data);
 		cacheEvictService.clearGoodsItemLoadOne(data.getId());
-		itemService.clearCouponRelated(data);
-		itemService.clearCategoryRelated(data);
+		clearer.clearCouponRelated(data);
+		clearer.clearCategoryRelated(data);
 		if (tmpPaths.size() > 0) {
-			itemService.clearPosterRelated(data);
+			clearer.clearPosterRelated(data);
 		}
 		return new ResultBean<>(data.getId());
 	}
@@ -256,8 +260,8 @@ public class GoodsItemController extends BaseController {
 				}
 				itemService.save(dataOp.get());
 				cacheEvictService.clearGoodsItemLoadOne(dataOp.get().getId());
-				itemService.clearCouponRelated(dataOp.get());
-				itemService.clearCategoryRelated(dataOp.get());
+				clearer.clearCouponRelated(dataOp.get());
+				clearer.clearCategoryRelated(dataOp.get());
 			}
 		}
 		return new ResultBean<>();

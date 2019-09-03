@@ -38,7 +38,7 @@ import com.sourcecode.malls.repository.jpa.impl.order.OrderRepository;
 import com.sourcecode.malls.repository.jpa.impl.order.SubOrderRepository;
 import com.sourcecode.malls.service.base.BaseService;
 import com.sourcecode.malls.service.impl.AlipayService;
-import com.sourcecode.malls.service.impl.CacheEvictService;
+import com.sourcecode.malls.service.impl.CacheClearer;
 import com.sourcecode.malls.service.impl.WechatService;
 import com.sourcecode.malls.util.AssertUtil;
 
@@ -59,7 +59,7 @@ public class OrderService implements BaseService {
 	protected EntityManager em;
 
 	@Autowired
-	private CacheEvictService cacheEvictService;
+	private CacheClearer clearer;
 
 	@Autowired
 	private WechatService wechatService;
@@ -133,7 +133,7 @@ public class OrderService implements BaseService {
 			order.setStatus(OrderStatus.Shipped);
 			order.setSentTime(new Date());
 			orderRepository.save(order);
-			cacheEvictService.clearClientOrders(order.getClient().getId());
+			clearer.clearClientOrders(order.getClient());
 		}
 		if (!CollectionUtils.isEmpty(order.getExpressList())) {
 			expressRepository.deleteAll(order.getExpressList());
@@ -188,7 +188,7 @@ public class OrderService implements BaseService {
 		order.setStatus(OrderStatus.Refunded);
 		order.setRefundTime(new Date());
 		orderRepository.save(order);
-		cacheEvictService.clearClientOrders(order.getClient().getId());
+		clearer.clearClientOrders(order.getClient());
 	}
 
 }
