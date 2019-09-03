@@ -208,8 +208,11 @@ public class GoodsItemController extends BaseController {
 		}
 		itemRepository.save(data);
 		cacheEvictService.clearGoodsItemLoadOne(data.getId());
-		cacheEvictService.clearGoodsItemSharePosters();
-		cacheEvictService.clearAllGoodsItemList();
+		itemService.clearCouponRelated(data);
+		itemService.clearCategoryRelated(data);
+		if (tmpPaths.size() > 0) {
+			itemService.clearPosterRelated(data);
+		}
 		return new ResultBean<>(data.getId());
 	}
 
@@ -222,7 +225,6 @@ public class GoodsItemController extends BaseController {
 		AssertUtil.assertTrue(item.isPresent() && item.get().getMerchant().getId().equals(user.getId()), "商品不存在");
 		propertyService.save(item.get(), dto.getProperties());
 		cacheEvictService.clearGoodsItemLoadOne(dto.getId());
-		cacheEvictService.clearAllGoodsItemList();
 		return new ResultBean<>();
 	}
 
@@ -235,10 +237,8 @@ public class GoodsItemController extends BaseController {
 			Optional<GoodsItem> dataOp = itemService.findById(id);
 			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(user.getId())) {
 				itemService.delete(dataOp.get());
-				cacheEvictService.clearGoodsItemLoadOne(id);
 			}
 		}
-		cacheEvictService.clearAllGoodsItemList();
 		return new ResultBean<>();
 	}
 
@@ -255,10 +255,11 @@ public class GoodsItemController extends BaseController {
 					dataOp.get().setPutTime(new Date());
 				}
 				itemService.save(dataOp.get());
-				cacheEvictService.clearGoodsItemLoadOne(id);
+				cacheEvictService.clearGoodsItemLoadOne(dataOp.get().getId());
+				itemService.clearCouponRelated(dataOp.get());
+				itemService.clearCategoryRelated(dataOp.get());
 			}
 		}
-		cacheEvictService.clearAllGoodsItemList();
 		return new ResultBean<>();
 	}
 
