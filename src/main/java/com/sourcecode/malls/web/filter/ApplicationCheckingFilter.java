@@ -1,11 +1,9 @@
 package com.sourcecode.malls.web.filter;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -13,7 +11,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.stereotype.Component;
@@ -27,13 +24,17 @@ import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantShopApplication
 import com.sourcecode.malls.util.AssertUtil;
 
 @Component
-@ConfigurationProperties(prefix="merchant.shop.application.passed.url")
+@ConfigurationProperties(prefix = "merchant.shop.application.passed.url")
 public class ApplicationCheckingFilter extends GenericFilterBean {
 
 	@Autowired
 	private MerchantShopApplicationRepository applicationRepository;
 
 	private List<AntPathRequestMatcher> patterns;
+
+	public void setPatterns(List<AntPathRequestMatcher> patterns) {
+		this.patterns = patterns;
+	}
 
 	private User getRelatedCurrentUser() {
 		User user = UserContext.get();
