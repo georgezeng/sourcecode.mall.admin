@@ -24,7 +24,6 @@ import org.springframework.util.StringUtils;
 import com.github.wxpay.sdk.WePayConfig;
 import com.sourcecode.malls.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.domain.aftersale.AfterSaleApplication;
-import com.sourcecode.malls.domain.merchant.Merchant;
 import com.sourcecode.malls.dto.aftersale.AfterSaleApplicationDTO;
 import com.sourcecode.malls.dto.query.PageResult;
 import com.sourcecode.malls.dto.query.QueryInfo;
@@ -32,7 +31,6 @@ import com.sourcecode.malls.enums.AfterSaleStatus;
 import com.sourcecode.malls.enums.AfterSaleType;
 import com.sourcecode.malls.exception.BusinessException;
 import com.sourcecode.malls.repository.jpa.impl.aftersale.AfterSaleApplicationRepository;
-import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
 import com.sourcecode.malls.service.base.BaseService;
 import com.sourcecode.malls.service.impl.AlipayService;
 import com.sourcecode.malls.service.impl.CacheEvictService;
@@ -46,9 +44,6 @@ public class AfterSaleService implements BaseService {
 
 	@Autowired
 	private AfterSaleApplicationRepository applicationRepository;
-
-	@Autowired
-	private MerchantRepository merchantRepository;
 
 	@Autowired
 	private WechatService wechatService;
@@ -70,7 +65,6 @@ public class AfterSaleService implements BaseService {
 
 	@Transactional(readOnly = true)
 	public PageResult<AfterSaleApplicationDTO> getList(Long merchantId, QueryInfo<AfterSaleApplicationDTO> queryInfo) {
-		Optional<Merchant> merchant = merchantRepository.findById(merchantId);
 		Specification<AfterSaleApplication> spec = new Specification<AfterSaleApplication>() {
 
 			/**
@@ -82,7 +76,7 @@ public class AfterSaleService implements BaseService {
 			public Predicate toPredicate(Root<AfterSaleApplication> root, CriteriaQuery<?> query,
 					CriteriaBuilder criteriaBuilder) {
 				List<Predicate> predicate = new ArrayList<>();
-				predicate.add(criteriaBuilder.equal(root.get("merchant"), merchant.get()));
+				predicate.add(criteriaBuilder.equal(root.get("merchant"), merchantId));
 				if (queryInfo.getData() != null) {
 					if (queryInfo.getData().getType() != null) {
 						predicate.add(criteriaBuilder.equal(root.get("type"), queryInfo.getData().getType()));

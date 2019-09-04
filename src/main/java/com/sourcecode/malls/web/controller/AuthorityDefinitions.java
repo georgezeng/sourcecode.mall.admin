@@ -230,6 +230,24 @@ public enum AuthorityDefinitions {
 	ADVERTISEMENT_SETTING_SAVE("广告位配置-保存请求", "AUTH_ADVERTISEMENT_SETTING_SAVE", "/advertisement/save", "POST"),
 	ADVERTISEMENT_SETTING_DELETE("广告位配置-删除请求", "AUTH_ADVERTISEMENT_SETTING_DELETE", "/advertisement/delete", "POST"),
 	ADVERTISEMENT_SETTING_FILE_LOAD("广告位配置-文件请求", "AUTH_ADVERTISEMENT_SETTING_FILE_LOAD", "/advertisement/file/load", "GET"),
+	
+	ARTICLE_CATEGORY_LIST_PAGE("文章分类-列表页面", "AUTH_ARTICLE_CATEGORY_LIST_PAGE", "/Article/Category/List/Page", "GET"),
+	ARTICLE_CATEGORY_EDIT_PAGE("文章分类-编辑页面", "AUTH_ARTICLE_CATEGORY_EDIT_PAGE", "/Article/Category/Edit/Page", "GET"),
+	ARTICLE_CATEGORY_LIST("文章分类-列表请求", "AUTH_ARTICLE_CATEGORY_LIST", "/article/category/list", "POST"),
+	ARTICLE_CATEGORY_LIST_ALL("文章分类-所有分类请求", "AUTH_ARTICLE_CATEGORY_LIST_ALL", "/article/category/list/all", "GET"),
+	ARTICLE_CATEGORY_LOAD("文章分类-加载请求", "AUTH_ARTICLE_CATEGORY_LOAD", "/article/category/load", "GET"),
+	ARTICLE_CATEGORY_SAVE("文章分类-保存请求", "AUTH_ARTICLE_CATEGORY_SAVE", "/article/category/save", "POST"),
+	ARTICLE_CATEGORY_DELETE("文章分类-删除请求", "AUTH_ARTICLE_CATEGORY_DELETE", "/article/category/delete", "POST"),
+	
+	ARTICLE_LIST_PAGE("文章管理-列表页面", "AUTH_ARTICLE_LIST_PAGE", "/Article/List/Page", "GET"),
+	ARTICLE_EDIT_PAGE("文章管理-编辑页面", "AUTH_ARTICLE_EDIT_PAGE", "/Article/Edit/Page", "GET"),
+	ARTICLE_LIST("文章管理-列表请求", "AUTH_ARTICLE_LIST", "/article/list", "POST"),
+	ARTICLE_LOAD("文章管理-加载请求", "AUTH_ARTICLE_LOAD", "/article/load", "GET"),
+	ARTICLE_FILE_UPLOAD("文章管理-上传请求", "AUTH_ARTICLE_FILE_UPLOAD", "/article/file/upload", "POST"),
+	ARTICLE_SAVE("文章管理-保存请求", "AUTH_ARTICLE_SAVE", "/article/save", "POST"),
+	ARTICLE_DELETE("文章管理-删除请求", "AUTH_ARTICLE_DELETE", "/article/delete", "POST"),
+	ARTICLE_FILE_LOAD("文章管理-文件请求", "AUTH_ARTICLE_FILE_LOAD", "/article/file/load", "GET"),
+	ARTICLE_CONTENT_IMAGE_UPLOAD("文章管理-内容图片上传请求", "AUTH_ARTICLE_CONTENT_IMAGE_UPLOAD", "/article/content/image/upload", "POST"),
 	;
 	
 	private String name;
