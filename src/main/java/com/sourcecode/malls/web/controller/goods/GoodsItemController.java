@@ -134,14 +134,14 @@ public class GoodsItemController extends BaseController {
 		List<String> tmpPaths = new ArrayList<>();
 		List<String> newPaths = new ArrayList<>();
 		if (dto.getThumbnail() != null && dto.getThumbnail().startsWith("temp")) {
-			String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/thumb_" + System.nanoTime() + ".png";
+			String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/thumb_" + System.currentTimeMillis() + ".png";
 			String tmpPath = dto.getThumbnail();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
 			data.setThumbnail(newPath);
 		}
 		if (dto.getVedioPath() != null && dto.getVedioPath().startsWith("temp")) {
-			String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/vedio_" + System.nanoTime() + ".mp4";
+			String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/vedio_" + System.currentTimeMillis() + ".mp4";
 			String tmpPath = dto.getVedioPath();
 			newPaths.add(newPath);
 			tmpPaths.add(tmpPath);
@@ -163,7 +163,7 @@ public class GoodsItemController extends BaseController {
 				it.remove();
 			} else if (path.startsWith("temp")) {
 				String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/photo/" + (order + 1) + "_"
-						+ System.nanoTime() + ".png";
+						+ System.currentTimeMillis() + ".png";
 				newPaths.add(newPath);
 				tmpPaths.add(path);
 				photo.setPath(newPath);
@@ -182,7 +182,7 @@ public class GoodsItemController extends BaseController {
 				photo.setItem(data);
 				String path = dto.getPhotos().get(i);
 				String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/photo/" + (i + 1) + "_"
-						+ System.nanoTime() + ".png";
+						+ System.currentTimeMillis() + ".png";
 				newPaths.add(newPath);
 				tmpPaths.add(path);
 				photo.setPath(newPath);

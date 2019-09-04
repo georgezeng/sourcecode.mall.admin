@@ -64,7 +64,7 @@ public class CouponController extends BaseController {
 		Long userId = getRelatedCurrentUser().getId();
 		CouponSetting data = service.saveBaseInfo(userId, dto);
 		if (data.getImgPath().startsWith("temp")) {
-			String newPath = fileDir + "/" + userId + "/" + data.getId() + "/" + System.nanoTime() + ".png";
+			String newPath = fileDir + "/" + userId + "/" + data.getId() + "/" + System.currentTimeMillis() + ".png";
 			transfer(true, Arrays.asList(data.getImgPath()), Arrays.asList(newPath));
 			data.setImgPath(newPath);
 		}

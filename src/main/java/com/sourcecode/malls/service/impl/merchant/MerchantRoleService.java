@@ -37,6 +37,37 @@ public class MerchantRoleService {
 		repository.save(role);
 	}
 
+	private void prepareMerchantUserAuthorities(Role role) {
+		for (AuthorityDefinitions definition : AuthorityDefinitions.values()) {
+			if (!definition.isInit()) {
+				prepareAuthority(role, definition);
+			}
+		}
+	}
+
+	public void prepareMerchantInitUserRole() {
+		Optional<Role> roleOp = repository.findByCode(SystemConstant.ROLE_MERCHANT_INIT_USER_CODE);
+		Role role = null;
+		if (!roleOp.isPresent()) {
+			role = new Role();
+			role.setCode(SystemConstant.ROLE_MERCHANT_INIT_USER_CODE);
+			role.setName("商家用户初始角色");
+			repository.save(role);
+		} else {
+			role = roleOp.get();
+		}
+		prepareMerchantInitUserAuthorities(role);
+		repository.save(role);
+	}
+
+	private void prepareMerchantInitUserAuthorities(Role role) {
+		for (AuthorityDefinitions definition : AuthorityDefinitions.values()) {
+			if (definition.isInit()) {
+				prepareAuthority(role, definition);
+			}
+		}
+	}
+
 	private void prepareAuthority(Role role, AuthorityDefinitions definition) {
 		Optional<Authority> authOp = authRepository.findByCode(definition.getCode());
 		Authority auth = null;
@@ -55,12 +86,16 @@ public class MerchantRoleService {
 			auth.setLink(definition.getLink());
 			auth.setMethod(definition.getMethod());
 			authRepository.save(auth);
-		}
-	}
-
-	private void prepareMerchantUserAuthorities(Role role) {
-		for (AuthorityDefinitions definition : AuthorityDefinitions.values()) {
-			prepareAuthority(role, definition);
+			boolean found = false;
+			for (Authority authority : role.getAuthorities()) {
+				if (authority.getName().equals(auth.getName())) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				role.addAuthority(auth);
+			}
 		}
 	}
 

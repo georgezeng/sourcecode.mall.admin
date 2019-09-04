@@ -68,7 +68,7 @@ public class MerchantUserService implements JpaService<Merchant, Long> {
 		merchant.setEnabled(true);
 		merchant.setPassword(pwdEncoder.encode(merchant.getPassword()));
 		userRepository.save(merchant);
-		Optional<Role> role = roleRepository.findByCode(SystemConstant.ROLE_MERCHANT_USER_CODE);
+		Optional<Role> role = roleRepository.findByCode(SystemConstant.ROLE_MERCHANT_INIT_USER_CODE);
 		AssertUtil.assertTrue(role.isPresent(), "商家角色不存在");
 		role.get().addUser(merchant);
 		roleRepository.save(role.get());

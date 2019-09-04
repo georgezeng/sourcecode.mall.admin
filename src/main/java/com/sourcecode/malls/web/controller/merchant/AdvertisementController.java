@@ -57,7 +57,7 @@ public class AdvertisementController extends BaseController {
 		Long userId = getRelatedCurrentUser().getId();
 		AdvertisementSetting data = service.save(userId, dto);
 		if (data.getPath().startsWith("temp")) {
-			String newPath = fileDir + "/" + userId + "/" + data.getId() + "/" + System.nanoTime() + ".png";
+			String newPath = fileDir + "/" + userId + "/" + data.getId() + "/" + System.currentTimeMillis() + ".png";
 			transfer(true, Arrays.asList(data.getPath()), Arrays.asList(newPath));
 			data.setPath(newPath);
 		}

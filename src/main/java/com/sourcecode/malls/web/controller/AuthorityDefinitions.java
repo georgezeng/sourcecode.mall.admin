@@ -58,19 +58,19 @@ public enum AuthorityDefinitions {
 	GOODS_SPECIFICATION_GROUP_SAVE("商品类型-保存请求", "AUTH_GOODS_SPECIFICATION_GROUP_SAVE", "/goods/specification/group/save", "POST"),
 	GOODS_SPECIFICATION_GROUP_DELETE("商品类型-删除请求", "AUTH_GOODS_SPECIFICATION_GROUP_DELETE", "/goods/specification/group/delete", "POST"),
 	
-	MERCHANT_SHOP_APPLICATION_INDEX_PAGE("店铺申请-索引页面", "AUTH_MERCHANT_SHOP_APPLICATION_INDEX_PAGE", "/Merchant/Shop/Application/Index/Page", "GET"),
-	MERCHANT_SHOP_APPLICATION_NOPERMIT_PAGE("店铺申请-禁止页面", "AUTH_MERCHANT_SHOP_APPLICATION_NOPERMIT_PAGE", "/Merchant/Shop/Application/NoPermit/Page", "GET"),
-	MERCHANT_SHOP_APPLICATION_APPLY_PAGE("店铺申请-申请页面", "AUTH_MERCHANT_SHOP_APPLICATION_APPLY_PAGE", "/Merchant/Shop/Application/Apply/Page", "GET"),
-	MERCHANT_SHOP_APPLICATION_COMMIT_SUCCESS_PAGE("店铺申请-提交成功页面", "AUTH_MERCHANT_SHOP_APPLICATION_COMMIT_SUCCESS_PAGE", "/Merchant/ShopApplication/CommitSuccess/Page", "GET"),
-	MERCHANT_SHOP_APPLICATION_PASSED_PAGE("店铺申请-申请通过页面", "AUTH_MERCHANT_SHOP_APPLICATION_PASSED_PAGE", "/Merchant/Shop/Application/Passed/Page", "GET"),
-	MERCHANT_SHOP_APPLICATION_UNPASSED_PAGE("店铺申请-申请不通过页面", "AUTH_MERCHANT_SHOP_APPLICATION_UNPASSED_PAGE", "/Merchant/Shop/Application/UnPassed/Page", "GET"),
-	MERCHANT_SHOP_APPLICATION_DETAIL_PAGE("店铺申请-详情页面", "AUTH_MERCHANT_SHOP_APPLICATION_DETAIL_PAGE", "/Merchant/Shop/Application/Detail/Page", "GET"),
-	MERCHANT_SHOP_APPLICATION_EDIT_PAGE("店铺申请-编辑页面", "AUTH_MERCHANT_SHOP_APPLICATION_EDIT_PAGE", "/Merchant/Shop/Application/Edit/Page", "GET"),
-	MERCHANT_SHOP_APPLICATION_LOAD("店铺申请-加载请求", "AUTH_MERCHANT_SHOP_APPLICATION_LOAD", "/merchant/shop/application/load", "GET"),
-	MERCHANT_SHOP_APPLICATION_APPLY("店铺申请-提交申请请求", "AUTH_MERCHANT_SHOP_APPLICATION_APPLY", "/merchant/shop/application/apply", "POST"),
-	MERCHANT_SHOP_APPLICATION_UPDATE("店铺申请-编辑更新请求", "AUTH_MERCHANT_SHOP_APPLICATION_UPDATE", "/merchant/shop/application/update", "POST"),
-	MERCHANT_SHOP_APPLICATION_FILE_UPLOAD("店铺申请-文件上传请求", "AUTH_MERCHANT_SHOP_APPLICATION_FILE_UPLOAD", "/merchant/shop/application/file/upload", "POST"),
-	MERCHANT_SHOP_APPLICATION_FILE_LOAD("店铺申请-文件读取请求", "AUTH_MERCHANT_SHOP_APPLICATION_FILE_LOAD", "/merchant/shop/application/file/load", "GET"),
+	MERCHANT_SHOP_APPLICATION_INDEX_PAGE("店铺申请-索引页面", "AUTH_MERCHANT_SHOP_APPLICATION_INDEX_PAGE", "/Merchant/Shop/Application/Index/Page", "GET", true),
+	MERCHANT_SHOP_APPLICATION_NOPERMIT_PAGE("店铺申请-禁止页面", "AUTH_MERCHANT_SHOP_APPLICATION_NOPERMIT_PAGE", "/Merchant/Shop/Application/NoPermit/Page", "GET", true),
+	MERCHANT_SHOP_APPLICATION_APPLY_PAGE("店铺申请-申请页面", "AUTH_MERCHANT_SHOP_APPLICATION_APPLY_PAGE", "/Merchant/Shop/Application/Apply/Page", "GET", true),
+	MERCHANT_SHOP_APPLICATION_COMMIT_SUCCESS_PAGE("店铺申请-提交成功页面", "AUTH_MERCHANT_SHOP_APPLICATION_COMMIT_SUCCESS_PAGE", "/Merchant/ShopApplication/CommitSuccess/Page", "GET", true),
+	MERCHANT_SHOP_APPLICATION_PASSED_PAGE("店铺申请-申请通过页面", "AUTH_MERCHANT_SHOP_APPLICATION_PASSED_PAGE", "/Merchant/Shop/Application/Passed/Page", "GET", true),
+	MERCHANT_SHOP_APPLICATION_UNPASSED_PAGE("店铺申请-申请不通过页面", "AUTH_MERCHANT_SHOP_APPLICATION_UNPASSED_PAGE", "/Merchant/Shop/Application/UnPassed/Page", "GET", true),
+	MERCHANT_SHOP_APPLICATION_DETAIL_PAGE("店铺申请-详情页面", "AUTH_MERCHANT_SHOP_APPLICATION_DETAIL_PAGE", "/Merchant/Shop/Application/Detail/Page", "GET", true),
+	MERCHANT_SHOP_APPLICATION_EDIT_PAGE("店铺申请-编辑页面", "AUTH_MERCHANT_SHOP_APPLICATION_EDIT_PAGE", "/Merchant/Shop/Application/Edit/Page", "GET", true),
+	MERCHANT_SHOP_APPLICATION_LOAD("店铺申请-加载请求", "AUTH_MERCHANT_SHOP_APPLICATION_LOAD", "/merchant/shop/application/load", "GET", true),
+	MERCHANT_SHOP_APPLICATION_APPLY("店铺申请-提交申请请求", "AUTH_MERCHANT_SHOP_APPLICATION_APPLY", "/merchant/shop/application/apply", "POST", true),
+	MERCHANT_SHOP_APPLICATION_UPDATE("店铺申请-编辑更新请求", "AUTH_MERCHANT_SHOP_APPLICATION_UPDATE", "/merchant/shop/application/update", "POST", true),
+	MERCHANT_SHOP_APPLICATION_FILE_UPLOAD("店铺申请-文件上传请求", "AUTH_MERCHANT_SHOP_APPLICATION_FILE_UPLOAD", "/merchant/shop/application/file/upload", "POST", true),
+	MERCHANT_SHOP_APPLICATION_FILE_LOAD("店铺申请-文件读取请求", "AUTH_MERCHANT_SHOP_APPLICATION_FILE_LOAD", "/merchant/shop/application/file/load", "GET", true),
 	
 	MERCHANT_SUB_ACCOUNT_LIST_PAGE("子账号-列表页面", "AUTH_MERCHANT_SUB_ACCOUNT_LIST_PAGE", "/Merchant/SubAccount/List/Page", "GET"),
 	MERCHANT_SUB_ACCOUNT_EDIT_PAGE("子账号-编辑页面", "AUTH_MERCHANT_SUB_ACCOUNT_EDIT_PAGE", "/Merchant/SubAccount/Edit/Page", "GET"),
@@ -83,18 +83,18 @@ public enum AuthorityDefinitions {
 	MERCHANT_SUB_ACCOUNT_FILE_UPLOAD("子账号-文件上传请求", "AUTH_MERCHANT_SUB_ACCOUNT_FILE_UPLOAD", "/merchant/subAccount/file/upload", "POST"),
 	MERCHANT_SUB_ACCOUNT_FILE_LOAD("子账号-文件读取请求", "AUTH_MERCHANT_SUB_ACCOUNT_FILE_LOAD", "/merchant/subAccount/file/load", "GET"),
 	
-	MERCHANT_USER_PROFILE_PAGE("商家信息-账户信息页面", "AUTH_MERCHANT_USER_PROFILE_PAGE", "/Merchant/User/Profile/Page", "GET"),
+	MERCHANT_USER_PROFILE_PAGE("商家信息-账户信息页面", "AUTH_MERCHANT_USER_PROFILE_PAGE", "/Merchant/User/Profile/Page", "GET", true),
 	
-	MERCHANT_VERIFICATION_INDEX_PAGE("实名认证-索引页面", "AUTH_MERCHANT_VERIFICATION_INDEX_PAGE", "/Merchant/Verification/Index/Page", "GET"),
-	MERCHANT_VERIFICATION_VERIFY_PAGE("实名认证-申请页面", "AUTH_MERCHANT_VERIFICATION_VERIFY_PAGE", "/Merchant/Verification/Verify/Page", "GET"),
-	MERCHANT_VERIFICATION_COMMIT_SUCCESS_PAGE("实名认证-提交成功页面", "AUTH_MERCHANT_VERIFICATION_COMMIT_SUCCESS_PAGE", "/Merchant/Verification/CommitSuccess/Page", "GET"),
-	MERCHANT_VERIFICATION_UNPASSED_PAGE("实名认证-审核失败页面", "AUTH_MERCHANT_VERIFICATION_UNPASSED_PAGE", "/Merchant/Verification/UnPassed/Page", "GET"),
-	MERCHANT_VERIFICATION_EDIT_PAGE("实名认证-编辑页面", "AUTH_MERCHANT_VERIFICATION_EDIT_PAGE", "/Merchant/Verification/Edit/Page", "GET"),
-	MERCHANT_VERIFICATION_LOAD("实名认证-加载请求", "AUTH_MERCHANT_SVERIFICATION_LOAD", "/merchant/verification/load", "GET"),
-	MERCHANT_VERIFICATION_VERIFY("实名认证-提交申请请求", "AUTH_MERCHANT_VERIFICATION_APPLY", "/merchant/verification/verify", "POST"),
-	MERCHANT_VERIFICATION_UPDATE("实名认证-编辑更新请求", "AUTH_MERCHANT_VERIFICATION_UPDATE", "/merchant/verification/update", "POST"),
-	MERCHANT_VERIFICATION_FILE_UPLOAD("实名认证-文件上传请求", "AUTH_MERCHANT_VERIFICATION_FILE_UPLOAD", "/merchant/verification/file/upload", "POST"),
-	MERCHANT_VERIFICATION_FILE_LOAD("实名认证-文件读取请求", "AUTH_MERCHANT_VERIFICATION_FILE_LOAD", "/merchant/verification/file/load", "GET"),
+	MERCHANT_VERIFICATION_INDEX_PAGE("实名认证-索引页面", "AUTH_MERCHANT_VERIFICATION_INDEX_PAGE", "/Merchant/Verification/Index/Page", "GET", true),
+	MERCHANT_VERIFICATION_VERIFY_PAGE("实名认证-申请页面", "AUTH_MERCHANT_VERIFICATION_VERIFY_PAGE", "/Merchant/Verification/Verify/Page", "GET", true),
+	MERCHANT_VERIFICATION_COMMIT_SUCCESS_PAGE("实名认证-提交成功页面", "AUTH_MERCHANT_VERIFICATION_COMMIT_SUCCESS_PAGE", "/Merchant/Verification/CommitSuccess/Page", "GET", true),
+	MERCHANT_VERIFICATION_UNPASSED_PAGE("实名认证-审核失败页面", "AUTH_MERCHANT_VERIFICATION_UNPASSED_PAGE", "/Merchant/Verification/UnPassed/Page", "GET", true),
+	MERCHANT_VERIFICATION_EDIT_PAGE("实名认证-编辑页面", "AUTH_MERCHANT_VERIFICATION_EDIT_PAGE", "/Merchant/Verification/Edit/Page", "GET", true),
+	MERCHANT_VERIFICATION_LOAD("实名认证-加载请求", "AUTH_MERCHANT_SVERIFICATION_LOAD", "/merchant/verification/load", "GET", true),
+	MERCHANT_VERIFICATION_VERIFY("实名认证-提交申请请求", "AUTH_MERCHANT_VERIFICATION_APPLY", "/merchant/verification/verify", "POST", true),
+	MERCHANT_VERIFICATION_UPDATE("实名认证-编辑更新请求", "AUTH_MERCHANT_VERIFICATION_UPDATE", "/merchant/verification/update", "POST", true),
+	MERCHANT_VERIFICATION_FILE_UPLOAD("实名认证-文件上传请求", "AUTH_MERCHANT_VERIFICATION_FILE_UPLOAD", "/merchant/verification/file/upload", "POST", true),
+	MERCHANT_VERIFICATION_FILE_LOAD("实名认证-文件读取请求", "AUTH_MERCHANT_VERIFICATION_FILE_LOAD", "/merchant/verification/file/load", "GET", true),
 	
 	WECHAT_SETTING_PAGE("微信配置-配置页面", "AUTH_WECHAT_SETTING_PAGE", "/Setting/Wechat/Page", "GET"),
 	WECHAT_SETTING_LOAD_GZH("微信配置-加载请求", "AUTH_WECHAT_SETTING_LOAD_GZH", "/setting/wechat/gzh/load", "GET"),
@@ -236,14 +236,24 @@ public enum AuthorityDefinitions {
 	private String code;
 	private String link;
 	private String method;
+	private boolean init;
 
 	private AuthorityDefinitions(String name, String code, String link, String method) {
+		this(name, code, link, method, false);
+	}
+	
+	private AuthorityDefinitions(String name, String code, String link, String method, boolean init) {
 		this.name = name;
 		this.code = code;
 		this.link = link;
 		this.method = method;
+		this.init = init;
 	}
 	
+	public boolean isInit() {
+		return init;
+	}
+
 	public String getName() {
 		return name;
 	}

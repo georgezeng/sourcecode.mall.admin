@@ -15,5 +15,6 @@ public class MerchantUserRoleInitializer {
 	@PostConstruct
 	public void init() {
 		service.prepareMerchantUserRole();
+		service.prepareMerchantInitUserRole();
 	}
 }
