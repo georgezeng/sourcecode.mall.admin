@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import com.sourcecode.malls.constants.SystemConstant;
 import com.sourcecode.malls.domain.system.Authority;
@@ -87,10 +88,12 @@ public class MerchantRoleService {
 			auth.setMethod(definition.getMethod());
 			authRepository.save(auth);
 			boolean found = false;
-			for (Authority authority : role.getAuthorities()) {
-				if (authority.getName().equals(auth.getName())) {
-					found = true;
-					break;
+			if (!CollectionUtils.isEmpty(role.getAuthorities())) {
+				for (Authority authority : role.getAuthorities()) {
+					if (authority.getName().equals(auth.getName())) {
+						found = true;
+						break;
+					}
 				}
 			}
 			if (!found) {
