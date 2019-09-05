@@ -133,7 +133,7 @@ public class OrderService implements BaseService {
 			order.setStatus(OrderStatus.Shipped);
 			order.setSentTime(new Date());
 			orderRepository.save(order);
-			clearer.clearClientOrders(order.getClient());
+			clearer.clearClientOrders(order);
 		}
 		if (!CollectionUtils.isEmpty(order.getExpressList())) {
 			expressRepository.deleteAll(order.getExpressList());
@@ -188,7 +188,7 @@ public class OrderService implements BaseService {
 		order.setStatus(OrderStatus.Refunded);
 		order.setRefundTime(new Date());
 		orderRepository.save(order);
-		clearer.clearClientOrders(order.getClient());
+		clearer.clearClientOrders(order);
 	}
 
 }

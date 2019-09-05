@@ -248,6 +248,10 @@ public enum AuthorityDefinitions {
 	ARTICLE_DELETE("文章管理-删除请求", "AUTH_ARTICLE_DELETE", "/article/delete", "POST"),
 	ARTICLE_FILE_LOAD("文章管理-文件请求", "AUTH_ARTICLE_FILE_LOAD", "/article/file/load", "GET"),
 	ARTICLE_CONTENT_IMAGE_UPLOAD("文章管理-内容图片上传请求", "AUTH_ARTICLE_CONTENT_IMAGE_UPLOAD", "/article/content/image/upload", "POST"),
+	
+	CLIENT_POINTS_SETTING_PAGE("积分奖励-配置页面", "AUTH_CLIENT_POINTS_SETTING_PAGE", "/Setting/ClientPoints/Page", "GET"),
+	CLIENT_POINTS_SETTING_LOAD("积分奖励-加载请求", "AUTH_CLIENT_POINTS_SETTING_LOAD", "/setting/clientPoints/load", "GET"),
+	CLIENT_POINTS_SETTING_SAVE("积分奖励-保存请求", "AUTH_CLIENT_POINTS_SETTING_SAVE", "/setting/clientPoints/save", "POST"),
 	;
 	
 	private String name;
