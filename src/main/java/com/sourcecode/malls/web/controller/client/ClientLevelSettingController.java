@@ -1,11 +1,19 @@
 package com.sourcecode.malls.web.controller.client;
 
+import java.io.IOException;
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.sourcecode.malls.domain.client.ClientLevelSetting;
 import com.sourcecode.malls.domain.system.User;
 import com.sourcecode.malls.dto.base.ResultBean;
 import com.sourcecode.malls.dto.client.ClientLevelSettingDTO;
@@ -19,6 +27,8 @@ public class ClientLevelSettingController extends BaseController {
 
 	@Autowired
 	private ClientService clientService;
+
+	private String fileDir = "merchant/client/level";
 
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<ClientLevelSettingDTO>> list() {
@@ -35,7 +45,10 @@ public class ClientLevelSettingController extends BaseController {
 	@RequestMapping(path = "/save")
 	public ResultBean<Void> save(@RequestBody ClientLevelSettingDTO dto) {
 		User user = getRelatedCurrentUser();
-		clientService.save(user.getId(), dto);
+		ClientLevelSetting data = clientService.save(user.getId(), dto);
+		if (dto.getImgPath().startsWith("temp")) {
+			transfer(true, Arrays.asList(dto.getImgPath()), Arrays.asList(data.getImgPath()));
+		}
 		return new ResultBean<>();
 	}
 
@@ -46,4 +59,13 @@ public class ClientLevelSettingController extends BaseController {
 		return new ResultBean<>();
 	}
 
+	@RequestMapping(value = "/file/upload/params/{id}")
+	public ResultBean<String> settingUpload(@RequestParam("file") MultipartFile file, @PathVariable Long id) throws IOException {
+		return upload(file, fileDir, id, getRelatedCurrentUser().getId(), false);
+	}
+
+	@RequestMapping(value = "/file/load", produces = { MediaType.IMAGE_PNG_VALUE, MediaType.APPLICATION_OCTET_STREAM_VALUE })
+	public Resource load(@RequestParam String filePath) {
+		return load(getRelatedCurrentUser().getId(), filePath, fileDir, false);
+	}
 }

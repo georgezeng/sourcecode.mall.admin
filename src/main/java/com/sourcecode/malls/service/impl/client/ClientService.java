@@ -73,12 +73,14 @@ public class ClientService implements JpaService<Client, Long> {
 
 	@Autowired
 	private MerchantRepository merchantRepository;
-	
+
 	@Autowired
 	private CacheEvictService cacheEvictService;
 
 	@Autowired
 	private EntityManager em;
+
+	private String fileDir = "merchant/client/level";
 
 	@Override
 	public JpaRepository<Client, Long> getRepository() {
@@ -107,17 +109,14 @@ public class ClientService implements JpaService<Client, Long> {
 					String searchText = queryInfo.getData().getSearchText();
 					if (!StringUtils.isEmpty(searchText)) {
 						String like = "%" + searchText + "%";
-						predicate.add(
-								criteriaBuilder.or(criteriaBuilder.like(root.get("username").as(String.class), like),
-										criteriaBuilder.like(root.get("nickname").as(String.class), like)));
+						predicate.add(criteriaBuilder.or(criteriaBuilder.like(root.get("username").as(String.class), like),
+								criteriaBuilder.like(root.get("nickname").as(String.class), like)));
 					}
 					if (!"all".equals(data.getStatusText())) {
-						predicate
-								.add(criteriaBuilder.equal(root.get("enabled"), Boolean.valueOf(data.getStatusText())));
+						predicate.add(criteriaBuilder.equal(root.get("enabled"), Boolean.valueOf(data.getStatusText())));
 					}
 					if (queryInfo.getData().getStartTime() != null) {
-						predicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createTime"),
-								queryInfo.getData().getStartTime()));
+						predicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createTime"), queryInfo.getData().getStartTime()));
 					}
 					if (queryInfo.getData().getEndTime() != null) {
 						Calendar c = Calendar.getInstance();
@@ -146,8 +145,7 @@ public class ClientService implements JpaService<Client, Long> {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public Predicate toPredicate(Root<ClientPoints> root, CriteriaQuery<?> query,
-					CriteriaBuilder criteriaBuilder) {
+			public Predicate toPredicate(Root<ClientPoints> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
 				List<Predicate> predicate = new ArrayList<>();
 				Join<ClientPoints, Client> join = root.join("client");
 				predicate.add(criteriaBuilder.equal(join.get("merchant"), merchantId));
@@ -178,8 +176,7 @@ public class ClientService implements JpaService<Client, Long> {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public Predicate toPredicate(Root<ClientPointsJournal> root, CriteriaQuery<?> query,
-					CriteriaBuilder criteriaBuilder) {
+			public Predicate toPredicate(Root<ClientPointsJournal> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
 				List<Predicate> predicate = new ArrayList<>();
 				predicate.add(criteriaBuilder.equal(root.get("client"), client.get()));
 				if (queryInfo.getData() != null) {
@@ -188,8 +185,7 @@ public class ClientService implements JpaService<Client, Long> {
 						predicate.add(criteriaBuilder.like(root.get("orderId"), like));
 					}
 					if (queryInfo.getData().getStartTime() != null) {
-						predicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createTime"),
-								queryInfo.getData().getStartTime()));
+						predicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createTime"), queryInfo.getData().getStartTime()));
 					}
 					if (queryInfo.getData().getEndTime() != null) {
 						Calendar c = Calendar.getInstance();
@@ -199,8 +195,7 @@ public class ClientService implements JpaService<Client, Long> {
 					}
 					if (!StringUtils.isEmpty(queryInfo.getData().getStatusText())) {
 						if (!"all".equalsIgnoreCase(queryInfo.getData().getStatusText())) {
-							predicate.add(criteriaBuilder.equal(root.get("balanceType"),
-									BalanceType.valueOf(queryInfo.getData().getStatusText())));
+							predicate.add(criteriaBuilder.equal(root.get("balanceType"), BalanceType.valueOf(queryInfo.getData().getStatusText())));
 						}
 					}
 					return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
@@ -236,8 +231,8 @@ public class ClientService implements JpaService<Client, Long> {
 	public PageResult<ClientLevelSettingDTO> findAllLevelSetting(Long merchantId) {
 		Optional<Merchant> merchant = merchantRepository.findById(merchantId);
 		AssertUtil.assertTrue(merchant.isPresent(), "商家不存在");
-		List<ClientLevelSettingDTO> list = settingRepository.findAllByMerchantOrderByLevelAsc(merchant.get()).stream()
-				.map(it -> it.asDTO()).collect(Collectors.toList());
+		List<ClientLevelSettingDTO> list = settingRepository.findAllByMerchantOrderByLevelAsc(merchant.get()).stream().map(it -> it.asDTO())
+				.collect(Collectors.toList());
 		if (!CollectionUtils.isEmpty(list)) {
 			for (int i = list.size() - 1; i > -1; i--) {
 				ClientLevelSettingDTO dto = list.get(i);
@@ -256,15 +251,14 @@ public class ClientService implements JpaService<Client, Long> {
 	public ClientLevelSettingDTO loadLevelSetting(Long merchantId, Long id) {
 		Optional<ClientLevelSetting> dataOp = settingRepository.findById(id);
 		if (dataOp.isPresent()) {
-			AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(merchantId),
-					ExceptionMessageConstant.NO_SUCH_RECORD);
+			AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(merchantId), ExceptionMessageConstant.NO_SUCH_RECORD);
 			;
 			return dataOp.get().asDTO();
 		}
 		return null;
 	}
 
-	public void save(Long merchantId, ClientLevelSettingDTO dto) {
+	public ClientLevelSetting save(Long merchantId, ClientLevelSettingDTO dto) {
 		ClientLevelSetting data = null;
 		if (dto.getId() == null) {
 			data = new ClientLevelSetting();
@@ -283,15 +277,19 @@ public class ClientService implements JpaService<Client, Long> {
 		AssertUtil.assertNotNull(dto.getDiscountInActivity(), "活动日折扣不能为空");
 		BeanUtils.copyProperties(dto, data, "id", "merchant");
 		settingRepository.save(data);
+		if (dto.getImgPath().startsWith("temp")) {
+			String newPath = fileDir + "/" + merchantId + "/" + data.getId() + "/" + System.currentTimeMillis() + ".png";
+			data.setImgPath(newPath);
+			settingRepository.save(data);
+		}
+		return data;
 	}
 
 	public void clearLevelSetting(Long merchantId, Long id) {
 		Optional<ClientLevelSetting> settingOp = settingRepository.findById(id);
-		AssertUtil.assertTrue(settingOp.isPresent() && settingOp.get().getMerchant().getId().equals(merchantId),
-				ExceptionMessageConstant.NO_SUCH_RECORD);
+		AssertUtil.assertTrue(settingOp.isPresent() && settingOp.get().getMerchant().getId().equals(merchantId), ExceptionMessageConstant.NO_SUCH_RECORD);
 		ClientLevelSetting setting = settingOp.get();
-		Optional<ClientLevelSetting> topSetting = settingRepository
-				.findFirstByMerchantAndNameNotNullOrderByLevelDesc(setting.getMerchant());
+		Optional<ClientLevelSetting> topSetting = settingRepository.findFirstByMerchantAndNameNotNullOrderByLevelDesc(setting.getMerchant());
 		AssertUtil.assertTrue(topSetting.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
 		AssertUtil.assertTrue(topSetting.get().getId().equals(setting.getId()), "只能清除最高级");
 		AssertUtil.assertTrue(setting.getLevel() > 0, "不能清除最低级");
@@ -312,8 +310,7 @@ public class ClientService implements JpaService<Client, Long> {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public Predicate toPredicate(Root<ClientActivityEvent> root, CriteriaQuery<?> query,
-					CriteriaBuilder criteriaBuilder) {
+			public Predicate toPredicate(Root<ClientActivityEvent> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
 				List<Predicate> predicate = new ArrayList<>();
 				predicate.add(criteriaBuilder.equal(root.get("merchant"), merchantId));
 				predicate.add(criteriaBuilder.equal(root.get("deleted"), false));
@@ -323,8 +320,7 @@ public class ClientService implements JpaService<Client, Long> {
 						predicate.add(criteriaBuilder.like(root.get("name"), like));
 					}
 					if (queryInfo.getData().getStartTime() != null) {
-						predicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createTime"),
-								queryInfo.getData().getStartTime()));
+						predicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createTime"), queryInfo.getData().getStartTime()));
 					}
 					if (queryInfo.getData().getEndTime() != null) {
 						Calendar c = Calendar.getInstance();
@@ -340,9 +336,8 @@ public class ClientService implements JpaService<Client, Long> {
 						}
 							break;
 						case "In": {
-							predicate.add(
-									criteriaBuilder.or(criteriaBuilder.greaterThanOrEqualTo(root.get("startTime"), now),
-											criteriaBuilder.lessThanOrEqualTo(root.get("endTime"), now)));
+							predicate.add(criteriaBuilder.or(criteriaBuilder.greaterThanOrEqualTo(root.get("startTime"), now),
+									criteriaBuilder.lessThanOrEqualTo(root.get("endTime"), now)));
 						}
 							break;
 						case "UnStarted": {
@@ -361,14 +356,12 @@ public class ClientService implements JpaService<Client, Long> {
 			}
 		};
 		pageResult = activityRepository.findAll(spec, queryInfo.getPage().pageable());
-		return new PageResult<>(pageResult.get().map(it -> it.asDTO()).collect(Collectors.toList()),
-				pageResult.getTotalElements());
+		return new PageResult<>(pageResult.get().map(it -> it.asDTO()).collect(Collectors.toList()), pageResult.getTotalElements());
 	}
 
 	public ClientActivityEventDTO loadActivityEvent(Long merchantId, Long id) {
 		Optional<ClientActivityEvent> data = activityRepository.findById(id);
-		AssertUtil.assertTrue(
-				data.isPresent() && !data.get().isDeleted() && data.get().getMerchant().getId().equals(merchantId),
+		AssertUtil.assertTrue(data.isPresent() && !data.get().isDeleted() && data.get().getMerchant().getId().equals(merchantId),
 				ExceptionMessageConstant.NO_SUCH_RECORD);
 		return data.get().asDTO();
 	}
@@ -378,8 +371,7 @@ public class ClientService implements JpaService<Client, Long> {
 			Date now = new Date();
 			for (Long id : ids) {
 				Optional<ClientActivityEvent> dataOp = activityRepository.findById(id);
-				if (dataOp.isPresent() && !dataOp.get().isDeleted()
-						&& dataOp.get().getMerchant().getId().equals(merchantId)) {
+				if (dataOp.isPresent() && !dataOp.get().isDeleted() && dataOp.get().getMerchant().getId().equals(merchantId)) {
 					ClientActivityEvent data = dataOp.get();
 					if (data.getStartTime().after(now)) {
 						activityRepository.delete(data);
@@ -397,9 +389,7 @@ public class ClientService implements JpaService<Client, Long> {
 
 	public void triggerPauseActivityEvent(Long merchantId, Long id, boolean paused) {
 		Optional<ClientActivityEvent> dataOp = activityRepository.findById(id);
-		AssertUtil.assertTrue(
-				dataOp.isPresent() && !dataOp.get().isDeleted()
-						&& dataOp.get().getMerchant().getId().equals(merchantId),
+		AssertUtil.assertTrue(dataOp.isPresent() && !dataOp.get().isDeleted() && dataOp.get().getMerchant().getId().equals(merchantId),
 				ExceptionMessageConstant.NO_SUCH_RECORD);
 		ClientActivityEvent data = dataOp.get();
 		Date now = new Date();
@@ -414,9 +404,7 @@ public class ClientService implements JpaService<Client, Long> {
 		Date now = new Date();
 		AssertUtil.assertTrue(dto.getStartTime() != null && dto.getStartTime().after(now), "开始时间必须大于当前时间");
 		AssertUtil.assertTrue(dto.getEndTime() != null && dto.getEndTime().after(now), "结束时间必须大于当前时间");
-		AssertUtil.assertTrue(
-				dto.getStartTime() != null && dto.getEndTime() != null && dto.getEndTime().after(dto.getStartTime()),
-				"结束时间必须大于开始时间");
+		AssertUtil.assertTrue(dto.getStartTime() != null && dto.getEndTime() != null && dto.getEndTime().after(dto.getStartTime()), "结束时间必须大于开始时间");
 		ClientActivityEvent data = null;
 		if (dto.getId() != null) {
 			Optional<ClientActivityEvent> dataOp = activityRepository.findById(dto.getId());

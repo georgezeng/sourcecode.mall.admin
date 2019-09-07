@@ -208,6 +208,8 @@ public enum AuthorityDefinitions {
 	CLIENT_LEVEL_SETTING_LOAD("会员等级-加载请求", "AUTH_CLIENT_LEVEL_SETTING_LOAD", "/client/level/setting/load", "GET"),
 	CLIENT_LEVEL_SETTING_SAVE("会员等级-保存请求", "AUTH_CLIENT_LEVEL_SETTING_SAVE", "/client/level/setting/save", "POST"),
 	CLIENT_LEVEL_SETTING_CLEAR("会员等级-清除请求", "AUTH_CLIENT_LEVEL_SETTING_CLEAR", "/client/level/setting/clear", "GET"),
+	CLIENT_LEVEL_SETTING_FILE_UPLOAD("会员等级-上传请求", "AUTH_CLIENT_LEVEL_SETTING_FILE_UPLOAD", "/client/level/setting/file/upload", "POST"),
+	CLIENT_LEVEL_SETTING_FILE_LOAD("会员等级-文件请求", "AUTH_CLIENT_LEVEL_SETTING_FILE_LOAD", "/client/level/setting/file/load", "GET"),
 	
 	CLIENT_ACTIVITY_EVENT_LIST_PAGE("活动日配置-列表页面", "AUTH_CLIENT_ACTIVITY_EVENT_LIST_PAGE", "/Client/ActivityEvent/List/Page", "GET"),
 	CLIENT_ACTIVITY_EVENT_EDIT_PAGE("活动日配置-编辑页面", "AUTH_CLIENT_ACTIVITY_EVENT_EDIT_PAGE", "/Client/ActivityEvent/Edit/Page", "GET"),
