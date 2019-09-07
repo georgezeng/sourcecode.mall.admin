@@ -215,7 +215,7 @@ public enum AuthorityDefinitions {
 	CLIENT_ACTIVITY_EVENT_LOAD("活动日配置-加载请求", "AUTH_CLIENT_ACTIVITY_EVENT_LOAD", "/client/activityEvent/load", "GET"),
 	CLIENT_ACTIVITY_EVENT_SAVE("活动日配置-保存请求", "AUTH_CLIENT_ACTIVITY_EVENT_SAVE", "/client/activityEvent/save", "POST"),
 	CLIENT_ACTIVITY_EVENT_TRIGGER("活动日配置-中止/重启请求", "AUTH_CLIENT_ACTIVITY_EVENT_TRIGGER", "/client/activityEvent/trigger", "GET"),
-	CLIENT_ACTIVITY_EVENT_DELETE("活动日配置-删除请求", "AUTH_CLIENT_ACTIVITY_EVENT_CLEAR", "/client/activityEvent/clear", "POST"),
+	CLIENT_ACTIVITY_EVENT_DELETE("活动日配置-删除请求", "AUTH_CLIENT_ACTIVITY_EVENT_DELETE", "/client/activityEvent/delete", "POST"),
 	
 	SITE_SETTING_PAGE("站点配置-配置页面", "AUTH_SITE_SETTING_PAGE", "/Setting/Site/Page", "GET"),
 	SITE_SETTING_LOAD("站点配置-加载请求", "AUTH_SITE_SETTING_LOAD", "/setting/site/load", "GET"),

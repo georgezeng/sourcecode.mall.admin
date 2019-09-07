@@ -316,6 +316,7 @@ public class ClientService implements JpaService<Client, Long> {
 					CriteriaBuilder criteriaBuilder) {
 				List<Predicate> predicate = new ArrayList<>();
 				predicate.add(criteriaBuilder.equal(root.get("merchant"), merchantId));
+				predicate.add(criteriaBuilder.equal(root.get("deleted"), false));
 				if (queryInfo.getData() != null) {
 					if (!StringUtils.isEmpty(queryInfo.getData().getSearchText())) {
 						String like = "%" + queryInfo.getData().getSearchText() + "%";
@@ -334,21 +335,21 @@ public class ClientService implements JpaService<Client, Long> {
 					if (!StringUtils.isEmpty(queryInfo.getData().getStatusText())) {
 						Date now = new Date();
 						switch (queryInfo.getData().getStatusText()) {
-						case "paused": {
+						case "Paused": {
 							predicate.add(criteriaBuilder.equal(root.get("paused"), true));
 						}
 							break;
-						case "in": {
+						case "In": {
 							predicate.add(
 									criteriaBuilder.or(criteriaBuilder.greaterThanOrEqualTo(root.get("startTime"), now),
 											criteriaBuilder.lessThanOrEqualTo(root.get("endTime"), now)));
 						}
 							break;
-						case "unstarted": {
+						case "UnStarted": {
 							predicate.add(criteriaBuilder.lessThan(root.get("startTime"), now));
 						}
 							break;
-						case "stopped": {
+						case "Stopped": {
 							predicate.add(criteriaBuilder.greaterThan(root.get("endTime"), now));
 						}
 							break;
@@ -382,7 +383,7 @@ public class ClientService implements JpaService<Client, Long> {
 					ClientActivityEvent data = dataOp.get();
 					if (data.getStartTime().after(now)) {
 						activityRepository.delete(data);
-					} else if (!now.after(data.getEndTime())) {
+					} else if (data.getEndTime().before(now)) {
 						data.setDeleted(true);
 						activityRepository.save(data);
 					} else {
