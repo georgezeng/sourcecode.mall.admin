@@ -180,7 +180,7 @@ public class ArticleService implements BaseService {
 		}
 		BeanUtils.copyProperties(dto, data, "id");
 		categoryRepository.save(data);
-		clearer.clearArticle(data);
+		clearer.clearArticleCategory(data);
 		return data;
 	}
 
@@ -228,7 +228,7 @@ public class ArticleService implements BaseService {
 				if (it.getMerchant().getId().equals(merchantId)) {
 					AssertUtil.assertTrue(repository.countByCategory(it) == 0, "分类" + it.getName() + "底下有文章，请先删除所有文章");
 					categoryRepository.delete(it);
-					clearer.clearArticle(it);
+					clearer.clearArticleCategory(it);
 				}
 			});
 		}
