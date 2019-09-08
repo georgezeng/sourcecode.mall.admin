@@ -53,10 +53,10 @@ public class AfterSaleService implements BaseService {
 
 	@Autowired
 	private ClientBonusService bonusService;
-	
+
 	@Autowired
 	private CacheEvictService cacheEvictService;
-	
+
 //	@Autowired
 //	private GoodsItemRankRepository rankRepository;
 
@@ -73,8 +73,7 @@ public class AfterSaleService implements BaseService {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public Predicate toPredicate(Root<AfterSaleApplication> root, CriteriaQuery<?> query,
-					CriteriaBuilder criteriaBuilder) {
+			public Predicate toPredicate(Root<AfterSaleApplication> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
 				List<Predicate> predicate = new ArrayList<>();
 				predicate.add(criteriaBuilder.equal(root.get("merchant"), merchantId));
 				if (queryInfo.getData() != null) {
@@ -88,13 +87,11 @@ public class AfterSaleService implements BaseService {
 					}
 					if (!StringUtils.isEmpty(queryInfo.getData().getStatusText())) {
 						if (!"all".equals(queryInfo.getData().getStatusText())) {
-							predicate.add(criteriaBuilder.equal(root.get("status"),
-									AfterSaleStatus.valueOf(queryInfo.getData().getStatusText())));
+							predicate.add(criteriaBuilder.equal(root.get("status"), AfterSaleStatus.valueOf(queryInfo.getData().getStatusText())));
 						}
 					}
 					if (queryInfo.getData().getStartTime() != null) {
-						predicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createTime"),
-								queryInfo.getData().getStartTime()));
+						predicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createTime"), queryInfo.getData().getStartTime()));
 					}
 					if (queryInfo.getData().getEndTime() != null) {
 						Calendar c = Calendar.getInstance();
@@ -107,15 +104,13 @@ public class AfterSaleService implements BaseService {
 			}
 		};
 		Page<AfterSaleApplication> result = applicationRepository.findAll(spec, queryInfo.getPage().pageable());
-		return new PageResult<>(result.get().map(it -> it.asDTO()).collect(Collectors.toList()),
-				result.getTotalElements());
+		return new PageResult<>(result.get().map(it -> it.asDTO()).collect(Collectors.toList()), result.getTotalElements());
 	}
 
 	@Transactional(readOnly = true)
 	public AfterSaleApplication load(Long merchantId, Long id) {
 		Optional<AfterSaleApplication> data = applicationRepository.findById(id);
-		AssertUtil.assertTrue(data.isPresent() && data.get().getMerchant().getId().equals(merchantId),
-				ExceptionMessageConstant.NO_SUCH_RECORD);
+		AssertUtil.assertTrue(data.isPresent() && data.get().getMerchant().getId().equals(merchantId), ExceptionMessageConstant.NO_SUCH_RECORD);
 		return data.get();
 	}
 
@@ -123,29 +118,26 @@ public class AfterSaleService implements BaseService {
 		AfterSaleApplication data = load(merchantId, dto.getId());
 		AssertUtil.assertTrue(AfterSaleStatus.WaitForRefund.equals(data.getStatus()), "状态有误，不能对该申请记录进行退款操作");
 		AssertUtil.assertTrue(!AfterSaleType.Change.equals(data.getType()), "该记录不能进行退款操作");
-		AssertUtil.assertTrue(dto.getNums() > 0 && dto.getNums() <= data.getSubOrder().getNums(),
-				"数量必须在1-" + data.getSubOrder().getNums() + "之间");
-		AssertUtil.assertTrue(
-				dto.getAmount() != null && dto.getAmount().compareTo(BigDecimal.ZERO) > 0
-						&& dto.getAmount().compareTo(data.getSubOrder().getDealPrice()) <= 0,
-				"金额必须在0.01-" + data.getSubOrder().getDealPrice() + "之间");
+		AssertUtil.assertTrue(dto.getNums() > 0 && dto.getNums() <= data.getSubOrder().getNums(), "数量必须在1-" + data.getSubOrder().getNums() + "之间");
+		AssertUtil.assertTrue(dto.getAmount() != null && dto.getAmount().compareTo(BigDecimal.ZERO) > 0
+				&& dto.getAmount().compareTo(data.getSubOrder().getDealPrice()) <= 0, "金额必须在0.01-" + data.getSubOrder().getDealPrice() + "之间");
 		data.setStatus(AfterSaleStatus.Finished);
 		data.setRefundTime(new Date());
 		data.setNums(dto.getNums());
 		data.setAmount(dto.getAmount());
 		data.setRemark(dto.getRemark());
 		applicationRepository.save(data);
-		bonusService.removeConsumeBonus(data.getOrder());
+		bonusService.removeConsumeBonus(data);
 		switch (data.getOrder().getPayment()) {
 		case WePay: {
 			WePayConfig config = wechatService.createWePayConfig(merchantId);
-			wechatService.refund(config, data.getOrder().getTransactionId(), data.getServiceId(),
-					data.getOrder().getRealPrice(), data.getAmount(), data.getOrder().getSubList().size());
+			wechatService.refund(config, data.getOrder().getTransactionId(), data.getServiceId(), data.getOrder().getRealPrice(), data.getAmount(),
+					data.getOrder().getSubList().size());
 		}
 			break;
 		case AliPay: {
-			alipayService.refund(merchantId, data.getOrder().getTransactionId(), data.getServiceId(),
-					data.getOrder().getRealPrice(), data.getAmount(), data.getOrder().getSubList().size());
+			alipayService.refund(merchantId, data.getOrder().getTransactionId(), data.getServiceId(), data.getOrder().getRealPrice(), data.getAmount(),
+					data.getOrder().getSubList().size());
 		}
 			break;
 		default:
