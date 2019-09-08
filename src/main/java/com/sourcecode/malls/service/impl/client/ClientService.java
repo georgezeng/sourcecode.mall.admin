@@ -49,6 +49,7 @@ import com.sourcecode.malls.repository.jpa.impl.coupon.ClientPointsJournalReposi
 import com.sourcecode.malls.repository.jpa.impl.coupon.ClientPointsRepository;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
 import com.sourcecode.malls.service.base.JpaService;
+import com.sourcecode.malls.service.impl.CacheClearer;
 import com.sourcecode.malls.service.impl.CacheEvictService;
 import com.sourcecode.malls.util.AssertUtil;
 
@@ -76,6 +77,9 @@ public class ClientService implements JpaService<Client, Long> {
 
 	@Autowired
 	private CacheEvictService cacheEvictService;
+	
+	@Autowired
+	private CacheClearer clearer;
 
 	@Autowired
 	private EntityManager em;
@@ -226,6 +230,7 @@ public class ClientService implements JpaService<Client, Long> {
 		}
 		pointsRepository.save(points);
 		journalRepository.save(journal);
+		clearer.clearClientPoints(client.get());
 	}
 
 	public PageResult<ClientLevelSettingDTO> findAllLevelSetting(Long merchantId) {

@@ -53,15 +53,13 @@ public class AdvertisementService {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public Predicate toPredicate(Root<AdvertisementSetting> root, CriteriaQuery<?> query,
-					CriteriaBuilder criteriaBuilder) {
+			public Predicate toPredicate(Root<AdvertisementSetting> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
 				List<Predicate> predicate = new ArrayList<>();
 				predicate.add(criteriaBuilder.equal(root.get("merchant"), merchantId));
 				if (queryInfo.getData() != null) {
 					if (!StringUtils.isEmpty(queryInfo.getData().getStatusText())) {
 						if (!"all".equalsIgnoreCase(queryInfo.getData().getStatusText())) {
-							predicate.add(criteriaBuilder.equal(root.get("type"),
-									AdvertisementType.valueOf(queryInfo.getData().getStatusText())));
+							predicate.add(criteriaBuilder.equal(root.get("type"), AdvertisementType.valueOf(queryInfo.getData().getStatusText())));
 						}
 					}
 					if (!StringUtils.isEmpty(queryInfo.getData().getSearchText())) {
@@ -69,8 +67,7 @@ public class AdvertisementService {
 						predicate.add(criteriaBuilder.like(root.get("name"), like));
 					}
 					if (queryInfo.getData().getStartTime() != null) {
-						predicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("startDate"),
-								queryInfo.getData().getStartTime()));
+						predicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("startDate"), queryInfo.getData().getStartTime()));
 					}
 					if (queryInfo.getData().getEndTime() != null) {
 						Calendar c = Calendar.getInstance();
@@ -89,8 +86,7 @@ public class AdvertisementService {
 	@Transactional(readOnly = true)
 	public AdvertisementSettingDTO get(Long merchantId, Long id) {
 		Optional<AdvertisementSetting> data = repository.findById(id);
-		AssertUtil.assertTrue(data.isPresent() && data.get().getMerchant().getId().equals(merchantId),
-				ExceptionMessageConstant.NO_SUCH_RECORD);
+		AssertUtil.assertTrue(data.isPresent() && data.get().getMerchant().getId().equals(merchantId), ExceptionMessageConstant.NO_SUCH_RECORD);
 		return data.get().asDTO();
 	}
 
@@ -117,8 +113,8 @@ public class AdvertisementService {
 			data = dataOp.get();
 			BeanUtils.copyProperties(dto, data, "id");
 		}
-		AssertUtil.assertTrue(data.getStartDate() != null && data.getEndDate() != null
-				&& !data.getStartDate().after(data.getEndDate()), "开始时间必须小于等于结束时间");
+		AssertUtil.assertTrue(data.getStartTime() != null && data.getEndTime() != null && !data.getStartTime().after(data.getEndTime()),
+				"开始时间必须小于等于结束时间");
 		repository.save(data);
 		cacheEvictService.clearAdvertisementList(merchantId);
 		return data;
