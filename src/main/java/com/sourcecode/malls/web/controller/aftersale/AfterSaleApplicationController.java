@@ -29,6 +29,7 @@ import com.sourcecode.malls.repository.jpa.impl.aftersale.AfterSaleApplicationRe
 import com.sourcecode.malls.repository.jpa.impl.aftersale.AfterSaleReturnAddressRepository;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantSettingRepository;
+import com.sourcecode.malls.service.impl.CacheClearer;
 import com.sourcecode.malls.service.impl.CacheEvictService;
 import com.sourcecode.malls.service.impl.aftersale.AfterSaleService;
 import com.sourcecode.malls.util.AssertUtil;
@@ -55,13 +56,15 @@ public class AfterSaleApplicationController extends BaseController {
 
 	@Autowired
 	private ObjectMapper mapper;
-	
+
 	@Autowired
 	private CacheEvictService cacheEvictService;
 
+	@Autowired
+	private CacheClearer clearer;
+
 	@RequestMapping(path = "/list")
-	public ResultBean<PageResult<AfterSaleApplicationDTO>> list(
-			@RequestBody QueryInfo<AfterSaleApplicationDTO> queryInfo) {
+	public ResultBean<PageResult<AfterSaleApplicationDTO>> list(@RequestBody QueryInfo<AfterSaleApplicationDTO> queryInfo) {
 		User user = getRelatedCurrentUser();
 		return new ResultBean<>(service.getList(user.getId(), queryInfo));
 	}
@@ -73,8 +76,7 @@ public class AfterSaleApplicationController extends BaseController {
 		AfterSaleApplicationDTO dto = service.load(user.getId(), id).asDTO();
 		if (dto.getAgree() == null && dto.getReturnAddress() == null) {
 			Optional<Merchant> merchant = merchantRepository.findById(user.getId());
-			Optional<MerchantSetting> setting = merchantSettingRepository.findByMerchantAndCode(merchant.get(),
-					MerchantSettingConstant.RETURN_ADDRESS);
+			Optional<MerchantSetting> setting = merchantSettingRepository.findByMerchantAndCode(merchant.get(), MerchantSettingConstant.RETURN_ADDRESS);
 			if (setting.isPresent()) {
 				MerchantSetting data = setting.get();
 				Map<String, String> returnAddress = mapper.readValue(data.getValue(), Map.class);
@@ -117,11 +119,14 @@ public class AfterSaleApplicationController extends BaseController {
 			AssertUtil.assertNotEmpty(dto.getRejectReason(), "拒绝原因不能为空");
 			status = AfterSaleStatus.Rejected;
 			data.setRejectReason(dto.getRejectReason());
+			data.setRejectTime(new Date());
 			cacheEvictService.clearClientAfterSaleUnFinishedtNums(data.getClient().getId());
+			clearer.clearClientOrders(data.getOrder());
 		}
 		data.setStatus(status);
 		data.setProcessedTime(new Date());
 		repository.save(data);
+		clearer.clearAfterSales(data);
 		return new ResultBean<>();
 	}
 

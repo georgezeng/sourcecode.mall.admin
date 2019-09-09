@@ -33,6 +33,7 @@ import com.sourcecode.malls.exception.BusinessException;
 import com.sourcecode.malls.repository.jpa.impl.aftersale.AfterSaleApplicationRepository;
 import com.sourcecode.malls.service.base.BaseService;
 import com.sourcecode.malls.service.impl.AlipayService;
+import com.sourcecode.malls.service.impl.CacheClearer;
 import com.sourcecode.malls.service.impl.CacheEvictService;
 import com.sourcecode.malls.service.impl.ClientBonusService;
 import com.sourcecode.malls.service.impl.WechatService;
@@ -56,6 +57,9 @@ public class AfterSaleService implements BaseService {
 
 	@Autowired
 	private CacheEvictService cacheEvictService;
+	
+	@Autowired
+	private CacheClearer clearer;
 
 //	@Autowired
 //	private GoodsItemRankRepository rankRepository;
@@ -148,6 +152,8 @@ public class AfterSaleService implements BaseService {
 //		rankRepository.save(rank);
 //		cacheEvictService.clearAllGoodsItemList();
 		cacheEvictService.clearClientAfterSaleUnFinishedtNums(data.getClient().getId());
+		clearer.clearClientOrders(data.getOrder());
+		clearer.clearAfterSales(data);
 	}
 
 	public void receive(Long merchantId, Long id) throws Exception {
@@ -170,6 +176,7 @@ public class AfterSaleService implements BaseService {
 		data.setStatus(status);
 		data.setReceiveTime(new Date());
 		applicationRepository.save(data);
+		clearer.clearAfterSales(data);
 	}
 
 	public void sent(Long merchantId, AfterSaleApplicationDTO dto) throws Exception {
@@ -184,5 +191,6 @@ public class AfterSaleService implements BaseService {
 		data.setSendTime(new Date());
 		data.setStatus(AfterSaleStatus.WaitForPickup);
 		applicationRepository.save(data);
+		clearer.clearAfterSales(data);
 	}
 }

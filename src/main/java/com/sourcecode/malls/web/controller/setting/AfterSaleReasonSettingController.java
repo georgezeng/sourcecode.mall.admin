@@ -19,6 +19,7 @@ import com.sourcecode.malls.dto.merchant.AfterSaleReasonSettingDTO;
 import com.sourcecode.malls.dto.query.PageResult;
 import com.sourcecode.malls.dto.query.QueryInfo;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
+import com.sourcecode.malls.service.impl.CacheEvictService;
 import com.sourcecode.malls.service.impl.aftersale.AfterSaleReasonSettingService;
 import com.sourcecode.malls.util.AssertUtil;
 import com.sourcecode.malls.web.controller.base.BaseController;
@@ -33,6 +34,9 @@ public class AfterSaleReasonSettingController extends BaseController {
 	@Autowired
 	private MerchantRepository merchantRepository;
 
+	@Autowired
+	private CacheEvictService cacheEvictService;
+
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<AfterSaleReasonSettingDTO>> list(@RequestBody QueryInfo<SimpleQueryDTO> queryInfo) {
 		User user = getRelatedCurrentUser();
@@ -46,24 +50,27 @@ public class AfterSaleReasonSettingController extends BaseController {
 
 	@RequestMapping(path = "/save")
 	public ResultBean<Void> save(@RequestBody AfterSaleReasonSettingDTO dto) {
+		User user = getRelatedCurrentUser();
 		AfterSaleReasonSetting data = null;
 		if (dto.getId() != null) {
 			data = check(dto.getId());
 		} else {
 			data = new AfterSaleReasonSetting();
-			User user = getRelatedCurrentUser();
 			Optional<Merchant> merchant = merchantRepository.findById(user.getId());
 			data.setMerchant(merchant.get());
 		}
 		BeanUtils.copyProperties(dto, data, "id");
 		service.save(data);
+		cacheEvictService.clearAfterSaleReasonList(user.getId(), data.getType());
 		return new ResultBean<>();
 	}
 
 	@RequestMapping(path = "/delete/params/{id}")
 	public ResultBean<Void> save(@PathVariable Long id) {
+		User user = getRelatedCurrentUser();
 		AfterSaleReasonSetting data = check(id);
 		service.delete(data);
+		cacheEvictService.clearAfterSaleReasonList(user.getId(), data.getType());
 		return new ResultBean<>();
 	}
 
@@ -71,8 +78,7 @@ public class AfterSaleReasonSettingController extends BaseController {
 		User user = getRelatedCurrentUser();
 		Optional<AfterSaleReasonSetting> dataOp = service.findById(id);
 		AssertUtil.assertTrue(dataOp.isPresent(), ExceptionMessageConstant.NO_SUCH_RECORD);
-		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()),
-				ExceptionMessageConstant.NO_SUCH_RECORD);
+		AssertUtil.assertTrue(dataOp.get().getMerchant().getId().equals(user.getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
 		return dataOp.get();
 	}
 
