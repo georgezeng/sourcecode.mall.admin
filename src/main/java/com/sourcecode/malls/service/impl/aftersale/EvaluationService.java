@@ -76,6 +76,7 @@ public class EvaluationService {
 						switch (statusText) {
 						case "WaitForReply": {
 							predicate.add(criteriaBuilder.equal(root.get("replied"), false));
+							predicate.add(criteriaBuilder.equal(root.get("passed"), true));
 						}
 							break;
 						case "HadReplied": {
