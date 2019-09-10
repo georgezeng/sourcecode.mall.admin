@@ -31,6 +31,7 @@ import com.sourcecode.malls.dto.query.QueryInfo;
 import com.sourcecode.malls.enums.GoodsItemEvaluationValue;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemEvaluationRepository;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
+import com.sourcecode.malls.service.impl.CacheClearer;
 import com.sourcecode.malls.util.AssertUtil;
 
 @Service
@@ -43,6 +44,9 @@ public class EvaluationService {
 
 	@Autowired
 	private MerchantRepository merchantRepository;
+	
+	@Autowired
+	private CacheClearer clearer;
 
 	@Transactional(readOnly = true)
 	public PageResult<GoodsItemEvaluationDTO> getList(Long merchantId, QueryInfo<GoodsItemEvaluationDTO> queryInfo) {
@@ -167,6 +171,7 @@ public class EvaluationService {
 		AssertUtil.assertTrue(data.isHasAudit(), "请先审核再设置是否公开");
 		data.setOpen(dto.isOpen());
 		repository.save(data);
+		clearer.clearEvaluation(data);
 	}
 
 	public void audit(Long merchantId, GoodsItemEvaluationDTO dto) {
@@ -180,5 +185,6 @@ public class EvaluationService {
 		}
 		data.setHasAudit(true);
 		repository.save(data);
+		clearer.clearEvaluation(data);
 	}
 }
