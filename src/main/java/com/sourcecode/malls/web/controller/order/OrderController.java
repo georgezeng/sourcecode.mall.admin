@@ -17,6 +17,7 @@ import com.sourcecode.malls.dto.base.ResultBean;
 import com.sourcecode.malls.dto.order.OrderDTO;
 import com.sourcecode.malls.dto.query.PageResult;
 import com.sourcecode.malls.dto.query.QueryInfo;
+import com.sourcecode.malls.repository.jpa.impl.aftersale.AfterSaleApplicationRepository;
 import com.sourcecode.malls.repository.jpa.impl.order.OrderRepository;
 import com.sourcecode.malls.service.impl.order.OrderService;
 import com.sourcecode.malls.util.AssertUtil;
@@ -31,6 +32,9 @@ public class OrderController extends BaseController {
 
 	@Autowired
 	protected OrderRepository orderRepository;
+	
+	@Autowired
+	protected AfterSaleApplicationRepository applicationRepository;
 
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<OrderDTO>> list(@RequestBody QueryInfo<OrderDTO> queryInfo) {
@@ -54,7 +58,8 @@ public class OrderController extends BaseController {
 		Optional<Order> order = orderRepository.findById(id);
 		AssertUtil.assertTrue(order.isPresent() && order.get().getMerchant().getId().equals(user.getId()),
 				ExceptionMessageConstant.NO_SUCH_RECORD);
-		return new ResultBean<>(order.get().asDTO(true, true));
+		OrderDTO dto = order.get().asDTO(true, true);
+		return new ResultBean<>(dto);
 	}
 
 	@RequestMapping(path = "/updateExpress")
