@@ -57,7 +57,7 @@ public class AfterSaleService implements BaseService {
 
 	@Autowired
 	private CacheEvictService cacheEvictService;
-	
+
 	@Autowired
 	private CacheClearer clearer;
 
@@ -136,12 +136,12 @@ public class AfterSaleService implements BaseService {
 		case WePay: {
 			WePayConfig config = wechatService.createWePayConfig(merchantId);
 			wechatService.refund(config, data.getOrder().getTransactionId(), data.getServiceId(), data.getOrder().getRealPrice(), data.getAmount(),
-					data.getOrder().getSubList().size());
+					data.getNums());
 		}
 			break;
 		case AliPay: {
 			alipayService.refund(merchantId, data.getOrder().getTransactionId(), data.getServiceId(), data.getOrder().getRealPrice(), data.getAmount(),
-					data.getOrder().getSubList().size());
+					data.getNums());
 		}
 			break;
 		default:
