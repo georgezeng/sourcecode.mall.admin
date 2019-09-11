@@ -205,7 +205,7 @@ public class CouponService {
 		}
 		settingRepository.save(data);
 		if (CouponEventType.Invite.equals(data.getEventType())) {
-			cacheEvictService.clearClientInviteBonusInfo(merchantId);
+			cacheEvictService.clearClientBonusInfo(merchantId);
 		}
 		return data;
 	}
@@ -236,7 +236,7 @@ public class CouponService {
 		}
 		settingRepository.save(data);
 		if (CouponEventType.Invite.equals(data.getEventType())) {
-			cacheEvictService.clearClientInviteBonusInfo(merchantId);
+			cacheEvictService.clearClientBonusInfo(merchantId);
 		}
 	}
 
@@ -421,7 +421,7 @@ public class CouponService {
 					throw new BusinessException("不能删除记录[" + dataOp.get().getName() + "]");
 				}
 				if (CouponEventType.Invite.equals(dataOp.get().getEventType())) {
-					cacheEvictService.clearClientInviteBonusInfo(merchantId);
+					cacheEvictService.clearClientBonusInfo(merchantId);
 				}
 			}
 		}
