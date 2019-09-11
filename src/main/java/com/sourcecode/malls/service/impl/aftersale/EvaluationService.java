@@ -165,6 +165,7 @@ public class EvaluationService {
 			data.setReplyTime(null);
 		}
 		repository.save(data);
+		clearer.clearEvaluation(data);
 	}
 
 	public void open(Long merchantId, GoodsItemEvaluationDTO dto) {
