@@ -37,6 +37,7 @@ import com.sourcecode.malls.dto.coupon.cash.CashCouponOrderLimitedSettingDTO;
 import com.sourcecode.malls.dto.query.PageResult;
 import com.sourcecode.malls.dto.query.QueryInfo;
 import com.sourcecode.malls.enums.ClientCouponStatus;
+import com.sourcecode.malls.enums.CouponEventType;
 import com.sourcecode.malls.enums.CouponSettingStatus;
 import com.sourcecode.malls.exception.BusinessException;
 import com.sourcecode.malls.repository.jpa.impl.coupon.CashCouponOrderLimitedSettingRepository;
@@ -47,6 +48,7 @@ import com.sourcecode.malls.repository.jpa.impl.coupon.CouponSettingRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsCategoryRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemRepository;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
+import com.sourcecode.malls.service.impl.CacheEvictService;
 import com.sourcecode.malls.util.AssertUtil;
 
 @Service
@@ -68,6 +70,8 @@ public class CouponService {
 	protected GoodsItemRepository itemRepository;
 	@Autowired
 	protected MerchantRepository merchantRepository;
+	@Autowired
+	protected CacheEvictService cacheEvictService;
 
 	@Transactional(readOnly = true)
 	public PageResult<CouponSettingDTO> getSettingList(Long merchantId, QueryInfo<CouponSettingDTO> queryInfo) {
@@ -80,8 +84,7 @@ public class CouponService {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public Predicate toPredicate(Root<CouponSetting> root, CriteriaQuery<?> query,
-					CriteriaBuilder criteriaBuilder) {
+			public Predicate toPredicate(Root<CouponSetting> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
 				List<Predicate> predicate = new ArrayList<>();
 				predicate.add(criteriaBuilder.equal(root.get("merchant"), merchantId));
 				predicate.add(criteriaBuilder.equal(root.get("enabled"), true));
@@ -92,8 +95,7 @@ public class CouponService {
 						predicate.add(criteriaBuilder.like(root.get("name"), like));
 					}
 					if (queryInfo.getData().getStartTime() != null) {
-						predicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("startDate"),
-								queryInfo.getData().getStartTime()));
+						predicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("startDate"), queryInfo.getData().getStartTime()));
 					}
 					if (queryInfo.getData().getEndTime() != null) {
 						Calendar c = Calendar.getInstance();
@@ -103,8 +105,7 @@ public class CouponService {
 					}
 					if (!StringUtils.isEmpty(queryInfo.getData().getStatusText())) {
 						if (!"all".equalsIgnoreCase(queryInfo.getData().getStatusText())) {
-							predicate.add(criteriaBuilder.equal(root.get("status"),
-									CouponSettingStatus.valueOf(queryInfo.getData().getStatusText())));
+							predicate.add(criteriaBuilder.equal(root.get("status"), CouponSettingStatus.valueOf(queryInfo.getData().getStatusText())));
 						}
 					}
 				}
@@ -112,15 +113,13 @@ public class CouponService {
 			}
 		};
 		page = settingRepository.findAll(spec, queryInfo.getPage().pageable());
-		return new PageResult<>(page.get().map(it -> it.asDTO(false)).collect(Collectors.toList()),
-				page.getTotalElements());
+		return new PageResult<>(page.get().map(it -> it.asDTO(false)).collect(Collectors.toList()), page.getTotalElements());
 	}
 
 	@Transactional(readOnly = true)
 	public CouponSettingDTO get(Long merchantId, Long id) {
 		Optional<CouponSetting> data = settingRepository.findById(id);
-		AssertUtil.assertTrue(
-				data.isPresent() && data.get().isEnabled() && data.get().getMerchant().getId().equals(merchantId),
+		AssertUtil.assertTrue(data.isPresent() && data.get().isEnabled() && data.get().getMerchant().getId().equals(merchantId),
 				ExceptionMessageConstant.NO_SUCH_RECORD);
 		return data.get().asDTO(true);
 	}
@@ -136,8 +135,7 @@ public class CouponService {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public Predicate toPredicate(Root<ClientCoupon> root, CriteriaQuery<?> query,
-					CriteriaBuilder criteriaBuilder) {
+			public Predicate toPredicate(Root<ClientCoupon> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
 				if (queryInfo.getData() != null) {
 					List<Predicate> predicate = new ArrayList<>();
 					predicate.add(criteriaBuilder.equal(root.get("merchant"), merchantId));
@@ -148,8 +146,7 @@ public class CouponService {
 								criteriaBuilder.like(root.join("client").get("username"), like)));
 					}
 					if (queryInfo.getData().getStartTime() != null) {
-						predicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("receivedTime"),
-								queryInfo.getData().getStartTime()));
+						predicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("receivedTime"), queryInfo.getData().getStartTime()));
 					}
 					if (queryInfo.getData().getEndTime() != null) {
 						Calendar c = Calendar.getInstance();
@@ -159,8 +156,7 @@ public class CouponService {
 					}
 					if (!StringUtils.isEmpty(queryInfo.getData().getStatusText())) {
 						if (!"all".equalsIgnoreCase(queryInfo.getData().getStatusText())) {
-							predicate.add(criteriaBuilder.equal(root.get("status"),
-									ClientCouponStatus.valueOf(queryInfo.getData().getStatusText())));
+							predicate.add(criteriaBuilder.equal(root.get("status"), ClientCouponStatus.valueOf(queryInfo.getData().getStatusText())));
 						}
 					}
 					return query.where(predicate.toArray(new Predicate[] {})).getRestriction();
@@ -176,9 +172,7 @@ public class CouponService {
 		CouponSetting data = null;
 		if (dto.getId() != null && dto.getId() > 0) {
 			Optional<CouponSetting> dataOp = settingRepository.findById(dto.getId());
-			AssertUtil.assertTrue(
-					dataOp.isPresent() && dataOp.get().isEnabled()
-							&& dataOp.get().getMerchant().getId().equals(merchantId),
+			AssertUtil.assertTrue(dataOp.isPresent() && dataOp.get().isEnabled() && dataOp.get().getMerchant().getId().equals(merchantId),
 					ExceptionMessageConstant.NO_SUCH_RECORD);
 			data = dataOp.get();
 		} else {
@@ -210,21 +204,23 @@ public class CouponService {
 			data.setDescription(dto.getDescription());
 		}
 		settingRepository.save(data);
+		if (CouponEventType.Invite.equals(data.getEventType())) {
+			cacheEvictService.clearClientInviteBonusInfo(merchantId);
+		}
 		return data;
 	}
 
 	public void updateStatus(Long merchantId, Long id, Boolean status) {
 		Optional<CouponSetting> dataOp = settingRepository.findById(id);
-		AssertUtil.assertTrue(
-				dataOp.isPresent() && dataOp.get().isEnabled() && dataOp.get().getMerchant().getId().equals(merchantId),
+		AssertUtil.assertTrue(dataOp.isPresent() && dataOp.get().isEnabled() && dataOp.get().getMerchant().getId().equals(merchantId),
 				ExceptionMessageConstant.NO_SUCH_RECORD);
 		CouponSetting data = dataOp.get();
 		AssertUtil.assertNotNull(data.getEventType(), "请先编辑赠送条件");
 		AssertUtil.assertNotNull(data.getHxType(), "请先编辑核销条件");
 		if (status) {
 			AssertUtil.assertTrue(!CouponSettingStatus.PutAway.equals(data.getStatus()), "已经上架过");
-			AssertUtil.assertTrue(CouponSettingStatus.WaitForPut.equals(data.getStatus())
-					|| CouponSettingStatus.SoldOut.equals(data.getStatus()), "状态有误，上架失败");
+			AssertUtil.assertTrue(CouponSettingStatus.WaitForPut.equals(data.getStatus()) || CouponSettingStatus.SoldOut.equals(data.getStatus()),
+					"状态有误，上架失败");
 			if (data.getEndDate() != null) {
 				Calendar endDate = Calendar.getInstance();
 				endDate.setTime(data.getEndDate());
@@ -239,14 +235,16 @@ public class CouponService {
 			data.setStatus(CouponSettingStatus.SoldOut);
 		}
 		settingRepository.save(data);
+		if (CouponEventType.Invite.equals(data.getEventType())) {
+			cacheEvictService.clearClientInviteBonusInfo(merchantId);
+		}
 	}
 
 	@SuppressWarnings("incomplete-switch")
 	public void saveZsCondition(Long merchantId, CouponSettingDTO dto) {
 		AssertUtil.assertNotNull(dto.getId(), ExceptionMessageConstant.NO_SUCH_RECORD);
 		Optional<CouponSetting> dataOp = settingRepository.findById(dto.getId());
-		AssertUtil.assertTrue(
-				dataOp.isPresent() && dataOp.get().isEnabled() && dataOp.get().getMerchant().getId().equals(merchantId),
+		AssertUtil.assertTrue(dataOp.isPresent() && dataOp.get().isEnabled() && dataOp.get().getMerchant().getId().equals(merchantId),
 				ExceptionMessageConstant.NO_SUCH_RECORD);
 		CouponSetting data = dataOp.get();
 		AssertUtil.assertTrue(CouponSettingStatus.WaitForPut.equals(data.getStatus()), "已经上架过，不能修改");
@@ -330,8 +328,7 @@ public class CouponService {
 		AssertUtil.assertNotNull(dto.getId(), ExceptionMessageConstant.NO_SUCH_RECORD);
 		AssertUtil.assertNotNull(dto.getType(), "必须选择关联属性");
 		Optional<CouponSetting> dataOp = settingRepository.findById(dto.getId());
-		AssertUtil.assertTrue(
-				dataOp.isPresent() && dataOp.get().isEnabled() && dataOp.get().getMerchant().getId().equals(merchantId),
+		AssertUtil.assertTrue(dataOp.isPresent() && dataOp.get().isEnabled() && dataOp.get().getMerchant().getId().equals(merchantId),
 				ExceptionMessageConstant.NO_SUCH_RECORD);
 		CouponSetting data = dataOp.get();
 		AssertUtil.assertNotEmpty(dto.getTitle(), "必须填写标题");
@@ -423,27 +420,25 @@ public class CouponService {
 				default:
 					throw new BusinessException("不能删除记录[" + dataOp.get().getName() + "]");
 				}
-
+				if (CouponEventType.Invite.equals(dataOp.get().getEventType())) {
+					cacheEvictService.clearClientInviteBonusInfo(merchantId);
+				}
 			}
 		}
 	}
 
 	@Transactional(readOnly = true)
-	public PageResult<CashCouponOrderLimitedSettingDTO> getOrderLimitedSettingList(Long merchantId,
-			QueryInfo<Void> queryInfo) {
+	public PageResult<CashCouponOrderLimitedSettingDTO> getOrderLimitedSettingList(Long merchantId, QueryInfo<Void> queryInfo) {
 		Optional<Merchant> merchant = merchantRepository.findById(merchantId);
 		AssertUtil.assertTrue(merchant.isPresent(), "商家不存在");
-		Page<CashCouponOrderLimitedSetting> result = limitedSettingRepository.findAllByMerchant(merchant.get(),
-				queryInfo.getPage().pageable());
-		return new PageResult<>(result.get().map(it -> it.asDTO()).collect(Collectors.toList()),
-				result.getTotalElements());
+		Page<CashCouponOrderLimitedSetting> result = limitedSettingRepository.findAllByMerchant(merchant.get(), queryInfo.getPage().pageable());
+		return new PageResult<>(result.get().map(it -> it.asDTO()).collect(Collectors.toList()), result.getTotalElements());
 	}
 
 	@Transactional(readOnly = true)
 	public CashCouponOrderLimitedSettingDTO getOrderLimitedSetting(Long id, Long merchantId) {
 		Optional<CashCouponOrderLimitedSetting> data = limitedSettingRepository.findById(id);
-		AssertUtil.assertTrue(data.isPresent() && data.get().getMerchant().getId().equals(merchantId),
-				ExceptionMessageConstant.NO_SUCH_RECORD);
+		AssertUtil.assertTrue(data.isPresent() && data.get().getMerchant().getId().equals(merchantId), ExceptionMessageConstant.NO_SUCH_RECORD);
 		return data.get().asDTO();
 	}
 
@@ -453,8 +448,7 @@ public class CouponService {
 		CashCouponOrderLimitedSetting data = null;
 		if (dto.getId() != null) {
 			Optional<CashCouponOrderLimitedSetting> dataOp = limitedSettingRepository.findById(dto.getId());
-			AssertUtil.assertTrue(dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(merchantId),
-					ExceptionMessageConstant.NO_SUCH_RECORD);
+			AssertUtil.assertTrue(dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(merchantId), ExceptionMessageConstant.NO_SUCH_RECORD);
 			data = dataOp.get();
 		} else {
 			data = new CashCouponOrderLimitedSetting();
