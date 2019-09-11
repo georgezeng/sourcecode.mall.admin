@@ -135,13 +135,13 @@ public class AfterSaleService implements BaseService {
 		switch (data.getOrder().getPayment()) {
 		case WePay: {
 			WePayConfig config = wechatService.createWePayConfig(merchantId);
-			wechatService.refund(config, data.getOrder().getTransactionId(), data.getServiceId(), data.getSubOrder().getDealPrice(), data.getAmount(),
-					data.getNums());
+			wechatService.refund(config, data.getOrder().getTransactionId(), data.getServiceId(), data.getOrder().getRealPrice(), data.getAmount(),
+					data.getOrder().getSubList().size());
 		}
 			break;
 		case AliPay: {
-			alipayService.refund(merchantId, data.getOrder().getTransactionId(), data.getServiceId(), data.getSubOrder().getDealPrice(), data.getAmount(),
-					data.getNums());
+			alipayService.refund(merchantId, data.getOrder().getTransactionId(), data.getServiceId(), data.getOrder().getRealPrice(), data.getAmount(),
+					data.getOrder().getSubList().size());
 		}
 			break;
 		default:
