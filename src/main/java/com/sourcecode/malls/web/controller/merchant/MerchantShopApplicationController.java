@@ -27,6 +27,7 @@ import com.sourcecode.malls.enums.VerificationStatus;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantShopApplicationRepository;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantVerificationRepository;
+import com.sourcecode.malls.service.impl.CacheEvictService;
 import com.sourcecode.malls.util.AssertUtil;
 import com.sourcecode.malls.web.controller.base.BaseController;
 
@@ -42,6 +43,9 @@ public class MerchantShopApplicationController extends BaseController {
 
 	@Autowired
 	private MerchantShopApplicationRepository shopRepository;
+	
+	@Autowired
+	private CacheEvictService cacheEvictService;
 
 	private String fileDir = "merchant/shop";
 
@@ -179,6 +183,7 @@ public class MerchantShopApplicationController extends BaseController {
 		data.setReason(null);
 		data.setDeployed(false);
 		shopRepository.save(data);
+		cacheEvictService.clearMerchantInfo(data.getDomain());
 		transfer(true, tmpPaths, newPaths);
 		return new ResultBean<>();
 	}

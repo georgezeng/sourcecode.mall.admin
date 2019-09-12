@@ -21,6 +21,7 @@ import com.sourcecode.malls.dto.base.ResultBean;
 import com.sourcecode.malls.dto.client.ClientDTO;
 import com.sourcecode.malls.dto.query.PageResult;
 import com.sourcecode.malls.dto.query.QueryInfo;
+import com.sourcecode.malls.service.impl.CacheEvictService;
 import com.sourcecode.malls.service.impl.client.ClientService;
 import com.sourcecode.malls.util.AssertUtil;
 import com.sourcecode.malls.web.controller.base.BaseController;
@@ -31,6 +32,9 @@ public class ClientController extends BaseController {
 
 	@Autowired
 	private ClientService clientService;
+	
+	@Autowired
+	private CacheEvictService cacheEvictService;
 
 	private String fileDir = "client";
 
@@ -55,6 +59,7 @@ public class ClientController extends BaseController {
 			Client data = check(id);
 			data.setEnabled(enabled);
 			clientService.save(data);
+			cacheEvictService.clearClientInfo(data.getId());
 		}
 		return new ResultBean<>();
 	}
