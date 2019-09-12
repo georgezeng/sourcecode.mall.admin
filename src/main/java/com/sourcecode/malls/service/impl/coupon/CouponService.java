@@ -48,6 +48,7 @@ import com.sourcecode.malls.repository.jpa.impl.coupon.CouponSettingRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsCategoryRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemRepository;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
+import com.sourcecode.malls.service.impl.CacheClearer;
 import com.sourcecode.malls.service.impl.CacheEvictService;
 import com.sourcecode.malls.util.AssertUtil;
 
@@ -72,6 +73,8 @@ public class CouponService {
 	protected MerchantRepository merchantRepository;
 	@Autowired
 	protected CacheEvictService cacheEvictService;
+	@Autowired
+	protected CacheClearer clearer;
 
 	@Transactional(readOnly = true)
 	public PageResult<CouponSettingDTO> getSettingList(Long merchantId, QueryInfo<CouponSettingDTO> queryInfo) {
@@ -207,6 +210,7 @@ public class CouponService {
 		if (CouponEventType.Invite.equals(data.getEventType())) {
 			cacheEvictService.clearClientBonusInfo(merchantId);
 		}
+		clearer.clearCouponRelated(data);
 		return data;
 	}
 
@@ -238,6 +242,7 @@ public class CouponService {
 		if (CouponEventType.Invite.equals(data.getEventType())) {
 			cacheEvictService.clearClientBonusInfo(merchantId);
 		}
+		clearer.clearCouponRelated(data);
 	}
 
 	@SuppressWarnings("incomplete-switch")
@@ -321,6 +326,7 @@ public class CouponService {
 		}
 		data.setEventType(dto.getEventType());
 		settingRepository.save(data);
+		clearer.clearCouponRelated(data);
 	}
 
 	@SuppressWarnings("incomplete-switch")
@@ -382,6 +388,7 @@ public class CouponService {
 			break;
 		}
 		settingRepository.save(data);
+		clearer.clearCouponRelated(data);
 	}
 
 	private void putCategories(List<GoodsCategory> list, GoodsCategory category) {
@@ -423,6 +430,7 @@ public class CouponService {
 				if (CouponEventType.Invite.equals(dataOp.get().getEventType())) {
 					cacheEvictService.clearClientBonusInfo(merchantId);
 				}
+				clearer.clearCouponRelated(dataOp.get());
 			}
 		}
 	}

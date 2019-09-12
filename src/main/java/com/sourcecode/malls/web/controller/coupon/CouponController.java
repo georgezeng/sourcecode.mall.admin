@@ -38,7 +38,7 @@ public class CouponController extends BaseController {
 
 	@Autowired
 	protected CouponSettingRepository settingRepository;
-
+	
 	private String fileDir = "coupon";
 
 	@RequestMapping(path = "/setting/list")
