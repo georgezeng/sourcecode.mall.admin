@@ -187,18 +187,24 @@ public class CouponService {
 			data.setEnabled(true);
 			data.setType(dto.getType());
 		}
-		data.setDescription(dto.getDescription());
-		data.setEndDate(dto.getEndDate());
-		data.setImgPath(dto.getImgPath());
-		data.setName(dto.getName());
-		data.setStartDate(dto.getStartDate());
-		data.setTotalNums(dto.getTotalNums());
-		data.setAmount(dto.getAmount());
-		Calendar c = Calendar.getInstance();
-		c.add(Calendar.DATE, -1);
-		AssertUtil.assertTrue(data.getStartDate().after(c.getTime()), "生效时间必须是今天以后(包括今天)");
-		if (data.getEndDate() != null) {
-			AssertUtil.assertTrue(!data.getEndDate().before(data.getStartDate()), "过期时间必须是生效日期以后(包括生效日期当天)");
+		if (CouponSettingStatus.WaitForPut.equals(data.getStatus())) {
+			data.setDescription(dto.getDescription());
+			data.setEndDate(dto.getEndDate());
+			data.setImgPath(dto.getImgPath());
+			data.setName(dto.getName());
+			data.setStartDate(dto.getStartDate());
+			data.setTotalNums(dto.getTotalNums());
+			data.setAmount(dto.getAmount());
+			Calendar c = Calendar.getInstance();
+			c.add(Calendar.DATE, -1);
+			AssertUtil.assertTrue(data.getStartDate().after(c.getTime()), "生效时间必须是今天以后(包括今天)");
+			if (data.getEndDate() != null) {
+				AssertUtil.assertTrue(!data.getEndDate().before(data.getStartDate()), "过期时间必须是生效日期以后(包括生效日期当天)");
+			}
+		} else {
+			data.setName(dto.getName());
+			data.setImgPath(dto.getImgPath());
+			data.setDescription(dto.getDescription());
 		}
 		settingRepository.save(data);
 		if (CouponEventType.Invite.equals(data.getEventType())) {
