@@ -342,6 +342,7 @@ public class CouponService {
 			if (!dto.getTitle().equals(data.getTitle())) {
 				data.setTitle(dto.getTitle());
 				settingRepository.save(data);
+				clearer.clearCouponRelated(data);
 				return;
 			}
 			AssertUtil.assertTrue(CouponSettingStatus.WaitForPut.equals(data.getStatus()), "已经上架过，不能修改");
