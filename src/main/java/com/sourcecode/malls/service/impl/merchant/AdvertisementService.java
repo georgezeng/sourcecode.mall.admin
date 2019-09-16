@@ -95,9 +95,9 @@ public class AdvertisementService {
 			Optional<AdvertisementSetting> dataOp = repository.findById(id);
 			if (dataOp.isPresent() && dataOp.get().getMerchant().getId().equals(merchantId)) {
 				repository.delete(dataOp.get());
+				cacheEvictService.clearAdvertisementList(merchantId, dataOp.get().getType());
 			}
 		}
-		cacheEvictService.clearAdvertisementList(merchantId);
 	}
 
 	public AdvertisementSetting save(Long merchantId, AdvertisementSettingDTO dto) {
@@ -116,7 +116,7 @@ public class AdvertisementService {
 		AssertUtil.assertTrue(data.getStartTime() != null && data.getEndTime() != null && !data.getStartTime().after(data.getEndTime()),
 				"开始时间必须小于等于结束时间");
 		repository.save(data);
-		cacheEvictService.clearAdvertisementList(merchantId);
+		cacheEvictService.clearAdvertisementList(merchantId, data.getType());
 		return data;
 	}
 
