@@ -2,6 +2,7 @@ package com.sourcecode.malls.service.impl.merchant;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -115,6 +116,8 @@ public class AdvertisementService {
 		}
 		AssertUtil.assertTrue(data.getStartTime() != null && data.getEndTime() != null && !data.getStartTime().after(data.getEndTime()),
 				"开始时间必须小于等于结束时间");
+		Date now = new Date();
+		data.setEnabled(!now.after(data.getEndTime()));
 		repository.save(data);
 		cacheEvictService.clearAdvertisementList(merchantId, data.getType());
 		return data;
