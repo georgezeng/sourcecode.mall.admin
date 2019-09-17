@@ -77,7 +77,7 @@ public class ClientService implements JpaService<Client, Long> {
 
 	@Autowired
 	private CacheEvictService cacheEvictService;
-	
+
 	@Autowired
 	private CacheClearer clearer;
 
@@ -407,8 +407,8 @@ public class ClientService implements JpaService<Client, Long> {
 
 	public void save(Long merchantId, ClientActivityEventDTO dto) {
 		Date now = new Date();
-		AssertUtil.assertTrue(dto.getStartTime() != null && dto.getStartTime().after(now), "开始时间必须大于当前时间");
-		AssertUtil.assertTrue(dto.getEndTime() != null && dto.getEndTime().after(now), "结束时间必须大于当前时间");
+//		AssertUtil.assertTrue(dto.getStartTime() != null && dto.getStartTime().after(now), "开始时间必须大于当前时间");
+//		AssertUtil.assertTrue(dto.getEndTime() != null && dto.getEndTime().after(now), "结束时间必须大于当前时间");
 		AssertUtil.assertTrue(dto.getStartTime() != null && dto.getEndTime() != null && dto.getEndTime().after(dto.getStartTime()), "结束时间必须大于开始时间");
 		ClientActivityEvent data = null;
 		if (dto.getId() != null) {
@@ -417,9 +417,12 @@ public class ClientService implements JpaService<Client, Long> {
 			data = dataOp.get();
 			if (data.getStartTime().before(now) && !now.after(data.getEndTime())) {
 				AssertUtil.assertTrue(data.isPaused(), "请先中止活动才能编辑");
-			} else if (data.getEndTime().before(now)) {
-				throw new BusinessException("活动已结束，不能编辑");
 			}
+			data.setStartTime(dto.getStartTime());
+			data.setEndTime(dto.getEndTime());
+//			else if (data.getEndTime().before(now)) {
+//				throw new BusinessException("活动已结束，不能编辑");
+//			}
 		} else {
 			Optional<Merchant> merchant = merchantRepository.findById(merchantId);
 			AssertUtil.assertTrue(merchant.isPresent(), "商家不存在");
