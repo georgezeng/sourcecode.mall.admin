@@ -13,6 +13,7 @@ import org.springframework.util.CollectionUtils;
 import com.sourcecode.malls.domain.goods.GoodsItem;
 import com.sourcecode.malls.domain.goods.GoodsItemProperty;
 import com.sourcecode.malls.domain.goods.GoodsSpecificationValue;
+import com.sourcecode.malls.domain.system.User;
 import com.sourcecode.malls.dto.goods.GoodsAttributeDTO;
 import com.sourcecode.malls.dto.goods.GoodsItemPropertyDTO;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemPropertyRepository;
@@ -33,7 +34,10 @@ public class GoodsItemPropertyService implements JpaService<GoodsItemProperty, L
 		return repository;
 	}
 
-	public void save(GoodsItem item, List<GoodsItemPropertyDTO> list) {
+	@SuppressWarnings("unchecked")
+	public List<String>[] save(User user, GoodsItem item, List<GoodsItemPropertyDTO> list) {
+		List<String> tempPaths = new ArrayList<>();
+		List<String> newPaths = new ArrayList<>();
 		AssertUtil.assertTrue(!CollectionUtils.isEmpty(list), "请至少选择一种规格");
 		List<GoodsItemProperty> oldProperties = repository.findAllByItem(item);
 		List<GoodsItemProperty> used = new ArrayList<>();
@@ -52,6 +56,13 @@ public class GoodsItemPropertyService implements JpaService<GoodsItemProperty, L
 				data = dto.asEntity();
 				data.setItem(item);
 			} else {
+				if (dto.getPath().startsWith("temp/")) {
+					tempPaths.add(dto.getPath());
+					String fileName = dto.getPath().replaceAll(".+/", "");
+					String newPath = "goods/item/" + user.getId() + "/" + item.getId() + "/specs/" + fileName;
+					newPaths.add(newPath);
+					data.setPath(newPath);
+				}
 				data.setInventory(dto.getInventory());
 				data.setPrice(dto.getPrice());
 			}
@@ -69,6 +80,7 @@ public class GoodsItemPropertyService implements JpaService<GoodsItemProperty, L
 		if (!CollectionUtils.isEmpty(oldProperties)) {
 			repository.deleteAll(oldProperties);
 		}
+		return new List[] { tempPaths, newPaths };
 	}
 
 }

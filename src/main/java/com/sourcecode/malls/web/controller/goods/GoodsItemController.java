@@ -3,6 +3,7 @@ package com.sourcecode.malls.web.controller.goods;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -29,6 +30,7 @@ import com.sourcecode.malls.domain.goods.GoodsBrand;
 import com.sourcecode.malls.domain.goods.GoodsCategory;
 import com.sourcecode.malls.domain.goods.GoodsItem;
 import com.sourcecode.malls.domain.goods.GoodsItemPhoto;
+import com.sourcecode.malls.domain.goods.GoodsItemPhotoGroup;
 import com.sourcecode.malls.domain.goods.GoodsItemRank;
 import com.sourcecode.malls.domain.merchant.Merchant;
 import com.sourcecode.malls.domain.system.User;
@@ -36,10 +38,13 @@ import com.sourcecode.malls.dto.base.KeyDTO;
 import com.sourcecode.malls.dto.base.ResultBean;
 import com.sourcecode.malls.dto.base.SimpleQueryDTO;
 import com.sourcecode.malls.dto.goods.GoodsItemDTO;
+import com.sourcecode.malls.dto.goods.GoodsItemPhotoGroupDTO;
 import com.sourcecode.malls.dto.query.PageResult;
 import com.sourcecode.malls.dto.query.QueryInfo;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsBrandRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsCategoryRepository;
+import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemPhotoGroupRepository;
+import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemPhotoRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemRankRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemRepository;
 import com.sourcecode.malls.repository.jpa.impl.merchant.MerchantRepository;
@@ -73,6 +78,12 @@ public class GoodsItemController extends BaseController {
 	private GoodsItemRankRepository rankRepository;
 
 	@Autowired
+	private GoodsItemPhotoGroupRepository goodsItemPhotoGroupRepository;
+
+	@Autowired
+	private GoodsItemPhotoRepository goodsItemPhotoRepository;
+
+	@Autowired
 	private GoodsItemService itemService;
 
 	@Autowired
@@ -88,8 +99,7 @@ public class GoodsItemController extends BaseController {
 		User user = getRelatedCurrentUser();
 		Page<GoodsItem> result = itemService.findAll(user.getId(), queryInfo);
 		PageResult<GoodsItemDTO> dtoResult = new PageResult<>(
-				result.getContent().stream().map(data -> data.asDTO(false, false, false)).collect(Collectors.toList()),
-				result.getTotalElements());
+				result.getContent().stream().map(data -> data.asDTO(false, false, false)).collect(Collectors.toList()), result.getTotalElements());
 		return new ResultBean<>(dtoResult);
 	}
 
@@ -111,8 +121,7 @@ public class GoodsItemController extends BaseController {
 		if (data.getId() == null) {
 			data.setMerchant(merchant);
 		} else {
-			AssertUtil.assertTrue(data.getMerchant().getId().equals(user.getId()),
-					ExceptionMessageConstant.NO_SUCH_RECORD);
+			AssertUtil.assertTrue(data.getMerchant().getId().equals(user.getId()), ExceptionMessageConstant.NO_SUCH_RECORD);
 		}
 		AssertUtil.assertNotNull(dto.getCategoryId(), "必须选择商品分类");
 		Optional<GoodsCategory> categoryOp = categoryRepository.findById(dto.getCategoryId());
@@ -148,45 +157,71 @@ public class GoodsItemController extends BaseController {
 			data.setVedioPath(newPath);
 		}
 		List<GoodsItemPhoto> photos = data.getPhotos();
-		if (photos == null) {
-			photos = new ArrayList<>();
-			data.setPhotos(photos);
+		if (!CollectionUtils.isEmpty(photos)) {
+			GoodsItemPhotoGroup group = new GoodsItemPhotoGroup();
+			group.setPhotos(photos);
+			group.setName("默认");
+			group.setItem(data);
+			goodsItemPhotoGroupRepository.save(group);
+			data.addGroup(group);
+			for (GoodsItemPhoto photo : photos) {
+				photo.setItem(null);
+				photo.setGroup(group);
+				goodsItemPhotoRepository.save(photo);
+			}
 		}
 		int order = 0;
-		for (Iterator<GoodsItemPhoto> it = photos.iterator(); it.hasNext();) {
-			GoodsItemPhoto photo = it.next();
-			String path = null;
-			if (order < dto.getPhotos().size()) {
-				path = dto.getPhotos().get(order);
-			}
-			if (path == null) {
-				it.remove();
-			} else if (path.startsWith("temp")) {
-				String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/photo/" + (order + 1) + "_"
-						+ System.currentTimeMillis() + ".png";
-				newPaths.add(newPath);
-				tmpPaths.add(path);
-				photo.setPath(newPath);
-				order++;
-			} else if (!path.equals(photo.getPath())) {
-				photo.setPath(path);
-				order++;
-			} else {
-				order++;
-			}
-		}
-		if (order < dto.getPhotos().size()) {
-			for (int i = order; i < dto.getPhotos().size(); i++) {
-				GoodsItemPhoto photo = new GoodsItemPhoto();
-				photo.setOrder(i + 1);
-				photo.setItem(data);
-				String path = dto.getPhotos().get(i);
-				String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/photo/" + (i + 1) + "_"
-						+ System.currentTimeMillis() + ".png";
-				newPaths.add(newPath);
-				tmpPaths.add(path);
-				photo.setPath(newPath);
-				photos.add(photo);
+		if (!CollectionUtils.isEmpty(dto.getGroups())) {
+			for (GoodsItemPhotoGroupDTO groupDTO : dto.getGroups()) {
+				AssertUtil.assertTrue(!CollectionUtils.isEmpty(groupDTO.getPhotos()), "一个相册组至少要传一张图片");
+				GoodsItemPhotoGroup group = null;
+				if (groupDTO.getId() == null) {
+					group = new GoodsItemPhotoGroup();
+					group.setPhotos(new ArrayList<>());
+					group.setItem(data);
+				} else {
+					Optional<GoodsItemPhotoGroup> op = goodsItemPhotoGroupRepository.findById(groupDTO.getId());
+					AssertUtil.assertTrue(op.isPresent(), "相册组不存在");
+					group = op.get();
+					AssertUtil.assertTrue(group.getItem().getId().equals(data.getId()), "找不到相册组");
+				}
+				group.setName(groupDTO.getName());
+				goodsItemPhotoGroupRepository.save(group);
+				for (Iterator<GoodsItemPhoto> it = group.getPhotos().iterator(); it.hasNext();) {
+					GoodsItemPhoto photo = it.next();
+					String path = null;
+					if (order < groupDTO.getPhotos().size()) {
+						path = groupDTO.getPhotos().get(order);
+					}
+					if (path == null) {
+						it.remove();
+					} else if (path.startsWith("temp")) {
+						String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/photo/" + (order + 1) + "_" + System.currentTimeMillis() + ".png";
+						newPaths.add(newPath);
+						tmpPaths.add(path);
+						photo.setPath(newPath);
+						order++;
+					} else if (!path.equals(photo.getPath())) {
+						photo.setPath(path);
+						order++;
+					} else {
+						order++;
+					}
+				}
+				if (order < groupDTO.getPhotos().size()) {
+					for (int i = order; i < groupDTO.getPhotos().size(); i++) {
+						GoodsItemPhoto photo = new GoodsItemPhoto();
+						photo.setOrder(i + 1);
+						photo.setGroup(group);
+						String path = groupDTO.getPhotos().get(i);
+						String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/photo/" + (i + 1) + "_" + System.currentTimeMillis() + ".png";
+						newPaths.add(newPath);
+						tmpPaths.add(path);
+						photo.setPath(newPath);
+						photos.add(photo);
+					}
+				}
+				goodsItemPhotoGroupRepository.save(group);
 			}
 		}
 		itemRepository.save(data);
@@ -202,8 +237,7 @@ public class GoodsItemController extends BaseController {
 			tmpPaths.clear();
 			newPaths.clear();
 			tmpPaths.add(image);
-			String newPath = fileDir + "/" + getRelatedCurrentUser().getId() + "/" + data.getId() + "/content/"
-					+ image.replace(contentDirPath + "/", "");
+			String newPath = fileDir + "/" + getRelatedCurrentUser().getId() + "/" + data.getId() + "/content/" + image.replace(contentDirPath + "/", "");
 			newPaths.add(newPath);
 			transfer(true, true, tmpPaths, newPaths);
 			data.setContent(data.getContent().replace(image, newPath));
@@ -225,15 +259,15 @@ public class GoodsItemController extends BaseController {
 		User user = getRelatedCurrentUser();
 		Optional<GoodsItem> item = itemRepository.findById(dto.getId());
 		AssertUtil.assertTrue(item.isPresent() && item.get().getMerchant().getId().equals(user.getId()), "商品不存在");
-		propertyService.save(item.get(), dto.getProperties());
+		List<String>[] lists = propertyService.save(user, item.get(), dto.getProperties());
+		transfer(true, lists[0], lists[1]);
 		cacheEvictService.clearGoodsItemLoadOne(dto.getId());
 		return new ResultBean<>();
 	}
 
 	@RequestMapping(value = "/delete")
 	public ResultBean<Void> delete(@RequestBody KeyDTO<Long> keys) {
-		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()),
-				ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
+		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_DELETE);
 		User user = getRelatedCurrentUser();
 		for (Long id : keys.getIds()) {
 			Optional<GoodsItem> dataOp = itemService.findById(id);
@@ -246,8 +280,7 @@ public class GoodsItemController extends BaseController {
 
 	@RequestMapping(value = "/updateStatus/params/{status}")
 	public ResultBean<Void> updateStatus(@RequestBody KeyDTO<Long> keys, @PathVariable Boolean status) {
-		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()),
-				ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_UPDATE);
+		AssertUtil.assertTrue(!CollectionUtils.isEmpty(keys.getIds()), ExceptionMessageConstant.SELECT_AT_LEAST_ONE_TO_UPDATE);
 		User user = getRelatedCurrentUser();
 		for (Long id : keys.getIds()) {
 			Optional<GoodsItem> dataOp = itemService.findById(id);
@@ -266,12 +299,10 @@ public class GoodsItemController extends BaseController {
 	}
 
 	@RequestMapping(value = "/content/image/upload/params/{id}")
-	public Map<String, Object> uploadContentImage(@RequestParam("files") List<MultipartFile> files,
-			@PathVariable Long id) throws IOException {
+	public Map<String, Object> uploadContentImage(@RequestParam("files") List<MultipartFile> files, @PathVariable Long id) throws IOException {
 		List<String> filePaths = new ArrayList<>();
 		for (MultipartFile file : files) {
-			filePaths.add(
-					upload(file, "temp/" + fileDir + "/content", id, getRelatedCurrentUser().getId(), true).getData());
+			filePaths.add(upload(file, "temp/" + fileDir + "/content", id, getRelatedCurrentUser().getId(), true).getData());
 		}
 		Map<String, Object> result = new HashMap<>();
 		result.put("errno", 0);
@@ -280,13 +311,11 @@ public class GoodsItemController extends BaseController {
 	}
 
 	@RequestMapping(value = "/file/upload/params/{id}")
-	public ResultBean<String> upload(@RequestParam("file") MultipartFile file, @PathVariable Long id)
-			throws IOException {
+	public ResultBean<String> upload(@RequestParam("file") MultipartFile file, @PathVariable Long id) throws IOException {
 		return upload(file, fileDir, id, getRelatedCurrentUser().getId(), false);
 	}
 
-	@RequestMapping(value = "/file/load", produces = { MediaType.IMAGE_PNG_VALUE,
-			MediaType.APPLICATION_OCTET_STREAM_VALUE })
+	@RequestMapping(value = "/file/load", produces = { MediaType.IMAGE_PNG_VALUE, MediaType.APPLICATION_OCTET_STREAM_VALUE })
 	public Resource load(@RequestParam String filePath) {
 		return load(getRelatedCurrentUser().getId(), filePath, fileDir, true);
 	}
