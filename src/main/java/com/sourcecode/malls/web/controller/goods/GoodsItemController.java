@@ -117,7 +117,7 @@ public class GoodsItemController extends BaseController {
 		User user = getRelatedCurrentUser();
 		Merchant merchant = merchantRepository.findById(user.getId()).get();
 		GoodsItem data = itemRepository.findById(dto.getId()).orElseGet(GoodsItem::new);
-		BeanUtils.copyProperties(dto, data, "id", "merchant", "category", "brand", "photos", "properties", "enabled");
+		BeanUtils.copyProperties(dto, data, "groups", "id", "merchant", "category", "brand", "photos", "properties", "enabled");
 		if (data.getId() == null) {
 			data.setMerchant(merchant);
 		} else {
