@@ -159,7 +159,6 @@ public class GoodsItemController extends BaseController {
 		List<GoodsItemPhoto> photos = data.getPhotos();
 		if (!CollectionUtils.isEmpty(photos)) {
 			GoodsItemPhotoGroup group = new GoodsItemPhotoGroup();
-			group.setPhotos(photos);
 			group.setName("默认");
 			group.setItem(data);
 			goodsItemPhotoGroupRepository.save(group);
