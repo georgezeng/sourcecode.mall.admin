@@ -3,7 +3,6 @@ package com.sourcecode.malls.web.controller.goods;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -172,6 +171,9 @@ public class GoodsItemController extends BaseController {
 		int order = 0;
 		if (!CollectionUtils.isEmpty(dto.getGroups())) {
 			for (GoodsItemPhotoGroupDTO groupDTO : dto.getGroups()) {
+				if ("默认".equals(groupDTO.getName())) {
+					continue;
+				}
 				AssertUtil.assertTrue(!CollectionUtils.isEmpty(groupDTO.getPhotos()), "一个相册组至少要传一张图片");
 				GoodsItemPhotoGroup group = null;
 				if (groupDTO.getId() == null) {
