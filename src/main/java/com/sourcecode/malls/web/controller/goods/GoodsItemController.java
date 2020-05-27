@@ -161,7 +161,6 @@ public class GoodsItemController extends BaseController {
 			group.setName("默认");
 			group.setItem(data);
 			goodsItemPhotoGroupRepository.save(group);
-			data.addGroup(group);
 			for (GoodsItemPhoto photo : photos) {
 				photo.setItem(null);
 				photo.setGroup(group);
@@ -178,7 +177,6 @@ public class GoodsItemController extends BaseController {
 				GoodsItemPhotoGroup group = null;
 				if (groupDTO.getId() == null) {
 					group = new GoodsItemPhotoGroup();
-					group.setPhotos(new ArrayList<>());
 					group.setItem(data);
 				} else {
 					Optional<GoodsItemPhotoGroup> op = goodsItemPhotoGroupRepository.findById(groupDTO.getId());
@@ -201,9 +199,11 @@ public class GoodsItemController extends BaseController {
 						newPaths.add(newPath);
 						tmpPaths.add(path);
 						photo.setPath(newPath);
+						goodsItemPhotoRepository.save(photo);
 						order++;
 					} else if (!path.equals(photo.getPath())) {
 						photo.setPath(path);
+						goodsItemPhotoRepository.save(photo);
 						order++;
 					} else {
 						order++;
@@ -219,10 +219,10 @@ public class GoodsItemController extends BaseController {
 						newPaths.add(newPath);
 						tmpPaths.add(path);
 						photo.setPath(newPath);
-						photos.add(photo);
+						goodsItemPhotoRepository.save(photo);
 					}
 				}
-				goodsItemPhotoGroupRepository.save(group);
+//				goodsItemPhotoGroupRepository.save(group);
 			}
 		}
 		itemRepository.save(data);
