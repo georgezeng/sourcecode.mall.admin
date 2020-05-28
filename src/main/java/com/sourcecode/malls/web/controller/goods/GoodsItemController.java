@@ -177,6 +177,7 @@ public class GoodsItemController extends BaseController {
 				GoodsItemPhotoGroup group = null;
 				if (groupDTO.getId() == null) {
 					group = new GoodsItemPhotoGroup();
+					group.setPhotos(new ArrayList<>());
 					group.setItem(data);
 				} else {
 					Optional<GoodsItemPhotoGroup> op = goodsItemPhotoGroupRepository.findById(groupDTO.getId());
