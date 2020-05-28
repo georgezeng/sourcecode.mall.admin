@@ -1,15 +1,22 @@
 package com.sourcecode.malls.web.controller.goods;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
+import org.springframework.http.MediaType;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.sourcecode.malls.constants.ExceptionMessageConstant;
 import com.sourcecode.malls.domain.goods.GoodsCategory;
@@ -42,6 +49,8 @@ public class GoodsRecommendCategoryController extends BaseController {
 
 	@Autowired
 	private GoodsRecommendCategoryService service;
+
+	private String fileDir = "goods/category/recommend";
 
 	@RequestMapping(path = "/list")
 	public ResultBean<PageResult<GoodsRecommendCategoryDTO>> list(@RequestBody QueryInfo<GoodsRecommendCategoryDTO> queryInfo) {
@@ -85,8 +94,17 @@ public class GoodsRecommendCategoryController extends BaseController {
 		data.setName(dto.getName());
 		data.setOrder(dto.getOrder());
 		data.setLink(dto.getLink());
-		data.setLogo(dto.getLogo());
+		List<String> tmpPaths = new ArrayList<>();
+		List<String> newPaths = new ArrayList<>();
+		if (dto.getLogo() != null && dto.getLogo().startsWith("temp")) {
+			String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/logo.png";
+			String tmpPath = dto.getLogo();
+			newPaths.add(newPath);
+			tmpPaths.add(tmpPath);
+			data.setLogo(newPath);
+		}
 		repository.save(data);
+		transfer(true, tmpPaths, newPaths);
 		return new ResultBean<>();
 	}
 
@@ -101,6 +119,16 @@ public class GoodsRecommendCategoryController extends BaseController {
 			}
 		}
 		return new ResultBean<>();
+	}
+
+	@RequestMapping(value = "/file/upload/params/{id}")
+	public ResultBean<String> upload(@RequestParam("file") MultipartFile file, @PathVariable Long id) throws IOException {
+		return upload(file, fileDir, id, getRelatedCurrentUser().getId(), false);
+	}
+
+	@RequestMapping(value = "/file/load", produces = { MediaType.IMAGE_PNG_VALUE, MediaType.APPLICATION_OCTET_STREAM_VALUE })
+	public Resource load(@RequestParam String filePath) {
+		return load(getRelatedCurrentUser().getId(), filePath, fileDir, true);
 	}
 
 }

@@ -64,6 +64,8 @@ public enum AuthorityDefinitions {
 	GOODS_RECOMMEND_CATEGORY_LOAD("推荐类型-单个加载请求", "AUTH_GOODS_RECOMMEND_CATEGORY_LOAD", "/goods/category/recommend/load", "GET"),
 	GOODS_RECOMMEND_CATEGORY_SAVE("推荐类型-保存请求", "AUTH_GOODS_RECOMMEND_CATEGORY_SAVE", "/goods/category/recommend/save", "POST"),
 	GOODS_RECOMMEND_CATEGORY_DELETE("推荐类型-删除请求", "AUTH_GOODS_RECOMMEND_CATEGORY_DELETE", "/goods/category/recommend/delete", "POST"),
+	GOODS_RECOMMEND_CATEGORY_FILE_UPLOAD("推荐类型-文件上传请求", "AUTH_GOODS_RECOMMEND_CATEGORY_FILE_UPLOAD", "/goods/category/recommend/file/upload", "POST"),
+	GOODS_RECOMMEND_CATEGORY_FILE_LOAD("推荐类型-文件读取请求", "AUTH_GOODS_RECOMMEND_CATEGORY_FILE_LOAD", "/goods/category/recommend/file/load", "GET"),
 	
 	MERCHANT_SHOP_APPLICATION_INDEX_PAGE("店铺申请-索引页面", "AUTH_MERCHANT_SHOP_APPLICATION_INDEX_PAGE", "/Merchant/Shop/Application/Index/Page", "GET", true),
 	MERCHANT_SHOP_APPLICATION_NOPERMIT_PAGE("店铺申请-禁止页面", "AUTH_MERCHANT_SHOP_APPLICATION_NOPERMIT_PAGE", "/Merchant/Shop/Application/NoPermit/Page", "GET", true),
