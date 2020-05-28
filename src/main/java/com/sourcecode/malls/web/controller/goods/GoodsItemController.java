@@ -169,20 +169,7 @@ public class GoodsItemController extends BaseController {
 			}
 		}
 		if (!CollectionUtils.isEmpty(dto.getGroups())) {
-			for (Iterator<GoodsItemPhotoGroup> it = data.getGroups().iterator(); it.hasNext();) {
-				GoodsItemPhotoGroup group = it.next();
-				boolean found = false;
-				for (GoodsItemPhotoGroupDTO groupDTO : dto.getGroups()) {
-					if (group.getId().equals(groupDTO.getId())) {
-						found = true;
-						break;
-					}
-				}
-				if (!found) {
-					it.remove();
-					goodsItemPhotoGroupRepository.delete(group);
-				}
-			}
+			List<GoodsItemPhotoGroup> newList = new ArrayList<>();
 			for (GoodsItemPhotoGroupDTO groupDTO : dto.getGroups()) {
 				AssertUtil.assertTrue(!CollectionUtils.isEmpty(groupDTO.getPhotos()), "一个相册组至少要传一张图片");
 				GoodsItemPhotoGroup group = null;
@@ -198,6 +185,7 @@ public class GoodsItemController extends BaseController {
 				}
 				group.setName(groupDTO.getName());
 				goodsItemPhotoGroupRepository.save(group);
+				newList.add(group);
 				int order = 0;
 				for (Iterator<GoodsItemPhoto> it = group.getPhotos().iterator(); it.hasNext();) {
 					GoodsItemPhoto photo = it.next();
@@ -238,6 +226,20 @@ public class GoodsItemController extends BaseController {
 				}
 				if (CollectionUtils.isEmpty(group.getPhotos())) {
 					goodsItemPhotoGroupRepository.delete(group);
+				}
+			}
+			for (Iterator<GoodsItemPhotoGroup> it = data.getGroups().iterator(); it.hasNext();) {
+				GoodsItemPhotoGroup oldGroup = it.next();
+				boolean found = false;
+				for (GoodsItemPhotoGroup newGroup : newList) {
+					if (oldGroup.getId().equals(newGroup.getId())) {
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					it.remove();
+					goodsItemPhotoGroupRepository.delete(oldGroup);
 				}
 			}
 		} else {
