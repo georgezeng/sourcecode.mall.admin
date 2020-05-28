@@ -169,7 +169,7 @@ public class GoodsItemController extends BaseController {
 		}
 		if (!CollectionUtils.isEmpty(dto.getGroups())) {
 			for (GoodsItemPhotoGroupDTO groupDTO : dto.getGroups()) {
-				if ("默认".equals(groupDTO.getName())) {
+				if (groupDTO.getId() == null) {
 					continue;
 				}
 				AssertUtil.assertTrue(!CollectionUtils.isEmpty(groupDTO.getPhotos()), "一个相册组至少要传一张图片");
