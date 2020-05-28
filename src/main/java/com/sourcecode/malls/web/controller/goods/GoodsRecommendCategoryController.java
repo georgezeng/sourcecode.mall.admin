@@ -94,6 +94,8 @@ public class GoodsRecommendCategoryController extends BaseController {
 		data.setName(dto.getName());
 		data.setOrder(dto.getOrder());
 		data.setLink(dto.getLink());
+		data.setLogo(dto.getLogo());
+		repository.save(data);
 		List<String> tmpPaths = new ArrayList<>();
 		List<String> newPaths = new ArrayList<>();
 		if (dto.getLogo() != null && dto.getLogo().startsWith("temp")) {
@@ -103,8 +105,8 @@ public class GoodsRecommendCategoryController extends BaseController {
 			tmpPaths.add(tmpPath);
 			data.setLogo(newPath);
 		}
-		repository.save(data);
 		transfer(true, tmpPaths, newPaths);
+		repository.save(data);
 		return new ResultBean<>();
 	}
 
