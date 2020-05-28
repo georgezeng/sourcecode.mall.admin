@@ -224,9 +224,9 @@ public class GoodsItemController extends BaseController {
 						goodsItemPhotoRepository.save(photo);
 					}
 				}
-				if (CollectionUtils.isEmpty(group.getPhotos())) {
-					goodsItemPhotoGroupRepository.delete(group);
-				}
+//				if (CollectionUtils.isEmpty(group.getPhotos())) {
+//					goodsItemPhotoGroupRepository.delete(group);
+//				}
 			}
 			for (Iterator<GoodsItemPhotoGroup> it = data.getGroups().iterator(); it.hasNext();) {
 				GoodsItemPhotoGroup oldGroup = it.next();
