@@ -40,6 +40,7 @@ import com.sourcecode.malls.dto.goods.GoodsItemDTO;
 import com.sourcecode.malls.dto.goods.GoodsItemPhotoGroupDTO;
 import com.sourcecode.malls.dto.query.PageResult;
 import com.sourcecode.malls.dto.query.QueryInfo;
+import com.sourcecode.malls.exception.BusinessException;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsBrandRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsCategoryRepository;
 import com.sourcecode.malls.repository.jpa.impl.goods.GoodsItemPhotoGroupRepository;
@@ -168,6 +169,20 @@ public class GoodsItemController extends BaseController {
 			}
 		}
 		if (!CollectionUtils.isEmpty(dto.getGroups())) {
+			for (Iterator<GoodsItemPhotoGroup> it = data.getGroups().iterator(); it.hasNext();) {
+				GoodsItemPhotoGroup group = it.next();
+				boolean found = false;
+				for (GoodsItemPhotoGroupDTO groupDTO : dto.getGroups()) {
+					if (group.getId().equals(groupDTO.getId())) {
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					it.remove();
+					goodsItemPhotoGroupRepository.delete(group);
+				}
+			}
 			for (GoodsItemPhotoGroupDTO groupDTO : dto.getGroups()) {
 				if (groupDTO.getId() == null) {
 					continue;
@@ -228,6 +243,8 @@ public class GoodsItemController extends BaseController {
 					goodsItemPhotoGroupRepository.delete(group);
 				}
 			}
+		} else {
+			data.setGroups(null);
 		}
 		itemRepository.save(data);
 		if (data.getRank() == null) {
