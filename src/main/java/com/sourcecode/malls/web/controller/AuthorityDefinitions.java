@@ -58,6 +58,14 @@ public enum AuthorityDefinitions {
 	GOODS_SPECIFICATION_GROUP_SAVE("商品类型-保存请求", "AUTH_GOODS_SPECIFICATION_GROUP_SAVE", "/goods/specification/group/save", "POST"),
 	GOODS_SPECIFICATION_GROUP_DELETE("商品类型-删除请求", "AUTH_GOODS_SPECIFICATION_GROUP_DELETE", "/goods/specification/group/delete", "POST"),
 	
+	GOODS_RECOMMEND_CATEGORY_INDEX_PAGE("推荐类型-索引页面", "AUTH_GOODS_RECOMMEND_CATEGORY_INDEX_PAGE", "/Goods/Category/RECOMMEND/Index/Page", "GET"),
+	GOODS_RECOMMEND_CATEGORY_LIST_PAGE("推荐类型-列表页面", "AUTH_GOODS_RECOMMEND_CATEGORY_LIST_PAGE", "/Goods/Category/RECOMMEND/List/Page", "GET"),
+	GOODS_RECOMMEND_CATEGORY_EDIT_PAGE("推荐类型-编辑页面", "AUTH_GOODS_RECOMMEND_CATEGORY_EDIT_PAGE", "/Goods/Category/RECOMMEND/Edit/Page", "GET"),
+	GOODS_RECOMMEND_CATEGORY_LIST("推荐类型-列表请求", "AUTH_GOODS_RECOMMEND_CATEGORY_LIST", "/goods/category/recommend/list", "POST"),
+	GOODS_RECOMMEND_CATEGORY_LOAD("推荐类型-单个加载请求", "AUTH_GOODS_RECOMMEND_CATEGORY_LOAD", "/goods/category/recommend/load", "GET"),
+	GOODS_RECOMMEND_CATEGORY_SAVE("推荐类型-保存请求", "AUTH_GOODS_RECOMMEND_CATEGORY_SAVE", "/goods/category/recommend/save", "POST"),
+	GOODS_RECOMMEND_CATEGORY_DELETE("推荐类型-删除请求", "AUTH_GOODS_RECOMMEND_CATEGORY_DELETE", "/goods/category/recommend/delete", "POST"),
+	
 	MERCHANT_SHOP_APPLICATION_INDEX_PAGE("店铺申请-索引页面", "AUTH_MERCHANT_SHOP_APPLICATION_INDEX_PAGE", "/Merchant/Shop/Application/Index/Page", "GET", true),
 	MERCHANT_SHOP_APPLICATION_NOPERMIT_PAGE("店铺申请-禁止页面", "AUTH_MERCHANT_SHOP_APPLICATION_NOPERMIT_PAGE", "/Merchant/Shop/Application/NoPermit/Page", "GET", true),
 	MERCHANT_SHOP_APPLICATION_APPLY_PAGE("店铺申请-申请页面", "AUTH_MERCHANT_SHOP_APPLICATION_APPLY_PAGE", "/Merchant/Shop/Application/Apply/Page", "GET", true),
