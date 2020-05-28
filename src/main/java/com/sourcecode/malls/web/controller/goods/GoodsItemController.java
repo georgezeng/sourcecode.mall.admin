@@ -223,10 +223,11 @@ public class GoodsItemController extends BaseController {
 						photo.setPath(newPath);
 						goodsItemPhotoRepository.save(photo);
 					}
+				} else {
+					if (CollectionUtils.isEmpty(group.getPhotos())) {
+						goodsItemPhotoGroupRepository.delete(group);
+					}
 				}
-//				if (CollectionUtils.isEmpty(group.getPhotos())) {
-//					goodsItemPhotoGroupRepository.delete(group);
-//				}
 			}
 			for (Iterator<GoodsItemPhotoGroup> it = data.getGroups().iterator(); it.hasNext();) {
 				GoodsItemPhotoGroup oldGroup = it.next();
