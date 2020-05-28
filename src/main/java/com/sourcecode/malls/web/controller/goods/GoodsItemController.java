@@ -195,6 +195,7 @@ public class GoodsItemController extends BaseController {
 					}
 					if (path == null) {
 						it.remove();
+						goodsItemPhotoRepository.delete(photo);
 					} else if (path.startsWith("temp")) {
 						String newPath = fileDir + "/" + user.getId() + "/" + data.getId() + "/photo/" + (order + 1) + "_" + System.currentTimeMillis() + ".png";
 						newPaths.add(newPath);
