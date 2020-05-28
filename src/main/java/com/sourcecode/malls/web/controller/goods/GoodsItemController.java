@@ -167,7 +167,6 @@ public class GoodsItemController extends BaseController {
 				goodsItemPhotoRepository.save(photo);
 			}
 		}
-		int order = 0;
 		if (!CollectionUtils.isEmpty(dto.getGroups())) {
 			for (GoodsItemPhotoGroupDTO groupDTO : dto.getGroups()) {
 				if ("默认".equals(groupDTO.getName())) {
@@ -187,6 +186,7 @@ public class GoodsItemController extends BaseController {
 				}
 				group.setName(groupDTO.getName());
 				goodsItemPhotoGroupRepository.save(group);
+				int order = 0;
 				for (Iterator<GoodsItemPhoto> it = group.getPhotos().iterator(); it.hasNext();) {
 					GoodsItemPhoto photo = it.next();
 					String path = null;
@@ -223,7 +223,9 @@ public class GoodsItemController extends BaseController {
 						goodsItemPhotoRepository.save(photo);
 					}
 				}
-//				goodsItemPhotoGroupRepository.save(group);
+				if (CollectionUtils.isEmpty(group.getPhotos())) {
+					goodsItemPhotoGroupRepository.delete(group);
+				}
 			}
 		}
 		itemRepository.save(data);
