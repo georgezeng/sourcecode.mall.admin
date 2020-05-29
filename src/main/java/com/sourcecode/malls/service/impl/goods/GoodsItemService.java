@@ -49,8 +49,7 @@ public class GoodsItemService extends BaseGoodsItemService implements BaseServic
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public Predicate toPredicate(Root<GoodsItem> root, CriteriaQuery<?> query,
-					CriteriaBuilder criteriaBuilder) {
+			public Predicate toPredicate(Root<GoodsItem> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
 				List<Predicate> predicate = new ArrayList<>();
 				predicate.add(criteriaBuilder.equal(root.get("merchant"), merchantId));
 				if (queryInfo.getData() != null) {
@@ -58,18 +57,22 @@ public class GoodsItemService extends BaseGoodsItemService implements BaseServic
 					if (!StringUtils.isEmpty(searchText)) {
 						String like = "%" + searchText + "%";
 						predicate.add(criteriaBuilder.or(criteriaBuilder.like(root.get("name").as(String.class), like),
-								criteriaBuilder.like(root.get("number").as(String.class), like),
-								criteriaBuilder.like(root.get("code").as(String.class), like)));
+								criteriaBuilder.like(root.get("number").as(String.class), like), criteriaBuilder.like(root.get("code").as(String.class), like)));
 					}
 					if (!StringUtils.isEmpty(queryInfo.getData().getStatusText())) {
 						if (!"all".equals(queryInfo.getData().getStatusText())) {
-							predicate.add(criteriaBuilder.equal(root.get("enabled").as(boolean.class),
-									Boolean.valueOf(queryInfo.getData().getStatusText())));
+							String[] strs = queryInfo.getData().getStatusText().split("-");
+							if ("status".equals(strs[0])) {
+								predicate.add(criteriaBuilder.equal(root.get("enabled"), Boolean.valueOf(strs[1])));
+							} else if ("special".equals(strs[0])) {
+								predicate.add(criteriaBuilder.equal(root.get("special"), Boolean.valueOf(strs[1])));
+							} else if ("index".equals(strs[0])) {
+								predicate.add(criteriaBuilder.equal(root.get("index"), Integer.valueOf(strs[1])));
+							}
 						}
 					}
 					if (queryInfo.getData().getStartTime() != null) {
-						predicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("putTime"),
-								queryInfo.getData().getStartTime()));
+						predicate.add(criteriaBuilder.greaterThanOrEqualTo(root.get("putTime"), queryInfo.getData().getStartTime()));
 					}
 					if (queryInfo.getData().getEndTime() != null) {
 						Calendar c = Calendar.getInstance();

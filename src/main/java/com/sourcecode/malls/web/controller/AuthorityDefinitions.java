@@ -160,6 +160,8 @@ public enum AuthorityDefinitions {
 	
 	AFTERSALE_RETURN_ADDRESS_PAGE("回寄地址设置-设置页面", "AUTH_AFTERSALE_RETURN_ADDRESS_PAGE", "/AfterSale/ReturnAddress/Page", "GET"),
 	
+	EXPRESS_FEE_PAGE("运费设置-设置页面", "AUTH_EXPRESS_FEE_PAGE", "/ExpressFee/Page", "GET"),
+	
 	GOODS_ITEM_EVALUATION_LIST_PAGE("商品评价-列表页面", "AUTH_GOODS_ITEM_EVALUATION_LIST_PAGE", "/Evaluation/List/Page", "GET"),
 	GOODS_ITEM_EVALUATION_EDIT_PAGE("商品评价-编辑页面", "AUTH_GOODS_ITEM_EVALUATION_EDIT_PAGE", "/Evaluation/Edit/Page", "GET"),
 	GOODS_ITEM_EVALUATION_LIST("商品评价-列表请求", "AUTH_GOODS_ITEM_EVALUATION_LIST", "/evaluation/list", "POST"),
