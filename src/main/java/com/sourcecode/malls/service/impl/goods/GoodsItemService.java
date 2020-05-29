@@ -67,7 +67,7 @@ public class GoodsItemService extends BaseGoodsItemService implements BaseServic
 							} else if ("special".equals(strs[0])) {
 								predicate.add(criteriaBuilder.equal(root.get("special"), Boolean.valueOf(strs[1])));
 							} else if ("index".equals(strs[0])) {
-								predicate.add(criteriaBuilder.equal(root.get("index"), Integer.valueOf(strs[1])));
+								predicate.add(criteriaBuilder.equal(root.get("indexRecommend"), Integer.valueOf(strs[1])));
 							}
 						}
 					}
