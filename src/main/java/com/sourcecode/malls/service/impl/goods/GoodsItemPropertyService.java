@@ -56,7 +56,7 @@ public class GoodsItemPropertyService implements JpaService<GoodsItemProperty, L
 				data = dto.asEntity();
 				data.setItem(item);
 			} else {
-				if (dto.getPath().startsWith("temp/")) {
+				if (dto.getPath() != null && dto.getPath().startsWith("temp/")) {
 					tempPaths.add(dto.getPath());
 					String fileName = dto.getPath().replaceAll(".+/", "");
 					String newPath = "goods/item/" + user.getId() + "/" + item.getId() + "/specs/" + fileName;
