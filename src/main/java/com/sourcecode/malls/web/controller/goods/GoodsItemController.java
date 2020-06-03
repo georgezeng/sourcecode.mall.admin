@@ -233,18 +233,20 @@ public class GoodsItemController extends BaseController {
 					}
 				}
 			}
-			for (Iterator<GoodsItemPhotoGroup> it = data.getGroups().iterator(); it.hasNext();) {
-				GoodsItemPhotoGroup oldGroup = it.next();
-				boolean found = false;
-				for (GoodsItemPhotoGroup newGroup : newList) {
-					if (oldGroup.getId().equals(newGroup.getId())) {
-						found = true;
-						break;
+			if (!CollectionUtils.isEmpty(newList)) {
+				for (Iterator<GoodsItemPhotoGroup> it = data.getGroups().iterator(); it.hasNext();) {
+					GoodsItemPhotoGroup oldGroup = it.next();
+					boolean found = false;
+					for (GoodsItemPhotoGroup newGroup : newList) {
+						if (oldGroup.getId().equals(newGroup.getId())) {
+							found = true;
+							break;
+						}
 					}
-				}
-				if (!found) {
-					it.remove();
-					goodsItemPhotoGroupRepository.delete(oldGroup);
+					if (!found) {
+						it.remove();
+						goodsItemPhotoGroupRepository.delete(oldGroup);
+					}
 				}
 			}
 		} else {
