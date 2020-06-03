@@ -155,15 +155,16 @@ public class GoodsItemController extends BaseController {
 			tmpPaths.add(tmpPath);
 			data.setVedioPath(newPath);
 		}
+		GoodsItemPhotoGroup defaultGroup = null;
 		List<GoodsItemPhoto> photos = data.getPhotos();
 		if (!CollectionUtils.isEmpty(photos)) {
-			GoodsItemPhotoGroup group = new GoodsItemPhotoGroup();
-			group.setName("默认");
-			group.setItem(data);
-			goodsItemPhotoGroupRepository.save(group);
+			defaultGroup = new GoodsItemPhotoGroup();
+			defaultGroup.setName("默认");
+			defaultGroup.setItem(data);
+			goodsItemPhotoGroupRepository.save(defaultGroup);
 			for (GoodsItemPhoto photo : photos) {
 				photo.setItem(null);
-				photo.setGroup(group);
+				photo.setGroup(defaultGroup);
 				goodsItemPhotoRepository.save(photo);
 			}
 		}
@@ -173,9 +174,13 @@ public class GoodsItemController extends BaseController {
 				AssertUtil.assertTrue(!CollectionUtils.isEmpty(groupDTO.getPhotos()), "一个相册组至少要传一张图片");
 				GoodsItemPhotoGroup group = null;
 				if (groupDTO.getId() == null) {
-					group = new GoodsItemPhotoGroup();
-					group.setPhotos(new ArrayList<>());
-					group.setItem(data);
+					if (!groupDTO.getPhotos().stream().anyMatch(it -> it.startsWith("temp/"))) {
+						group = new GoodsItemPhotoGroup();
+						group.setPhotos(new ArrayList<>());
+						group.setItem(data);
+					} else {
+						continue;
+					}
 				} else {
 					Optional<GoodsItemPhotoGroup> op = goodsItemPhotoGroupRepository.findById(groupDTO.getId());
 					AssertUtil.assertTrue(op.isPresent(), "相册组不存在");
