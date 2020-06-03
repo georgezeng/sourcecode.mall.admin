@@ -56,15 +56,15 @@ public class GoodsItemPropertyService implements JpaService<GoodsItemProperty, L
 				data = dto.asEntity();
 				data.setItem(item);
 			} else {
-				if (dto.getPath() != null && dto.getPath().startsWith("temp/")) {
-					tempPaths.add(dto.getPath());
-					String fileName = dto.getPath().replaceAll(".+/", "");
-					String newPath = "goods/item/" + user.getId() + "/" + item.getId() + "/specs/" + fileName;
-					newPaths.add(newPath);
-					data.setPath(newPath);
-				}
 				data.setInventory(dto.getInventory());
 				data.setPrice(dto.getPrice());
+			}
+			if (dto.getPath() != null && dto.getPath().startsWith("temp/")) {
+				tempPaths.add(dto.getPath());
+				String fileName = dto.getPath().replaceAll(".+/", "");
+				String newPath = "goods/item/" + user.getId() + "/" + item.getId() + "/specs/" + fileName;
+				newPaths.add(newPath);
+				data.setPath(newPath);
 			}
 			List<GoodsSpecificationValue> values = new ArrayList<>();
 			for (GoodsAttributeDTO valueDto : dto.getValues()) {
