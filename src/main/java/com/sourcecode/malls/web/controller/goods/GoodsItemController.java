@@ -174,7 +174,7 @@ public class GoodsItemController extends BaseController {
 				AssertUtil.assertTrue(!CollectionUtils.isEmpty(groupDTO.getPhotos()), "一个相册组至少要传一张图片");
 				GoodsItemPhotoGroup group = null;
 				if (groupDTO.getId() == null) {
-					if (!groupDTO.getPhotos().stream().anyMatch(it -> it.startsWith("temp/"))) {
+					if (groupDTO.getPhotos().stream().anyMatch(it -> it.startsWith("temp/"))) {
 						group = new GoodsItemPhotoGroup();
 						group.setPhotos(new ArrayList<>());
 						group.setItem(data);
