@@ -233,7 +233,7 @@ public class GoodsItemController extends BaseController {
 					}
 				}
 			}
-			if (!CollectionUtils.isEmpty(newList)) {
+			if (!CollectionUtils.isEmpty(newList) && data.getGroups() != null) {
 				for (Iterator<GoodsItemPhotoGroup> it = data.getGroups().iterator(); it.hasNext();) {
 					GoodsItemPhotoGroup oldGroup = it.next();
 					boolean found = false;
